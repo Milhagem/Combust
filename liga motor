@@ -5,6 +5,7 @@
 #define freio         11  //Entrada sensor freio
 #define SERVOPIN      8   // Saída Digital 8 PWM
 #define switchSS      10  //Entrada chave liga desliga start/stop (Z)
+#define LED           9   // Saída Digital 9 
 
 #define FALSE 0
 #define TRUE 1
@@ -18,6 +19,7 @@
 
 Servo servo; // Variável Servo
 int pos=0; // Posição Servo
+int auxDelay=0;
 //boolean on_off; //Chave liga desliga autopilot
 boolean estadoMotor = DESLIGADO;
 //int vec;  //Valor de velocidade(será definido ainda)
@@ -35,7 +37,7 @@ void setup() {
   pinMode(switchSS,INPUT_PULLUP); //(Z)
   pinMode(A0,INPUT);  //velocidade atual
   pinMode(A1,INPUT);  //comparador de tensao 
-  pinMode(9,OUTPUT);
+  pinMode(LED,OUTPUT);
   
   servo.write(0); // Inicia motor posição zero
   estadoMotor = DESLIGADO;
@@ -47,40 +49,82 @@ void setup() {
 //******************40 == velocidade 0 -> está com esse valor para fins de simulação
 void loop() {
   switch (FSMstate)
-  {//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  {
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
      case 0: // ON/OFF  Estado em que o start/stop está desligado
-       if(digitalRead(switchSS) == 0 && analogRead(A0)>vecMin){//liga start/stop
+     
+       //liga start/stop se a velocidade nao esta proxima de 0
+       if(digitalRead(switchSS) == 0 && analogRead(A0)>ZEROvec){
         FSMstate = 1;
        }
+       
+       //se a velocidade estiver proxima de 0 vai para o estado de Monitoramento ZEROvec
+       else if(digitalRead(switchSS) == 0 && analogRead(A0)<ZEROvec){
+        FSMstate = 10;
+        digitalWrite(LED,HIGH);//liga o led avisando para acelerar
+       }   
+       
        Serial.println("FSMstate:0"); 
      break;
+     
+   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     case 10: // Monitoramento ZEROvec
+     
+       //Monitora a velocidade esperando que seu valor aumente
+       if(digitalRead(switchSS) == 0 && analogRead(A0)>ZEROvec){
+        FSMstate = 1;
+        digitalWrite(LED,LOW);//desliga o led
+       }
+       
+       //Ativa modo manual
+       else if(digitalRead(switchSS) == 1){
+        pos=0;
+        servo.write(pos);
+        FSMstate = 0;
+        digitalWrite(LED,LOW);//desliga o led
+       }
+  
+       Serial.println("FSMstate:10"); 
+     break;
+     
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
      case 1://Monitoramento Velocidade
+     
        //Caso a velocidade esteja abaixo de 29km/h e o motor esteja desligado
-       if(digitalRead(switchSS) == 0 && analogRead(A0)<vecMax && analogRead(A0)>ZEROvec && estadoMotor == DESLIGADO && digitalRead(freio) == 1){
+       if(digitalRead(switchSS) == 0 && analogRead(A0)<vecMax && estadoMotor == DESLIGADO && digitalRead(freio) == 1){
         ligaMotorFunction(); 
         FSMstate = 2;
        }
+       
        //Caso a velocidade esteja abaixo de 29km/h e o motor esteja ligado
-       else if(digitalRead(switchSS) == 0 && analogRead(A0)<vecMax && analogRead(A0)>ZEROvec && estadoMotor == LIGADO && digitalRead(freio) == 1){
+       else if(digitalRead(switchSS) == 0 && analogRead(A0)<vecMax && estadoMotor == LIGADO && digitalRead(freio) == 1){
         FSMstate = 2;
        }
+       
+       //Caso a velocidade esteja acima de 29 km/h
        else if(digitalRead(switchSS) == 0 && analogRead(A0)>vecMax && digitalRead(freio) == 1){//Caso a velocidade esteja acima de 29 km/h
         desligaMotorFunction(); 
         FSMstate = 3;
        }
+       
+       // Freio pressionado
        else if(digitalRead(switchSS) == 0 && digitalRead(freio) == 0 ){// Freio pressionado
         FSMstate = 5;
        }
-       else if(digitalRead(switchSS) == 1){//Ativa modo manual
+       
+       //Ativa modo manual
+       else if(digitalRead(switchSS) == 1){
         pos=0;
         servo.write(pos);
         FSMstate = 0;
        }
        Serial.println("FSMstate = 1");
      break;
+     
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////
      case 2://incremento aceleracao
+     
+        varAuxDelay
        if( digitalRead(switchSS) == 0 && digitalRead(freio) == 1){//Caso o freio esteja solto
           if(pos<=80) //Aumenta a abertura do borboleta
             pos+=10;
