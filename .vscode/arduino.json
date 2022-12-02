@@ -1,6 +1,0 @@
-{
-    "board": "arduino:avr:mega",
-    "port": "/dev/ttyUSB0",
-    "sketch": "cr7/hall/hall.ino",
-    "configuration": "cpu=atmega2560"
-}
