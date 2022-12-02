@@ -1,6 +1,6 @@
 #include "Motor.h"
 
-float Motor::analiseTensao(){
+float Motor::analisaTensao(){
   float valorInicial = analogRead(A1);
   float tensao = (valorInicial*5.0) / 1024; 
   return tensao;
@@ -13,7 +13,7 @@ void Motor::ligaMotor(){
   // Verifica a tensao por 1s
   for (int i = 0; i < 10; i++) {    
     delay(100);
-    float tensao = analiseTensao();
+    float tensao = analisaTensao();
     if(tensao < (tensaoLigado+1) && tensao > (tensaoLigado-1)) { i++; } 
     else { i = 0; }
   }
@@ -25,7 +25,6 @@ void Motor::ligaMotor(){
   Serial.println("Motor ligado");
   printVelocidade();
 }
-
 
 
 void Motor::desligaMotor(){
@@ -42,6 +41,7 @@ void Motor::desligaMotor(){
   Serial.println("Motor desligado");
   printVelocidade();
 }
+
 
 void Motor::printVelocidade(){
   Serial.print("Velocidade: "); 
