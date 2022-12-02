@@ -16,7 +16,7 @@ class Motor{
     float tensaoLigado;
 
   public:
-    float analisaTensao();
+    float analisTensao();
     void ligaMotor();
     /**
     * @brief Apos velocidade max ser alcançada, desliga motor e volta servo pra posicao inicial
