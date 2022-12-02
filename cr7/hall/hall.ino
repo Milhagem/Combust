@@ -1,3 +1,4 @@
+
 int hallPin = 19;
 int ledRed = 2;
 
