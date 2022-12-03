@@ -18,17 +18,17 @@ float Motor::analisaTensao(){
 
 
 void Motor::ligaMotor(){
-  digitalWrite(pLigaMotor, HIGH);
+  digitalWrite(pinLigaMotor, HIGH);
   Serial.println("Ligando Motor");
   // Verifica a tensao por 1s
   for (int i = 0; i < 10; i++) {    
     delay(100);
     float tensao = analisaTensao();
-    if(tensao < (tensaoLigado+1) && tensao > (tensaoLigado-1)) { i++; } 
+    if(tensao < (tensaoMotorON+1) && tensao > (tensaoMotorON-1)) { i++; } 
     else { i = 0; }
   }
 
-  digitalWrite(pLigaMotor,LOW);  // liga motor de arranque por 800ms ??????
+  digitalWrite(pinLigaMotor,LOW);  // liga motor de arranque por 800ms ??????
   estadoMotor = LIGADO;
   digitalWrite(9, HIGH);
 
@@ -41,11 +41,11 @@ void Motor::desligaMotor(){
   int pos = 0;
   servo.attach(pos);
 
-  digitalWrite(pDesligaMotor,HIGH);
+  digitalWrite(pinDesligaMotor,HIGH);
   digitalWrite(9,LOW);
   delay(800);
 
-  digitalWrite(pDesligaMotor,LOW);
+  digitalWrite(pinDesligaMotor,LOW);
   estadoMotor = DESLIGADO;
 
   Serial.println("Motor desligado");

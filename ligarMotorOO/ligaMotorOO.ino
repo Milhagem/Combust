@@ -1,10 +1,8 @@
 #include "Motor.h"
 
-#define pinLigaMotor    13 // CONFERIR
-#define pinDesligaMotor 12 // CONFERIR
-#define freio           11 
 #define pinServo         8
-#define switchSS        10
+#define freio           11 // CONFERIR
+#define switchSS        10 // CONFERIR
 
 #define FALSE         0
 #define TRUE          1
