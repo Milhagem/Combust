@@ -1,10 +1,10 @@
 #include "Motor.h"
 
-#define pLigaMotor    13
-#define pDesligaMotor 12
-#define freio         11 
-#define pServo         8
-#define switchSS      10
+#define pinLigaMotor    13
+#define pinDesligaMotor 12
+#define freio           11 
+#define pinServo         8
+#define switchSS        10
 
 #define FALSE         0
 #define TRUE          1
@@ -17,7 +17,6 @@
 #define ZEROvec       50
 #define tensaoMotorON  5
 
-
 #define stateSS_off       0
 #define stateMonitoraVec  1
 #define stateIncrementVec 2
@@ -26,7 +25,6 @@
 #define stateFreiando     5
 
 Motor motor;
-Servo servo;
 int pos;
 // boolean on_off; // chave liga desliga autopilot
 boolean estadoMotor = DESLIGADO;
@@ -37,20 +35,20 @@ int valorInicial;
 float tensao;
 
 void setup() {
-  servo.attach(pServo);
+  motor.servo.attach(pinServo);
   
-  pinMode(pLigaMotor,OUTPUT);
-  pinMode(pDesligaMotor,OUTPUT);
+  pinMode(pinLigaMotor,OUTPUT);
+  pinMode(pinDesligaMotor,OUTPUT);
   pinMode(freio,INPUT_PULLUP);  // (Fa)
   pinMode(switchSS,INPUT_PULLUP); // (Z)
-  pinMode(vecAtual,INPUT);  // velocidade atual
-  pinMode(comparaTensao,INPUT);  // comparador de tensao 
+  pinMode(vecAtual,INPUT); 
+  pinMode(comparaTensao,INPUT);
   pinMode(9,OUTPUT);
   
-  servo.write(0); // Inicia motor posição zero
+  motor.servo.write(0); // Inicia motor na posicao 0
   estadoMotor = DESLIGADO;
-  digitalWrite(pLigaMotor,LOW);
-  digitalWrite(pDesligaMotor,LOW);
+  digitalWrite(pinLigaMotor,LOW);
+  digitalWrite(pinDesligaMotor,LOW);
   
   Serial.begin(9600);
 }
@@ -59,7 +57,7 @@ void setup() {
 void loop() {
   switch (FSMstate)
   { 
-    case 0:
+    case stateSS_off:
       Serial.println("FSMstate = StartStop OFF");
 
       if(digitalRead(switchSS) == 0 && analogRead(vecAtual)>vecMin){
@@ -68,8 +66,8 @@ void loop() {
     break;
   
 
-    case 1:
-      Serial.println("FSMstate = StartStop OFF");
+    case stateMonitoraVec:
+      Serial.println("FSMstate = Monitora velocidade");
 
       while(digitalRead(switchSS) == DESLIGADO) {
         if(digitalRead(freio) == PRESSIONADO) {
@@ -90,13 +88,14 @@ void loop() {
     break;
   
 
-    case 2: 
+    case stateIncrementVec: 
       Serial.println("FSMstate = Incrementa Velocidade");
+
       while(digitalRead(switchSS) == DESLIGADO) {
         if(digitalRead(freio) != PRESSIONADO){
           if(pos <= 80) {
             pos+=10;
-            servo.write(pos);
+            motor.servo.write(pos);
             motor.printVelocidade();
             Serial.print("    ; Posicao: "); 
             Serial.println(pos);
@@ -112,8 +111,9 @@ void loop() {
     break;
   
 
-    case 3:
+    case stateDesligaMotor:
       Serial.println("FSMstate = Desliga Motor");
+
       while(digitalRead(switchSS == DESLIGADO)){
         if(analogRead(vecAtual)<vecMin && digitalRead(freio) != PRESSIONADO){
           motor.ligaMotor();
@@ -127,7 +127,7 @@ void loop() {
     break;
   
 
-    case 4:
+    case stateLigaMotor:
       Serial.println("FSMstate = Liga Motor"); 
 
       while(digitalRead(switchSS) == DESLIGADO){
@@ -143,16 +143,17 @@ void loop() {
     break;
   
 
-    case 5:
+    case stateFreiando:
       Serial.println("FSMstate = Freio Pressionado"); 
-        while(digitalRead(switchSS) == DESLIGADO) {
-          if(digitalRead(freio) == PRESSIONADO){
-            pos = 0;
-            servo.write(pos);
-          } else if(digitalRead(freio) != PRESSIONADO ){// Freio solto
-            FSMstate = stateMonitoraVec;
-          }
+    
+      while(digitalRead(switchSS) == DESLIGADO) {
+        if(digitalRead(freio) == PRESSIONADO){
+          pos = 0;
+          motor.servo.write(pos);
+        } else if(digitalRead(freio) != PRESSIONADO ){// Freio solto
+          FSMstate = stateMonitoraVec;
         }
+      }
 
       FSMstate = motor.desligaStartStop();
     break;
