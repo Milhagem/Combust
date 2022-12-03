@@ -6,10 +6,10 @@ float Motor::analisaTensao(){
   return tensao;
 }
 
+
 void Motor::ligaMotor(){
   digitalWrite(pLigaMotor, HIGH);
   Serial.println("Ligando Motor");
-    
   // Verifica a tensao por 1s
   for (int i = 0; i < 10; i++) {    
     delay(100);
@@ -29,7 +29,7 @@ void Motor::ligaMotor(){
 
 void Motor::desligaMotor(){
   int pos = 0;
-  servo.write(pos);
+  servo.attach(pos);
 
   digitalWrite(pDesligaMotor,HIGH);
   digitalWrite(9,LOW);
@@ -45,5 +45,12 @@ void Motor::desligaMotor(){
 
 void Motor::printVelocidade(){
   Serial.print("Velocidade: "); 
-  Serial.println(analogRead(A0)); 
+  Serial.println(analogRead(vecAtual)); 
+}
+
+
+int Motor::desligaStartStop(){
+  int pos = 0;
+  servo.attach(pos);
+  return 0;
 }

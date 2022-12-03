@@ -6,17 +6,19 @@
 
 #define LIGADO 1
 #define DESLIGADO 0
+#define vecAtual      A0
+#define comparaTensao A1
 
 class Motor{
   private:
-    Servo servo;
     int pLigaMotor;
     int pDesligaMotor;
     bool estadoMotor;
     float tensaoLigado;
 
   public:
-    float analisTensao();
+    Servo servo;
+    float analisaTensao();
     void ligaMotor();
     /**
     * @brief Apos velocidade max ser alcançada, desliga motor e volta servo pra posicao inicial
@@ -24,6 +26,7 @@ class Motor{
     */
     void desligaMotor();
     void printVelocidade();
+    int desligaStartStop();
 
 };
 
