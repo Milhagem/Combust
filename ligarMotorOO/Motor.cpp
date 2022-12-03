@@ -1,5 +1,15 @@
 #include "Motor.h"
 
+void Motor::servoAttach(int pin){
+  this->servo.attach(pin);
+}
+
+
+void Motor::servoWrite(int value){
+  this->servo.write(value);
+}
+
+
 float Motor::analisaTensao(){
   float valorInicial = analogRead(A1);
   float tensao = (valorInicial*5.0) / 1024; 
@@ -43,14 +53,14 @@ void Motor::desligaMotor(){
 }
 
 
-void Motor::printVelocidade(){
-  Serial.print("Velocidade: "); 
-  Serial.println(analogRead(vecAtual)); 
-}
-
-
 int Motor::desligaStartStop(){
   int pos = 0;
   servo.attach(pos);
   return 0;
+}
+
+
+void Motor::printVelocidade(){
+  Serial.print("Velocidade: "); 
+  Serial.println(analogRead(vecAtual)); 
 }

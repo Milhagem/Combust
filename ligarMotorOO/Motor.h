@@ -6,23 +6,27 @@
 
 #define LIGADO 1
 #define DESLIGADO 0
-#define vecAtual      A0
-#define comparaTensao A1
+#define vecAtual      A0 // CONFERIR
+#define comparaTensao A1 // CONFERIR
 
-#define vecMin       100
-#define vecMax       300
-#define ZEROvec       50
-#define tensaoMotorON  5
+#define vecMin       100 // CONFERIR
+#define vecMax       300 // CONFERIR
+#define ZEROvec       50 // CONFERIR
+#define tensaoMotorON  5 // CONFERIR
 
 class Motor{
   private:
+    Servo servo;
     int pLigaMotor;
     int pDesligaMotor;
     bool estadoMotor;
     float tensaoLigado;
 
   public:
-    Servo servo;
+
+    void servoAttach(int pin);
+    void servoWrite(int value);
+
     float analisaTensao();
     void ligaMotor();
     /**
@@ -32,6 +36,8 @@ class Motor{
     void desligaMotor();
     void printVelocidade();
     int desligaStartStop();
+
+
 
 };
 

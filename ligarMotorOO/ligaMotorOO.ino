@@ -1,7 +1,7 @@
 #include "Motor.h"
 
-#define pinLigaMotor    13
-#define pinDesligaMotor 12
+#define pinLigaMotor    13 // CONFERIR
+#define pinDesligaMotor 12 // CONFERIR
 #define freio           11 
 #define pinServo         8
 #define switchSS        10
@@ -28,17 +28,17 @@ int valorInicial;
 float tensao;
 
 void setup() {
-  motor.servo.attach(pinServo);
+  motor.servoAttach(pinServo);
   
   pinMode(pinLigaMotor,OUTPUT);
   pinMode(pinDesligaMotor,OUTPUT);
-  pinMode(freio,INPUT_PULLUP);  // (Fa)
-  pinMode(switchSS,INPUT_PULLUP); // (Z)
+  pinMode(freio,INPUT_PULLUP);
+  pinMode(switchSS,INPUT_PULLUP);
   pinMode(vecAtual,INPUT); 
   pinMode(comparaTensao,INPUT);
   pinMode(9,OUTPUT);
   
-  motor.servo.write(0); // Inicia motor na posicao 0
+  motor.servoWrite(0);
   estadoMotor = DESLIGADO;
   digitalWrite(pinLigaMotor,LOW);
   digitalWrite(pinDesligaMotor,LOW);
@@ -88,7 +88,7 @@ void loop() {
         if(digitalRead(freio) != PRESSIONADO){
           if(pos <= 80) {
             pos+=10;
-            motor.servo.write(pos);
+            motor.servoWrite(pos);
             motor.printVelocidade();
             Serial.print("    ; Posicao: "); 
             Serial.println(pos);
@@ -142,7 +142,7 @@ void loop() {
       while(digitalRead(switchSS) == DESLIGADO) {
         if(digitalRead(freio) == PRESSIONADO){
           pos = 0;
-          motor.servo.write(pos);
+          motor.servoWrite(pos);
         } else if(digitalRead(freio) != PRESSIONADO ){// Freio solto
           FSMstate = stateMonitoraVec;
         }
