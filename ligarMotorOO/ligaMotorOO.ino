@@ -8,14 +8,7 @@
 
 #define FALSE         0
 #define TRUE          1
-#define LIGADO        1
-#define DESLIGADO     0
 #define PRESSIONADO   0
-
-#define vecMin       100
-#define vecMax       300
-#define ZEROvec       50
-#define tensaoMotorON  5
 
 #define stateSS_off       0
 #define stateMonitoraVec  1

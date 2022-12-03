@@ -1,5 +1,5 @@
-#ifndef Motor_h
-#define Motor_h
+#ifndef MOTOR_H
+#define MOTOR_H
 
 #include "Arduino.h"
 #include "Servo.h"
@@ -8,6 +8,11 @@
 #define DESLIGADO 0
 #define vecAtual      A0
 #define comparaTensao A1
+
+#define vecMin       100
+#define vecMax       300
+#define ZEROvec       50
+#define tensaoMotorON  5
 
 class Motor{
   private:
