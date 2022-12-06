@@ -11,7 +11,7 @@ void Motor::servoWrite(int value){
 
 
 float Motor::analisaTensao(){
-  float valorInicial = analogRead(A1);
+  float valorInicial = analogRead(A1); 
   float tensao = (valorInicial*5.0) / 1024; 
   return tensao;
 }

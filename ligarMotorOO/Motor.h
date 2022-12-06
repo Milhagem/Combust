@@ -4,18 +4,18 @@
 #include "Arduino.h"
 #include "Servo.h"
 
-#define pinLigaMotor    13 // CONFERIR
-#define pinDesligaMotor 12 // CONFERIR
+#define pinLigaMotor    12 // CONFERIDO
+#define pinDesligaMotor 11 // CONFERIDO
 
 #define LIGADO         1
 #define DESLIGADO      0
-#define vecAtual      A0 // CONFERIR
-#define comparaTensao A1 // CONFERIR
+#define vecAtual      A9 // CONFERIDO (de acordo com o pino do pedal em seu código de teste)
+#define comparaTensao A2 // CONFERIDO
 
-#define vecMin       100 // CONFERIR
-#define vecMax       300 // CONFERIR
-#define ZEROvec       50 // CONFERIR
-#define tensaoMotorON  5 // CONFERIR
+#define vecMin       100      // CONFERIR
+#define vecMax       300      // CONFERIR
+#define ZEROvec       50      // CONFERIR
+#define tensaoMotorON  1024/5 // CONFERIR (proporção estimada: quando está ligado, 1V (de um máximo de 5V))
 
 class Motor{
   
