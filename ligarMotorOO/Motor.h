@@ -12,10 +12,10 @@
 #define vecAtual      A9 // CONFERIDO (de acordo com o pino do pedal em seu código de teste)
 #define comparaTensao A2 // CONFERIDO
 
-#define vecMin       100      // CONFERIR
-#define vecMax       300      // CONFERIR
-#define ZEROvec       50      // CONFERIR
-#define tensaoMotorON  1024/5 // CONFERIR (proporção estimada: quando está ligado, 1V (de um máximo de 5V))
+#define vecMin         100      // CONFERIR
+#define vecMax         300      // CONFERIR
+#define ZEROvec         50      // CONFERIR
+#define tensaoMotorON 1024/5    // CONFERIR (proporção estimada: quando está ligado, 1V (de um máximo de 5V))
 
 class Motor{
   

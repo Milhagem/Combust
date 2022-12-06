@@ -1,8 +1,8 @@
 #include "Motor.h"
 
 #define pinServo         8
-#define freio           11 // CONFERIR
-#define switchSS        10 // CONFERIR
+#define freio           15 // CONFERIDO
+#define switchSS        14 // CONFERIDO
 
 #define FALSE         0
 #define TRUE          1
@@ -17,7 +17,6 @@
 
 Motor motor;
 int pos;
-// boolean on_off; // chave liga desliga autopilot
 boolean estadoMotor = DESLIGADO;
 // int vec;  // valor de velocidade (sera definido ainda)
 int FSMstate = 0;
@@ -122,8 +121,8 @@ void loop() {
       Serial.println("FSMstate = Liga Motor"); 
 
       while(digitalRead(switchSS) == DESLIGADO){
-        if(digitalRead(freio) != PRESSIONADO) { //&& digitalRead(Lx)==1{
-          // Resposta da comparacao do sinal LM2097 (diferenca de tensao se manteve 2V)
+        if(digitalRead(freio) != PRESSIONADO) {
+          motor.ligaMotor();
           FSMstate = stateMonitoraVec;
         } else if(digitalRead(freio) == PRESSIONADO){
           FSMstate = stateFreiando;
@@ -141,7 +140,7 @@ void loop() {
         if(digitalRead(freio) == PRESSIONADO){
           pos = 0;
           motor.servoWrite(pos);
-        } else if(digitalRead(freio) != PRESSIONADO ){// Freio solto
+        } else if(digitalRead(freio) != PRESSIONADO ){
           FSMstate = stateMonitoraVec;
         }
       }
