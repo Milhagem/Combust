@@ -29,7 +29,7 @@ class Motor{
     void servoWrite(int value);
 
     /**
-     * Le a tensao
+     * Le a tensao de saida do LM2907
      */
     float analisaTensao();
     
@@ -47,6 +47,7 @@ class Motor{
      * @brief desliga o Start Stop (passa para o Modo Manual) e volta o servo para a posicao inicial
      */
     int desligaStartStop();
+    boolean checaEstadoMotor();
 
 
 

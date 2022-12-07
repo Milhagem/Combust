@@ -28,7 +28,7 @@
 
 Motor motor;
 int pos;
-boolean estadoMotor = DESLIGADO;
+boolean estadoMotor;
 int FSMstate = stateSS_off;
 
 int valorInicial; 
@@ -43,7 +43,6 @@ void setup() {
   pinMode(switchSS,INPUT_PULLUP);
   pinMode(vecAtual,INPUT); 
   pinMode(LM2907,INPUT);
-  // pinMode(9,OUTPUT); Pra que serve este pino?  
 
   digitalWrite(pinLigaMotor,LOW);
   digitalWrite(pinDesligaMotor,LOW);
@@ -66,7 +65,7 @@ void loop() {
       Serial.println(analogRead(vecAtual));
   
 
-      if(digitalRead(switchSS) == DESLIGADO && analogRead(vecAtual)>vecMin){
+      if(digitalRead(switchSS) == LOW && analogRead(vecAtual)>vecMin){
         FSMstate = stateMonitoraVec;
       }
     break;
@@ -75,7 +74,7 @@ void loop() {
     case stateMonitoraVec:
       Serial.println("FSMstate = Monitora velocidade");
 
-      while(digitalRead(switchSS) == DESLIGADO) {
+      while(digitalRead(switchSS) == LOW) {
         if(digitalRead(freio) == PRESSIONADO) {
           FSMstate = stateFreiando;
         }
@@ -97,7 +96,7 @@ void loop() {
     case stateIncrementVec: 
       Serial.println("FSMstate = Incrementa Velocidade");
 
-      while(digitalRead(switchSS) == DESLIGADO) {
+      while(digitalRead(switchSS) == LOW) {
         if(digitalRead(freio) != PRESSIONADO){
           if(pos <= 80) {
             pos+=10;
@@ -120,7 +119,7 @@ void loop() {
     case stateDesligaMotor:
       Serial.println("FSMstate = Desliga Motor");
 
-      while(digitalRead(switchSS == DESLIGADO)){
+      while(digitalRead(switchSS) == LOW){
         if(analogRead(vecAtual)<vecMin && digitalRead(freio) != PRESSIONADO){
           motor.ligaMotor();
           FSMstate = stateLigaMotor;
@@ -136,7 +135,7 @@ void loop() {
     case stateLigaMotor:
       Serial.println("FSMstate = Liga Motor"); 
 
-      while(digitalRead(switchSS) == DESLIGADO){
+      while(digitalRead(switchSS) == LOW){
         if(digitalRead(freio) != PRESSIONADO) {
           motor.ligaMotor();
           FSMstate = stateMonitoraVec;
@@ -152,7 +151,7 @@ void loop() {
     case stateFreiando:
       Serial.println("FSMstate = Freio Pressionado"); 
     
-      while(digitalRead(switchSS) == DESLIGADO) {
+      while(digitalRead(switchSS) == LOW) {
         if(digitalRead(freio) == PRESSIONADO){
           pos = 0;
           motor.servoWrite(pos);
