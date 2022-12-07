@@ -1,8 +1,16 @@
 #include "Motor.h"
 
-#define pinServo         8
-#define freio           15 // CONFERIDO
-#define switchSS        14 // CONFERIDO
+/**
+ * Conferir funcao ligaMotor(); - Ela aciona os reles?
+ * Conferir funcao desligaMotor(); - Ela desliga os reles?
+*/
+
+
+#define pedalGND  A8
+#define pedalVcc A10
+#define pinServo   8
+#define freio    A15
+#define switchSS A14
 
 #define FALSE         0
 #define TRUE          1
@@ -18,8 +26,7 @@
 Motor motor;
 int pos;
 boolean estadoMotor = DESLIGADO;
-// int vec;  // valor de velocidade (sera definido ainda)
-int FSMstate = 0;
+int FSMstate = stateSS_off;
 
 int valorInicial; 
 float tensao;
@@ -34,11 +41,14 @@ void setup() {
   pinMode(vecAtual,INPUT); 
   pinMode(comparaTensao,INPUT);
   pinMode(9,OUTPUT);
-  
-  motor.servoWrite(0);
-  estadoMotor = DESLIGADO;
+
   digitalWrite(pinLigaMotor,LOW);
   digitalWrite(pinDesligaMotor,LOW);
+  analogWrite(pedalGND, 0); // Pino 8 -> GND Pedal
+  analogWrite(pedalVcc, 1023); // Pino 10 -> Vcc Pedal
+
+  motor.servoWrite(0);  // Poe o servo na posicao inicial
+  estadoMotor = DESLIGADO;
   
   Serial.begin(9600);
 }
@@ -49,8 +59,11 @@ void loop() {
   { 
     case stateSS_off:
       Serial.println("FSMstate = StartStop OFF");
+      Serial.print("Velocidade:" );
+      Serial.println(analogRead(vecAtual));
+      delay(1000);
 
-      if(digitalRead(switchSS) == 0 && analogRead(vecAtual)>vecMin){
+      if(digitalRead(switchSS) == DESLIGADO && analogRead(vecAtual)>vecMin){
         FSMstate = stateMonitoraVec;
       }
     break;
@@ -152,4 +165,3 @@ void loop() {
 
   }
 }
-

@@ -9,8 +9,8 @@
 
 #define LIGADO         1
 #define DESLIGADO      0
-#define vecAtual      A9 // CONFERIDO (de acordo com o pino do pedal em seu código de teste)
-#define comparaTensao A2 // CONFERIDO
+#define vecAtual      A9 
+#define comparaTensao A2
 
 #define vecMin         400      // CONFERIR
 #define vecMax         700      // CONFERIR
