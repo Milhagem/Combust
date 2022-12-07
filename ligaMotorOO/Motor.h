@@ -4,19 +4,18 @@
 #include "Arduino.h"
 #include "Servo.h"
 
-#define pinLigaMotor    12 // CONFERIDO
-#define pinDesligaMotor 11 // CONFERIDO
+#define pinLigaMotor    12
+#define pinDesligaMotor 11
+#define LM2907          A2 
 
 #define LIGADO         1
 #define DESLIGADO      0
 #define vecAtual      A9 
-#define comparaTensao A2
 
-#define vecMin         400      // CONFERIR
-#define vecMax         700      // CONFERIR
-#define ZEROvec         50      // CONFERIR
-#define tensaoMotorON 1024/5    // CONFERIR (proporção estimada: quando está ligado, 1V (de um máximo de 5V))
-
+#define vecMin         400
+#define vecMax         700
+#define ZEROvec        150
+#define tensaoMotorON 1023/5.0 * 1.2  // 1,6V
 class Motor{
   
   private:
@@ -29,10 +28,17 @@ class Motor{
     void servoAttach(int pin);
     void servoWrite(int value);
 
+    /**
+     * Le a tensao
+     */
     float analisaTensao();
+    
+    /**
+    * @brief Comuta o rele LIGA MOTOR e isso liga o motor de arranque do carro. Leh a tensao que sai do LM2907 ate que ela seja igual a do motor ligado
+    */
     void ligaMotor();
     /**
-    * @brief Apos velocidade max ser alcançada, desliga motor e volta servo pra posicao inicial
+    * @brief Apos velocidade max ser alcançada, comuta o rele DESLIGA MOTOR e isso desliga o motor do carro. Volta servo pra posicao inicial
     *
     */
     void desligaMotor();

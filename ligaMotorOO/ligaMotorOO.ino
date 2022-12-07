@@ -1,8 +1,11 @@
 #include "Motor.h"
 
 /**
- * Conferir funcao ligaMotor(); - Ela aciona os reles?
- * Conferir funcao desligaMotor(); - Ela desliga os reles?
+ * Conferir  a funcao analisaTesao();  Aqueles calculos estao corretos?
+*/
+
+/**
+ * Pode ser que o codigo "trave" no ligaMotor()
 */
 
 
@@ -39,8 +42,8 @@ void setup() {
   pinMode(freio,INPUT_PULLUP);
   pinMode(switchSS,INPUT_PULLUP);
   pinMode(vecAtual,INPUT); 
-  pinMode(comparaTensao,INPUT);
-  pinMode(9,OUTPUT);
+  pinMode(LM2907,INPUT);
+  // pinMode(9,OUTPUT); Pra que serve este pino?  
 
   digitalWrite(pinLigaMotor,LOW);
   digitalWrite(pinDesligaMotor,LOW);
@@ -61,7 +64,7 @@ void loop() {
       Serial.println("FSMstate = StartStop OFF");
       Serial.print("Velocidade:" );
       Serial.println(analogRead(vecAtual));
-      delay(1000);
+  
 
       if(digitalRead(switchSS) == DESLIGADO && analogRead(vecAtual)>vecMin){
         FSMstate = stateMonitoraVec;

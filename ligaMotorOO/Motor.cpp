@@ -11,8 +11,8 @@ void Motor::servoWrite(int value){
 
 
 float Motor::analisaTensao(){
-  float valorInicial = analogRead(A1); 
-  float tensao = (valorInicial*5.0) / 1024; 
+  float valorInicial = analogRead(LM2907); 
+  float tensao = (valorInicial/1024.0)*5.0; 
   return tensao;
 }
 
@@ -20,17 +20,19 @@ float Motor::analisaTensao(){
 void Motor::ligaMotor(){
   digitalWrite(pinLigaMotor, HIGH);
   Serial.println("Ligando Motor");
-  // Verifica a tensao por 1s
   for (int i = 0; i < 10; i++) {    
     delay(100);
     float tensao = analisaTensao();
-    if(tensao < (tensaoMotorON+1) && tensao > (tensaoMotorON-1)) { i++; } 
+    Serial.print("i: ");
+    Serial.print(i);
+    Serial.println(tensao);
+    if(tensao > (tensaoMotorON-0.4)) { i++; } 
     else { i = 0; }
   }
 
-  digitalWrite(pinLigaMotor,LOW);  // liga motor de arranque por 800ms ??????
+  digitalWrite(pinLigaMotor,LOW);
   estadoMotor = LIGADO;
-  digitalWrite(9, HIGH);
+  digitalWrite(9, HIGH); // Por que isso?
 
   Serial.println("Motor ligado");
   printVelocidade();
@@ -42,7 +44,7 @@ void Motor::desligaMotor(){
   servo.attach(pos);
 
   digitalWrite(pinDesligaMotor,HIGH);
-  digitalWrite(9,LOW);
+  // digitalWrite(9,LOW); // Por que isso?
   delay(800);
 
   digitalWrite(pinDesligaMotor,LOW);
