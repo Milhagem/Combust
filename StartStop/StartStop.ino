@@ -89,13 +89,14 @@ void loop() {
 
       if(digitalRead(switchSS) == LOW) {
 
-        while(analogRead(VelAtual)<=VelMax && pos <= 80) {
+        while(analogRead(VelAtual)<=VelMax && pos <= 30) {
           if(digitalRead(freio) == PRESSIONADO){
           FSMstate = stateFreiando;
           }
 
-          pos += 5;
+          pos += 1;
           motor.servoWrite(pos);
+          delay(10);
         }
 
         FSMstate = stateMonitoraVel;
