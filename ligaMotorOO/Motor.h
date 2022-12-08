@@ -4,13 +4,14 @@
 #include "Arduino.h"
 #include "Servo.h"
 
+
 #define pinLigaMotor    12
 #define pinDesligaMotor 11
 #define LM2907          A2 
 
-#define LIGADO         1
-#define DESLIGADO      0
-#define vecAtual      A9 
+#define LIGADO    1
+#define DESLIGADO 0
+#define vecAtual A9 
 
 #define vecMin         400
 #define vecMax         700

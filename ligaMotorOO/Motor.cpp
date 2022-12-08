@@ -24,9 +24,7 @@ void Motor::ligaMotor(){
 
     for (int i = 0; i < 10; i++) {    
       delay(100);
-      float tensao = analisaTensao();
-      Serial.print("i: "); Serial.print(i); Serial.println(tensao);
-      
+      float tensao = analisaTensao();      
       if(tensao > (tensaoMotorON-0.4))
         break;
     }
@@ -35,27 +33,26 @@ void Motor::ligaMotor(){
   digitalWrite(pinLigaMotor,LOW);
 
   estadoMotor = checaEstadoMotor();
-  if(estadoMotor) { Serial.println("Motor ligado!"); }
+  if(estadoMotor) { Serial.println("Motor ligado com sucesso!"); }
   else {Serial.println("Motor NAO ligou!"); }
   
-  printVelocidade();
 }
 
 
 void Motor::desligaMotor(){
-  int pos = 0;
-  servo.attach(pos);
+  if(estadoMotor==LIGADO){
+    int pos = 0;
+    servo.attach(pos);
 
-  digitalWrite(pinDesligaMotor,HIGH);
-  delay(800); // Mantem o rele aberto por um tempo
+    digitalWrite(pinDesligaMotor,HIGH);
+    delay(800); // Mantem o rele aberto por um tempo
 
-  digitalWrite(pinDesligaMotor,LOW);
-  
-  estadoMotor = checaEstadoMotor();
-  if(!estadoMotor) { Serial.println("Motor desligado!"); }
-  else {Serial.println("Motor NAO desligou!"); }
-
-  printVelocidade();
+    digitalWrite(pinDesligaMotor,LOW);
+    
+    estadoMotor = checaEstadoMotor();
+    if(!estadoMotor) { Serial.println("Motor desligado com sucesso!"); }
+    else {Serial.println("Motor NAO desligou!"); }
+  }
 }
 
 
