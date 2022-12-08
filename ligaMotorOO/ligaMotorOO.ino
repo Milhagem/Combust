@@ -8,10 +8,7 @@
 #define switchSS A14
 #define ledRed     2
 
-#define FALSE         0
-#define TRUE          1
 #define PRESSIONADO   0
-
 
 #define stateSS_off       0
 #define stateMonitoraVec  1
@@ -24,10 +21,7 @@ Motor motor;
 Display display;
 
 int FSMstate = stateSS_off;
-int valorInicial; 
-float tensao;
 int pos;
-unsigned int timeOld;
 
 void setup() {
   motor.setEstadoMotor(DESLIGADO);
@@ -151,6 +145,7 @@ void loop() {
     break;
   
     default: FSMstate = stateSS_off;
+    break;
 
   }
 
