@@ -3,15 +3,6 @@
 #include "Wire.h"
 #include "LiquidCrystal_I2C.h"
 
-/**
- * Conferir  a funcao analisaTesao();  Aqueles calculos estao corretos?
-*/
-
-/**
- * Pode ser que o codigo "trave" no ligaMotor()
-*/
-
-
 #define pedalGND  A8
 #define pedalVcc A10
 #define pinServo   8
@@ -22,7 +13,7 @@
 #define TRUE          1
 #define PRESSIONADO   0
 #define LEDVERMELHO   2
-#define time_interval 200 //ms
+#define timeInterval 200 //ms
 
 #define stateSS_off       0
 #define stateMonitoraVec  1
@@ -38,11 +29,10 @@ int FSMstate = stateSS_off;
 int valorInicial; 
 float tensao;
 int pos;
-boolean estadoMotor;
-unsigned int timeold;
+unsigned int timeOld;
 
 void setup() {
-  motor.servoAttach(pinServo);
+  motor.setEstadoMotor(DESLIGADO);
   
   pinMode(pinLigaMotor,OUTPUT);
   pinMode(pinDesligaMotor,OUTPUT);
@@ -56,13 +46,15 @@ void setup() {
   analogWrite(pedalGND, 0); // Pino 8 -> GND Pedal
   analogWrite(pedalVcc, 1023); // Pino 10 -> Vcc Pedal
 
+  // Servo
+  motor.servoAttach(pinServo);
   motor.servoWrite(0);  // Poe o servo na posicao inicial
-  estadoMotor = DESLIGADO;
-
-  lcd.init();                   // Inicializando o LCD
-  lcd.backlight();              // Inicializando o backlight do LCD
+  
+  // Display LCD
+  lcd.init();
+  lcd.backlight();
   lcd.setCursor(0,0);
-  lcd.print("Iniciando CR7");    // Exibir na tela
+  lcd.print("Iniciando CR7");
   delay(500);
 
   Serial.begin(9600);
@@ -74,9 +66,6 @@ void loop() {
   { 
     case stateSS_off:
       Serial.println("FSMstate = StartStop OFF");
-      Serial.print("Velocidade:" );
-      Serial.println(analogRead(vecAtual));
-  
 
       if(digitalRead(switchSS) == LOW && analogRead(vecAtual)>vecMin){
         FSMstate = stateMonitoraVec;
@@ -94,7 +83,7 @@ void loop() {
 
         if(analogRead(vecAtual)<vecMax && analogRead(vecAtual)>ZEROvec &&
            digitalRead(freio) != PRESSIONADO) {
-            if(estadoMotor==DESLIGADO)
+            if(motor.getEstadoMotor()==DESLIGADO)
               FSMstate = stateLigaMotor;
             else
               FSMstate = stateIncrementVec;
@@ -115,10 +104,6 @@ void loop() {
           if(pos <= 80) {
             pos+=10;
             motor.servoWrite(pos);
-            motor.printVelocidade();
-            Serial.print("    ; Posicao: "); 
-            Serial.println(pos);
-            Serial.println("Motor ligado");
 
             FSMstate = stateMonitoraVec;
           }
@@ -175,7 +160,7 @@ void loop() {
 
   }
 
-  if (millis() - timeold >=time_interval){ //Atualiza o display com Tensão e Velocidade. Taxa de atualização = Time interval
+  if (millis() - timeOld >=timeInterval){ // Atualiza o display com Tensão e Velocidade. Taxa de atualização = Time interval
     
     lcd.setCursor(0,0);
     lcd.print("Tensao:         ");    // Exibir leitura LM
@@ -186,8 +171,8 @@ void loop() {
     lcd.setCursor(12,1);
     lcd.print(analogRead(vecAtual));
     
-    timeold = millis();
+    timeOld = millis();
   }
 
-  estadoMotor=motor.checaEstadoMotor();// Atualiza o estado do motor
+  motor.setEstadoMotor(motor.checaEstadoMotor()); 
 }

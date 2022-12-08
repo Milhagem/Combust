@@ -18,7 +18,7 @@ float Motor::analisaTensao(){
 
 
 void Motor::ligaMotor(){
-  if(estadoMotor == DESLIGADO){
+  if(this->estadoMotor == DESLIGADO){
     digitalWrite(pinLigaMotor, HIGH);
     Serial.println("Ligando Motor");
 
@@ -40,7 +40,7 @@ void Motor::ligaMotor(){
 
 
 void Motor::desligaMotor(){
-  if(estadoMotor==LIGADO){
+  if(this->estadoMotor==LIGADO){
     int pos = 0;
     servo.attach(pos);
 
@@ -49,8 +49,8 @@ void Motor::desligaMotor(){
 
     digitalWrite(pinDesligaMotor,LOW);
     
-    estadoMotor = checaEstadoMotor();
-    if(!estadoMotor) { Serial.println("Motor desligado com sucesso!"); }
+    this->estadoMotor = checaEstadoMotor();
+    if(!this->estadoMotor) { Serial.println("Motor desligado com sucesso!"); }
     else {Serial.println("Motor NAO desligou!"); }
   }
 }
@@ -62,11 +62,6 @@ int Motor::desligaStartStop(){
   return 0;
 }
 
-
-void Motor::printVelocidade(){
-  Serial.print("Velocidade: "); 
-  Serial.println(analogRead(vecAtual)); 
-}
 
 boolean Motor::checaEstadoMotor() {
   float tensao = analisaTensao();

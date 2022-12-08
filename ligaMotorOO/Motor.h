@@ -16,12 +16,11 @@
 #define vecMin         400
 #define vecMax         700
 #define ZEROvec        150
-#define tensaoMotorON 1023/5.0 * 1.2  // 1,6V
+#define tensaoMotorON 1023/5.0 * 1.2  // 1,2V
 class Motor{
   
   private:
     Servo servo;
-
     bool estadoMotor;
 
   public:
@@ -30,25 +29,30 @@ class Motor{
     void servoWrite(int value);
 
     /**
-     * Le a tensao de saida do LM2907
+     * Leh a tensao de saida do LM2907
+     * @return tensao entre 0V e 5V
      */
     float analisaTensao();
-    
     /**
-    * @brief Comuta o rele LIGA MOTOR e isso liga o motor de arranque do carro. Leh a tensao que sai do LM2907 ate que ela seja igual a do motor ligado
+    * @brief Fecha o rele LIGA MOTOR e isso liga o motor de arranque do carro.
     */
     void ligaMotor();
     /**
-    * @brief Apos velocidade max ser alcançada, comuta o rele DESLIGA MOTOR e isso desliga o motor do carro. Volta servo pra posicao inicial
+    * @brief Apos velocidade max ser alcançada, abre o rele DESLIGA MOTOR e isso desliga o motor do carro. Volta servo pra posicao inicial
     *
     */
     void desligaMotor();
-    void printVelocidade();
     /**
      * @brief desliga o Start Stop (passa para o Modo Manual) e volta o servo para a posicao inicial
      */
     int desligaStartStop();
+    /**
+     * @return LIGADO (expands to 1) ou DESLIGADO (expands to 0)
+    */
     boolean checaEstadoMotor();
+
+    bool getEstadoMotor() { return this->estadoMotor; }
+    void setEstadoMotor(bool estadoMotor) { this->estadoMotor = estadoMotor; }
 
 
 
