@@ -1,13 +1,6 @@
 #include "Motor.h"
 #include "Display.h"
 
-/**
- * PROBLEMA NA LOGICA:
- * O carro nunca vai chegar a velocidade maxima pelo startstop
- * 
- * @camposouza 08/12
-*/
-
 
 #define pedalGND  A8
 #define pedalVcc A10
@@ -99,11 +92,12 @@ void loop() {
       Serial.println("FSMstate = Incrementa Velocidade");
 
       if(digitalRead(switchSS) == LOW) {
-        if(digitalRead(freio) == PRESSIONADO){
+
+        while(analogRead(vecAtual)<=vecMax && pos <= 80) {
+          if(digitalRead(freio) == PRESSIONADO){
           FSMstate = stateFreiando;
-        }
-      
-        while(analogRead(vecAtual)<vecMax && pos <= 80) {
+          }
+
           pos+=10;
           motor.servoWrite(pos);
           delay(1000);
@@ -119,10 +113,11 @@ void loop() {
     case stateDesligaMotor:
       Serial.println("FSMstate = Desliga Motor");
 
-      motor.desligaMotor();
-      pos+=0;
-      motor.servoWrite(pos);
-      FSMstate = stateMonitoraVec; 
+      if(digitalRead(switchSS) == LOW){
+        motor.desligaMotor();
+        FSMstate = stateMonitoraVec;
+        
+        } else { FSMstate = motor.desligaStartStop(); }
 
     break;
   
