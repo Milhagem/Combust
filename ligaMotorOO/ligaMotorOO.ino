@@ -1,19 +1,17 @@
 #include "Motor.h"
-
-#include "Wire.h"
-#include "LiquidCrystal_I2C.h"
+#include "Display.h"
 
 #define pedalGND  A8
 #define pedalVcc A10
 #define pinServo   8
 #define freio    A15
 #define switchSS A14
+#define ledRed     2
 
 #define FALSE         0
 #define TRUE          1
 #define PRESSIONADO   0
-#define LEDVERMELHO   2
-#define timeInterval 200 //ms
+
 
 #define stateSS_off       0
 #define stateMonitoraVec  1
@@ -23,7 +21,7 @@
 #define stateFreiando     5
 
 Motor motor;
-LiquidCrystal_I2C lcd(0x27,16,2);
+Display display;
 
 int FSMstate = stateSS_off;
 int valorInicial; 
@@ -51,11 +49,7 @@ void setup() {
   motor.servoWrite(0);  // Poe o servo na posicao inicial
   
   // Display LCD
-  lcd.init();
-  lcd.backlight();
-  lcd.setCursor(0,0);
-  lcd.print("Iniciando CR7");
-  delay(500);
+  display.iniciaDisplay();
 
   Serial.begin(9600);
 }
@@ -145,11 +139,11 @@ void loop() {
       Serial.println("FSMstate = Freio Pressionado"); 
       if(digitalRead(switchSS) == LOW) {
         if(digitalRead(freio) == PRESSIONADO){
-          digitalWrite(LEDVERMELHO,HIGH);
+          digitalWrite(ledRed,HIGH);
           pos = 0;
           motor.servoWrite(pos);
         } else if(digitalRead(freio) != PRESSIONADO ){
-          digitalWrite(LEDVERMELHO,LOW);
+          digitalWrite(ledRed,LOW);
           FSMstate = stateMonitoraVec;
         }
       } else { FSMstate = motor.desligaStartStop(); }
@@ -160,19 +154,7 @@ void loop() {
 
   }
 
-  if (millis() - timeOld >=timeInterval){ // Atualiza o display com Tensão e Velocidade. Taxa de atualização = Time interval
-    
-    lcd.setCursor(0,0);
-    lcd.print("Tensao:         ");    // Exibir leitura LM
-    lcd.setCursor(8,0);
-    lcd.print(motor.analisaTensao()); 
-    lcd.setCursor(0,1);
-    lcd.print("Velocidade:     ");    // Exibir leitura velocidade
-    lcd.setCursor(12,1);
-    lcd.print(analogRead(vecAtual));
-    
-    timeOld = millis();
-  }
+  display.atualizaDisplay(motor);
 
   motor.setEstadoMotor(motor.checaEstadoMotor()); 
 }
