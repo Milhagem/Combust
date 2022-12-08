@@ -54,24 +54,21 @@ void loop() {
   switch (FSMstate)
   { 
     case stateSS_off:
-      Serial.println("FSMstate = StartStop OFF");
 
-      if(digitalRead(switchSS) == LOW && analogRead(vecAtual)>vecMin){
+      if(digitalRead(switchSS) == LOW && analogRead(vecAtual)>ZEROvec){
         FSMstate = stateMonitoraVec;
       }
     break;
   
 
     case stateMonitoraVec: 
-      Serial.println("FSMstate = Monitora velocidade");
 
       if(digitalRead(switchSS) == LOW) {
         if(digitalRead(freio) == PRESSIONADO) {
           FSMstate = stateFreiando;
         }
 
-        if(analogRead(vecAtual)<vecMin && analogRead(vecAtual)>ZEROvec &&
-           digitalRead(freio) != PRESSIONADO) {
+        if(analogRead(vecAtual)<vecMin && analogRead(vecAtual)>ZEROvec) {
             if(motor.getEstadoMotor() == DESLIGADO) {
               FSMstate = stateLigaMotor;
             } else { 
@@ -89,7 +86,6 @@ void loop() {
   
 
     case stateIncrementVec: 
-      Serial.println("FSMstate = Incrementa Velocidade");
 
       if(digitalRead(switchSS) == LOW) {
 
@@ -98,9 +94,8 @@ void loop() {
           FSMstate = stateFreiando;
           }
 
-          pos+=10;
+          pos += 5;
           motor.servoWrite(pos);
-          delay(1000);
         }
 
         FSMstate = stateMonitoraVec;
@@ -111,19 +106,17 @@ void loop() {
   
 
     case stateDesligaMotor:
-      Serial.println("FSMstate = Desliga Motor");
 
       if(digitalRead(switchSS) == LOW){
         motor.desligaMotor();
         FSMstate = stateMonitoraVec;
         
-        } else { FSMstate = motor.desligaStartStop(); }
+      } else { FSMstate = motor.desligaStartStop(); }
 
     break;
   
 
     case stateLigaMotor:
-      Serial.println("FSMstate = Liga Motor"); 
 
       if(digitalRead(switchSS) == LOW){
         if(digitalRead(freio) == PRESSIONADO) {
@@ -141,7 +134,6 @@ void loop() {
   
 
     case stateFreiando:
-      Serial.println("FSMstate = Freio Pressionado"); 
 
       if(digitalRead(switchSS) == LOW) {
         digitalWrite(ledRed,HIGH);
@@ -161,7 +153,7 @@ void loop() {
 
   }
 
-  display.atualizaDisplay(motor);
+  display.atualizaDisplay(motor, FSMstate);
 
   motor.setEstadoMotor(motor.checaEstadoMotor()); 
 }
