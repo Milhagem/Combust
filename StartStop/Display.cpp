@@ -19,7 +19,7 @@ void Display::mostraTensaoEVec(Motor &motor){
 
     // Exibir velocidade
     lcd.setCursor(0,1);
-    lcd.print("Vec:    ");
+    lcd.print("Vec:            ");
     lcd.setCursor(6,1);
     lcd.print(analogRead(vecAtual));
 
@@ -27,10 +27,9 @@ void Display::mostraTensaoEVec(Motor &motor){
   }
 }
 
-void Display::atualizaDisplay(Motor &motor){
+void Display::atualizaDisplay(Motor &motor, int FSMState_int){
   mostraTensaoEVec(motor);
 
-  int FSMState_int = motor.getEstadoMotor();
   String FSMState;
 
   switch (FSMState_int)
@@ -53,9 +52,11 @@ void Display::atualizaDisplay(Motor &motor){
 
     case 4:
       FSMState = "ligaM";
+      break;
 
     case 5:
       FSMState = "freiou";
+      break;
 
     default: 0;
       break;
@@ -63,4 +64,7 @@ void Display::atualizaDisplay(Motor &motor){
 
   lcd.setCursor(10, 0);
   lcd.print(FSMState);
+
+  lcd.setCursor(15,1);
+  lcd.print(motor.getEstadoMotor());
   }

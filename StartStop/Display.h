@@ -28,7 +28,7 @@ class Display {
      * 
      * @param motor Motor cujos dados serao lidos
     */
-    void atualizaDisplay(Motor &motor);
+    void atualizaDisplay(Motor &motor, int FSMState_int);
 
 
 };
