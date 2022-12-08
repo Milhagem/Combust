@@ -4,7 +4,6 @@
 #include "Arduino.h"
 #include "Servo.h"
 
-
 #define pinLigaMotor    12
 #define pinDesligaMotor 11
 #define LM2907          A2 

@@ -103,12 +103,13 @@ void loop() {
           FSMstate = stateFreiando;
         }
       
-        if(pos <= 80) {
+        while(analogRead(vecAtual)<vecMax && pos <= 80) {
           pos+=10;
           motor.servoWrite(pos);
-
-          FSMstate = stateMonitoraVec;
+          delay(1000);
         }
+
+        FSMstate = stateMonitoraVec;
 
       } else { FSMstate = motor.desligaStartStop(); }
        
