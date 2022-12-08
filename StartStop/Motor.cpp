@@ -31,6 +31,7 @@ void Motor::ligaMotor(){
   }
 
   digitalWrite(pinLigaMotor,LOW);
+  delay(100);
 
   estadoMotor = checaEstadoMotor();
 }
