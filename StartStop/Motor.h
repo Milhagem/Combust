@@ -15,7 +15,7 @@
 #define vecMin         400
 #define vecMax         700
 #define ZEROvec        150
-#define tensaoMotorON 1023/5.0 * 1.2  // 1,2V
+#define tensaoMotorON 1023/5.0 * 2  // 2.0V
 class Motor{
   
   private:
