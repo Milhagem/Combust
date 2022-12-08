@@ -12,8 +12,8 @@
 #define PRESSIONADO   0
 
 #define stateSS_off       0
-#define stateMonitoraVec  1
-#define stateIncrementVec 2
+#define stateMonitoraVel  1
+#define stateIncrementVel 2
 #define stateDesligaMotor 3
 #define stateLigaMotor    4
 #define stateFreiando     5
@@ -31,7 +31,7 @@ void setup() {
   pinMode(pinDesligaMotor, OUTPUT);
   pinMode(freio, INPUT_PULLUP);
   pinMode(switchSS, INPUT_PULLUP);
-  pinMode(vecAtual, INPUT); 
+  pinMode(VelAtual, INPUT); 
   pinMode(LM2907, INPUT);
 
   digitalWrite(pinLigaMotor, LOW);
@@ -55,26 +55,26 @@ void loop() {
   { 
     case stateSS_off:
 
-      if(digitalRead(switchSS) == LOW && analogRead(vecAtual)>ZEROvec){
-        FSMstate = stateMonitoraVec;
+      if(digitalRead(switchSS) == LOW && analogRead(VelAtual)>ZEROVel){
+        FSMstate = stateMonitoraVel;
       }
     break;
   
 
-    case stateMonitoraVec: 
+    case stateMonitoraVel: 
 
       if(digitalRead(switchSS) == LOW) {
         if(digitalRead(freio) == PRESSIONADO) {
           FSMstate = stateFreiando;
         }
 
-        if(analogRead(vecAtual)<vecMin && analogRead(vecAtual)>ZEROvec) {
+        if(analogRead(VelAtual)<VelMin && analogRead(VelAtual)>ZEROVel) {
             if(motor.getEstadoMotor() == DESLIGADO) {
               FSMstate = stateLigaMotor;
             } else { 
-              FSMstate = stateIncrementVec;
+              FSMstate = stateIncrementVel;
             }
-        } else if(analogRead(vecAtual)>vecMax && 
+        } else if(analogRead(VelAtual)>VelMax && 
                   digitalRead(freio) != PRESSIONADO) {
           FSMstate = stateDesligaMotor;
         } 
@@ -85,11 +85,11 @@ void loop() {
     break;
   
 
-    case stateIncrementVec: 
+    case stateIncrementVel: 
 
       if(digitalRead(switchSS) == LOW) {
 
-        while(analogRead(vecAtual)<=vecMax && pos <= 80) {
+        while(analogRead(VelAtual)<=VelMax && pos <= 80) {
           if(digitalRead(freio) == PRESSIONADO){
           FSMstate = stateFreiando;
           }
@@ -98,7 +98,7 @@ void loop() {
           motor.servoWrite(pos);
         }
 
-        FSMstate = stateMonitoraVec;
+        FSMstate = stateMonitoraVel;
 
       } else { FSMstate = motor.desligaStartStop(); }
        
@@ -109,7 +109,7 @@ void loop() {
 
       if(digitalRead(switchSS) == LOW){
         motor.desligaMotor();
-        FSMstate = stateMonitoraVec;
+        FSMstate = stateMonitoraVel;
         
       } else { FSMstate = motor.desligaStartStop(); }
 
@@ -125,7 +125,7 @@ void loop() {
 
         if(digitalRead(freio) != PRESSIONADO) {
           motor.ligaMotor();
-          FSMstate = stateMonitoraVec;
+          FSMstate = stateMonitoraVel;
         }
           
       } else { FSMstate = motor.desligaStartStop(); }
@@ -142,7 +142,7 @@ void loop() {
 
         if(digitalRead(freio) != PRESSIONADO ){
           digitalWrite(ledRed,LOW);
-          FSMstate = stateMonitoraVec;
+          FSMstate = stateMonitoraVel;
         }
       } else { FSMstate = motor.desligaStartStop(); }
 

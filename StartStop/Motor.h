@@ -10,11 +10,11 @@
 
 #define LIGADO    1
 #define DESLIGADO 0
-#define vecAtual A9 
+#define VelAtual A9 
 
-#define vecMin         400
-#define vecMax         700
-#define ZEROvec        150
+#define VelMin         400
+#define VelMax         700
+#define ZEROVel        150
 #define tensaoMotorON  2.2
 class Motor{
   

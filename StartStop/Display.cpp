@@ -8,7 +8,7 @@ void Display::iniciaDisplay(){
   delay(500);
 }
 
-void Display::mostraTensaoEVec(Motor &motor){
+void Display::mostraTensaoEVel(Motor &motor){
     if ( (millis()-timeOld) >= timeInterval){
 
     // Exibir leitura LM2907
@@ -19,16 +19,16 @@ void Display::mostraTensaoEVec(Motor &motor){
 
     // Exibir velocidade
     lcd.setCursor(0,1);
-    lcd.print("Vec:            ");
+    lcd.print("Vel:            ");
     lcd.setCursor(6,1);
-    lcd.print(analogRead(vecAtual));
+    lcd.print(analogRead(VelAtual));
 
     timeOld = millis();
   }
 }
 
 void Display::atualizaDisplay(Motor &motor, int FSMState_int){
-  mostraTensaoEVec(motor);
+  mostraTensaoEVel(motor);
 
   String FSMState;
 
