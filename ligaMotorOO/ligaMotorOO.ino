@@ -1,6 +1,14 @@
 #include "Motor.h"
 #include "Display.h"
 
+/**
+ * PROBLEMA NA LOGICA:
+ * O carro nunca vai chegar a velocidade maxima pelo startstop
+ * 
+ * @camposouza 08/12
+*/
+
+
 #define pedalGND  A8
 #define pedalVcc A10
 #define pinServo   8
@@ -26,15 +34,15 @@ int pos;
 void setup() {
   motor.setEstadoMotor(DESLIGADO);
   
-  pinMode(pinLigaMotor,OUTPUT);
-  pinMode(pinDesligaMotor,OUTPUT);
-  pinMode(freio,INPUT_PULLUP);
-  pinMode(switchSS,INPUT_PULLUP);
-  pinMode(vecAtual,INPUT); 
-  pinMode(LM2907,INPUT);
+  pinMode(pinLigaMotor, OUTPUT);
+  pinMode(pinDesligaMotor, OUTPUT);
+  pinMode(freio, INPUT_PULLUP);
+  pinMode(switchSS, INPUT_PULLUP);
+  pinMode(vecAtual, INPUT); 
+  pinMode(LM2907, INPUT);
 
-  digitalWrite(pinLigaMotor,LOW);
-  digitalWrite(pinDesligaMotor,LOW);
+  digitalWrite(pinLigaMotor, LOW);
+  digitalWrite(pinDesligaMotor, LOW);
   analogWrite(pedalGND, 0); // Pino 8 -> GND Pedal
   analogWrite(pedalVcc, 1023); // Pino 10 -> Vcc Pedal
 
@@ -69,15 +77,18 @@ void loop() {
           FSMstate = stateFreiando;
         }
 
-        if(analogRead(vecAtual)<vecMax && analogRead(vecAtual)>ZEROvec &&
+        if(analogRead(vecAtual)<vecMin && analogRead(vecAtual)>ZEROvec &&
            digitalRead(freio) != PRESSIONADO) {
-            if(motor.getEstadoMotor()==DESLIGADO)
+            if(motor.getEstadoMotor() == DESLIGADO) {
               FSMstate = stateLigaMotor;
-            else
+            } else { 
               FSMstate = stateIncrementVec;
-        } else if(analogRead(vecAtual)>vecMax && digitalRead(freio) != PRESSIONADO) {
+            }
+        } else if(analogRead(vecAtual)>vecMax && 
+                  digitalRead(freio) != PRESSIONADO) {
           FSMstate = stateDesligaMotor;
-        }
+        } 
+
       } else { FSMstate = motor.desligaStartStop(); }
 
       
@@ -88,24 +99,25 @@ void loop() {
       Serial.println("FSMstate = Incrementa Velocidade");
 
       if(digitalRead(switchSS) == LOW) {
-        if(digitalRead(freio) != PRESSIONADO){
-          if(pos <= 80) {
-            pos+=10;
-            motor.servoWrite(pos);
-
-            FSMstate = stateMonitoraVec;
-          }
-        } else{
+        if(digitalRead(freio) == PRESSIONADO){
           FSMstate = stateFreiando;
         }
-      } 
-      else { FSMstate = motor.desligaStartStop(); }
+      
+        if(pos <= 80) {
+          pos+=10;
+          motor.servoWrite(pos);
+
+          FSMstate = stateMonitoraVec;
+        }
+
+      } else { FSMstate = motor.desligaStartStop(); }
        
     break;
   
 
     case stateDesligaMotor:
       Serial.println("FSMstate = Desliga Motor");
+
       motor.desligaMotor();
       pos+=0;
       motor.servoWrite(pos);
@@ -118,12 +130,15 @@ void loop() {
       Serial.println("FSMstate = Liga Motor"); 
 
       if(digitalRead(switchSS) == LOW){
+        if(digitalRead(freio) == PRESSIONADO) {
+          FSMstate = stateFreiando;
+        }
+
         if(digitalRead(freio) != PRESSIONADO) {
           motor.ligaMotor();
           FSMstate = stateMonitoraVec;
-        } else if(digitalRead(freio) == PRESSIONADO){
-          FSMstate = stateFreiando;
-        }    
+        }
+          
       } else { FSMstate = motor.desligaStartStop(); }
 
     break;
@@ -131,12 +146,13 @@ void loop() {
 
     case stateFreiando:
       Serial.println("FSMstate = Freio Pressionado"); 
+
       if(digitalRead(switchSS) == LOW) {
-        if(digitalRead(freio) == PRESSIONADO){
-          digitalWrite(ledRed,HIGH);
-          pos = 0;
-          motor.servoWrite(pos);
-        } else if(digitalRead(freio) != PRESSIONADO ){
+        digitalWrite(ledRed,HIGH);
+        pos = 0;
+        motor.servoWrite(pos);
+
+        if(digitalRead(freio) != PRESSIONADO ){
           digitalWrite(ledRed,LOW);
           FSMstate = stateMonitoraVec;
         }

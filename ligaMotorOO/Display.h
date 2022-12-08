@@ -14,7 +14,7 @@ class Display {
 
     public:
     /**
-     * @brief Esta funcao tem o unico objetivo de inicializar o Display LDC no setup() StartStop.ino
+     * @brief Esta funcao tem o unico objetivo de inicializar o Display LDC no setup() StartStop.ino do Arduino
     */
     void iniciaDisplay();
     /**

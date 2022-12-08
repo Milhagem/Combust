@@ -34,7 +34,7 @@ class Motor{
      */
     float analisaTensao();
     /**
-    * @brief Fecha o rele LIGA MOTOR e isso liga o motor de arranque do carro.
+    * @brief Fecha o rele LIGA MOTOR e isso liga o motor de arranque por no maximo 2 segundos
     */
     void ligaMotor();
     /**
