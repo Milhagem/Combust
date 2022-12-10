@@ -15,7 +15,7 @@
 #define VelMin         400
 #define VelMax         700
 #define ZEROVel        150
-#define tensaoMotorON  2.2
+#define tensaoMotorON  1.7
 class Motor{
   
   private:

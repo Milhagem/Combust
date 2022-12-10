@@ -29,7 +29,7 @@ void Motor::ligaMotor(){
     }
   }
 
-  digitalWrite(pinLigaMotor,LOW);
+  digitalWrite(pinLigaMotor, LOW);
   
   this->estadoMotor = checaEstadoMotor();
 }

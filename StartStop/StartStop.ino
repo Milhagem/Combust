@@ -1,7 +1,6 @@
 #include "Motor.h"
 #include "Display.h"
 
-
 #define pedalGND  A8
 #define pedalVcc A10
 #define pinServo   8
@@ -17,6 +16,7 @@
 #define stateDesligaMotor 3
 #define stateLigaMotor    4
 #define stateFreiando     5
+
 
 Motor motor;
 Display display;
@@ -122,9 +122,7 @@ void loop() {
       if(digitalRead(switchSS) == LOW){
         if(digitalRead(freio) == PRESSIONADO) {
           FSMstate = stateFreiando;
-        }
-
-        if(digitalRead(freio) != PRESSIONADO) {
+        } else {
           motor.ligaMotor();
           FSMstate = stateMonitoraVel;
         }
