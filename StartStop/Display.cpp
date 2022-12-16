@@ -55,7 +55,7 @@ void Display::atualizaDisplay(Motor &motor, int FSMState_int){
       break;
 
     case 5:
-      FSMState = "freiou";
+      FSMState = "freou";
       break;
 
     default: 0;
