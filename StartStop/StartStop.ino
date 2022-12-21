@@ -134,16 +134,20 @@ void loop() {
 
     case stateFreiando:
 
-      if(digitalRead(switchSS) == LOW) {
-        digitalWrite(ledRed,HIGH);
-        pos = 0;
-        motor.servoWrite(pos);
 
-        if(digitalRead(freio) != PRESSIONADO ){
-          digitalWrite(ledRed,LOW);
-          FSMstate = stateMonitoraVel;
-        }
-      } else { FSMstate = motor.desligaStartStop(); }
+    if(digitalRead(switchSS) == LOW) {
+      while(digitalRead(freio) == PRESSIONADO) {
+      digitalWrite(ledRed,HIGH);
+      pos = 0;
+      motor.servoWrite(pos);
+      }
+
+      if(digitalRead(freio) != PRESSIONADO ){
+        digitalWrite(ledRed,LOW);
+        FSMstate = stateMonitoraVel;
+      }
+
+    } else { FSMstate = motor.desligaStartStop(); }
 
     break;
   
