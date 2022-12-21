@@ -68,14 +68,16 @@ void loop() {
           FSMstate = stateFreiando;
         }
 
-        if(analogRead(VelAtual)<VelMin && analogRead(VelAtual)>ZEROVel) {
+        if(analogRead(VelAtual)<VelMin && analogRead(VelAtual)>ZEROVel
+          && digitalRead(freio) != PRESSIONADO) {
             if(motor.getEstadoMotor() == DESLIGADO) {
               FSMstate = stateLigaMotor;
             } else { 
               FSMstate = stateIncrementVel;
             }
-        } else if(analogRead(VelAtual)>VelMax && 
-                  digitalRead(freio) != PRESSIONADO) {
+          } 
+        else if(analogRead(VelAtual)>=VelMax && 
+                digitalRead(freio) != PRESSIONADO) {
           FSMstate = stateDesligaMotor;
         } 
 
@@ -87,19 +89,17 @@ void loop() {
 
     case stateIncrementVel: 
 
-      if(digitalRead(switchSS) == LOW) {
-
-        while(analogRead(VelAtual)<=VelMax && pos <= 30) {
+      if(digitalRead(switchSS) == LOW) { //Modo manual desativo / Modo automatico ativado
+        while(analogRead(VelAtual)<=VelMax && pos <= 30) { //mexer aqui
           if(digitalRead(freio) == PRESSIONADO){
-          FSMstate = stateFreiando;
+            FSMstate = stateFreiando;
           }
-
           pos += 1;
           motor.servoWrite(pos);
-          delay(10);
+          delay(100);
         }
 
-        FSMstate = stateMonitoraVel;
+        FSMstate = stateMonitoraVel; //fica alternando sempre entre stateMonitoraVel e stateIncrementVel 
 
       } else { FSMstate = motor.desligaStartStop(); }
        
@@ -134,15 +134,20 @@ void loop() {
 
     case stateFreiando:
 
-      if(digitalRead(switchSS) == LOW) {
-        digitalWrite(ledRed,HIGH);
-        pos = 0;
-        motor.servoWrite(pos);
+      if(digitalRead(switchSS) == LOW) { //colocar um loop aqui(?)
+        while(digitalRead(freio) == PRESSIONADO){
+          digitalWrite(ledRed,HIGH);
+          pos = 0;
+          motor.servoWrite(pos);
+        }
 
         if(digitalRead(freio) != PRESSIONADO ){
           digitalWrite(ledRed,LOW);
           FSMstate = stateMonitoraVel;
         }
+
+        FSMstate = stateMonitoraVel;
+
       } else { FSMstate = motor.desligaStartStop(); }
 
     break;
