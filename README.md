@@ -1,2 +1,2 @@
 # Combust
-Código que contra o StartStop do motor a combustão
+Código que controla o StartStop do motor a combust
