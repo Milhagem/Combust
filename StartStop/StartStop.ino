@@ -23,6 +23,7 @@ Display display;
 
 int FSMstate = stateSS_off;
 int pos;
+long int time_ac = 0;
 
 void setup() {
   motor.setEstadoMotor(DESLIGADO);
@@ -47,6 +48,7 @@ void setup() {
   display.iniciaDisplay();
 
   Serial.begin(9600);
+  
 }
 
 
@@ -74,8 +76,7 @@ void loop() {
             } else { 
               FSMstate = stateIncrementVel;
             }
-        } else if(analogRead(VelAtual)>VelMax && 
-                  digitalRead(freio) != PRESSIONADO) {
+        } else if(analogRead(VelAtual)>VelMax) {
           FSMstate = stateDesligaMotor;
         } 
 
@@ -88,18 +89,18 @@ void loop() {
     case stateIncrementVel: 
 
       if(digitalRead(switchSS) == LOW) {
-
-        while(analogRead(VelAtual)<=VelMax && pos <= 30) {
-          if(digitalRead(freio) == PRESSIONADO){
+        if(digitalRead(freio) == PRESSIONADO){
           FSMstate = stateFreiando;
-          }
-
-          pos += 1;
-          motor.servoWrite(pos);
-          delay(10);
         }
 
-        FSMstate = stateMonitoraVel;
+        if(analogRead(VelAtual)<VelMax && pos <= 30 && (millis()-time_ac>500)) {
+          pos += 1;
+          motor.servoWrite(pos);
+
+          time_ac = millis();
+        }
+        if(analogRead(VelAtual)>=VelMax)
+          FSMstate = stateMonitoraVel;
 
       } else { FSMstate = motor.desligaStartStop(); }
        
@@ -133,25 +134,25 @@ void loop() {
   
 
     case stateFreiando:
+      if(digitalRead(switchSS) == LOW) {
+        if(digitalRead(freio) == PRESSIONADO) {
+          digitalWrite(ledRed,HIGH);
+          pos = 0;
+          motor.servoWrite(pos);
+        }
+        else{
+          digitalWrite(ledRed,LOW);
+          FSMstate = stateMonitoraVel;
+        }
 
-
-    if(digitalRead(switchSS) == LOW) {
-      while(digitalRead(freio) == PRESSIONADO) {
-      digitalWrite(ledRed,HIGH);
-      pos = 0;
-      motor.servoWrite(pos);
-      }
-
-      if(digitalRead(freio) != PRESSIONADO ){
+      } else { 
         digitalWrite(ledRed,LOW);
-        FSMstate = stateMonitoraVel;
+        FSMstate = motor.desligaStartStop();
       }
 
-    } else { FSMstate = motor.desligaStartStop(); }
-
-    break;
-  
-    default: FSMstate = stateSS_off;
+      break;
+    
+      default: FSMstate = stateSS_off;
     break;
 
   }
