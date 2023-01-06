@@ -37,11 +37,10 @@ void Motor::ligaMotor(){
 
 void Motor::desligaMotor(){
   if(this->checaEstadoMotor() == LIGADO){
-    int pos = 0;
-    servo.attach(pos);
+    servo.write(0);
 
     digitalWrite(pinDesligaMotor, HIGH);
-    delay(800); // Mantem o rele aberto por um tempo
+    delay(1600); // Mantem o rele aberto por um tempo
 
     digitalWrite(pinDesligaMotor, LOW);
     
@@ -51,8 +50,7 @@ void Motor::desligaMotor(){
 
 
 int Motor::desligaStartStop(){
-  int pos = 0;
-  servo.attach(pos);
+  servo.write(0);
   return 0;
 }
 

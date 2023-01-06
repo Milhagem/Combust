@@ -74,7 +74,7 @@ void loop() {
             if(motor.checaEstadoMotor() == DESLIGADO) {
               FSMstate = stateLigaMotor;
             } else { 
-              pos = 0;
+              pos = 15;
               FSMstate = stateIncrementVel;
             }
         } 
@@ -95,7 +95,7 @@ void loop() {
           FSMstate = stateFreiando;
         }
 
-        if(analogRead(VelAtual)<VelMax && pos <= 30 && (millis()-time_ac>500)) {
+        if(analogRead(VelAtual)<VelMax && pos <= 35 && (millis()-time_ac>200)) {
           pos += 1;
           motor.servoWrite(pos);
 
@@ -160,7 +160,7 @@ void loop() {
 
   }
 
-  display.atualizaDisplay(motor, FSMstate);
+  display.atualizaDisplay(motor, FSMstate, pos);
 
   motor.setEstadoMotor(motor.checaEstadoMotor()); 
 }
