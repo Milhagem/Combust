@@ -8,7 +8,7 @@ void Display::iniciaDisplay(){
   delay(500);
 }
 
-void Display::mostraTensaoEVel(Motor &motor){
+void Display::mostraTensaoEVel(Motor &motor, int generic_number2){
     if ( (millis()-timeOld) >= timeInterval){
 
     // Exibir leitura LM2907
@@ -27,8 +27,8 @@ void Display::mostraTensaoEVel(Motor &motor){
   }
 }
 
-void Display::atualizaDisplay(Motor &motor, int FSMState_int){
-  mostraTensaoEVel(motor);
+void Display::atualizaDisplay(Motor &motor, int FSMState_int, int generic_number){
+  mostraTensaoEVel(motor, generic_number);
 
   String FSMState;
 

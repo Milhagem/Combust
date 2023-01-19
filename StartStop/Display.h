@@ -22,13 +22,13 @@ class Display {
      * 
      * @param motor Motor cujos dados serao lidos
     */
-    void mostraTensaoEVel(Motor &motor);
+    void mostraTensaoEVel(Motor &motor, int generic_number2);
     /**
      * Atualiza o Display com a velocidade e FSM. Taxa de atualizacao = timeInterval
      * 
      * @param motor Motor cujos dados serao lidos
     */
-    void atualizaDisplay(Motor &motor, int FSMState_int);
+    void atualizaDisplay(Motor &motor, int FSMState_int, int generic_number);
 
 
 };

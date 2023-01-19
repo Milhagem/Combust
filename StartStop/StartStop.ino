@@ -47,7 +47,7 @@ void setup() {
   // Display LCD
   display.iniciaDisplay();
 
-  Serial.begin(9600);
+  //Serial.begin(9600);
   
 }
 
@@ -72,12 +72,14 @@ void loop() {
         }
 
         if(analogRead(VelAtual)<VelMin && analogRead(VelAtual)>ZEROVel) {
-            if(motor.getEstadoMotor() == DESLIGADO) {
+            if(motor.checaEstadoMotor() == DESLIGADO) {
               FSMstate = stateLigaMotor;
             } else { 
+              pos = 15;
               FSMstate = stateIncrementVel;
             }
-        } else if(analogRead(VelAtual)>VelMax) {
+        } 
+        if(analogRead(VelAtual)>VelMax && motor.checaEstadoMotor() == LIGADO) {
           FSMstate = stateDesligaMotor;
         } 
 
@@ -93,7 +95,7 @@ void loop() {
           FSMstate = stateFreiando;
         }
 
-        if(analogRead(VelAtual)<VelMax && pos <= 30 && (millis()-time_ac>500)) {
+        if(analogRead(VelAtual)<VelMax && pos <= 35 && (millis()-time_ac>200)) {
           pos += 1;
           motor.servoWrite(pos);
 
@@ -110,6 +112,7 @@ void loop() {
     case stateDesligaMotor:
 
       if(digitalRead(switchSS) == LOW){
+        pos = 0;
         motor.desligaMotor();
         FSMstate = stateMonitoraVel;
         
@@ -158,7 +161,7 @@ void loop() {
 
   }
 
-  display.atualizaDisplay(motor, FSMstate);
+  display.atualizaDisplay(motor, FSMstate, pos);
 
   motor.setEstadoMotor(motor.checaEstadoMotor()); 
 }
