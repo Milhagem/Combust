@@ -60,6 +60,7 @@ void loop() {
       if(digitalRead(switchSS) == LOW && analogRead(VelAtual)>ZEROVel){
         FSMstate = stateMonitoraVel;
       }
+
     break;
   
 
@@ -82,7 +83,6 @@ void loop() {
 
       } else { FSMstate = motor.desligaStartStop(); }
 
-      
     break;
   
 
@@ -150,9 +150,10 @@ void loop() {
         FSMstate = motor.desligaStartStop();
       }
 
-      break;
+    break;
     
-      default: FSMstate = stateSS_off;
+    default: FSMstate = stateSS_off;
+
     break;
 
   }
