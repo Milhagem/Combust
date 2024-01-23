@@ -10,12 +10,15 @@
 
 #define LIGADO    1
 #define DESLIGADO 0
-#define VelAtual A9 
+#define velAtual  A9 
 
-#define VelMin         400
-#define VelMax         700
-#define ZEROVel        150
+
+
+#define VelMin         400  // Valores para teste
+#define VelMax         700  // Valores para teste
+#define ZEROVel        150  // Valores para teste
 #define tensaoMotorON  1.7
+
 class Motor{
   
   private:
@@ -37,7 +40,7 @@ class Motor{
     */
     void ligaMotor();
     /**
-    * @brief Apos velocidade max ser alcançada, abre o rele DESLIGA MOTOR e isso desliga o motor do carro. Volta servo pra posicao inicial
+    * @brief Abre o rele DESLIGA MOTOR e isso desliga o motor do carro. Volta servo pra posicao inicial
     *
     */
     void desligaMotor();
