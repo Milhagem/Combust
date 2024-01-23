@@ -2,7 +2,7 @@
 #include "Display.h"
 
 #define pedalGND  A8
-#define pedalVcc A10
+#define pedalVCC A10
 #define pinServo   8
 #define freio    A15
 #define switchSS A14
@@ -17,13 +17,18 @@
 #define stateLigaMotor    4
 #define stateFreiando     5
 
+/* Variaveis para o stateIncrementVel*/
+#define posMaxServo         100  // 100 graus (angulo)
+#define intervIncrementaVel 2000 // ms
+long int timeIncrement = 0;
 
 Motor motor;
 Display display;
 
 int FSMstate = stateSS_off;
-int pos;
-long int time_ac = 0;
+int posicaoServo = 0;
+
+
 
 void setup() {
   motor.setEstadoMotor(DESLIGADO);
@@ -32,13 +37,13 @@ void setup() {
   pinMode(pinDesligaMotor, OUTPUT);
   pinMode(freio, INPUT_PULLUP);
   pinMode(switchSS, INPUT_PULLUP);
-  pinMode(VelAtual, INPUT); 
+  pinMode(velAtual, INPUT); 
   pinMode(LM2907, INPUT);
 
   digitalWrite(pinLigaMotor, LOW);
   digitalWrite(pinDesligaMotor, LOW);
-  analogWrite(pedalGND, 0); // Pino 8 -> GND Pedal
-  analogWrite(pedalVcc, 1023); // Pino 10 -> Vcc Pedal
+  analogWrite(pedalGND, 0);    // Pino 8 -> GND Pedal
+  analogWrite(pedalVCC, 1023); // Pino 10 -> Vcc Pedal
 
   // Servo
   motor.servoAttach(pinServo);
@@ -47,17 +52,16 @@ void setup() {
   // Display LCD
   display.iniciaDisplay();
 
-  //Serial.begin(9600);
-  
 }
 
 
 void loop() {
+
   switch (FSMstate)
   { 
     case stateSS_off:
 
-      if(digitalRead(switchSS) == LOW && analogRead(VelAtual)>ZEROVel){
+      if(digitalRead(switchSS) == LOW && analogRead(velAtual)>ZEROVel){
         FSMstate = stateMonitoraVel;
       }
 
@@ -71,15 +75,15 @@ void loop() {
           FSMstate = stateFreiando;
         }
 
-        if(analogRead(VelAtual)<VelMin && analogRead(VelAtual)>ZEROVel) {
+        if(analogRead(velAtual)<VelMin && analogRead(velAtual)>ZEROVel) {
             if(motor.checaEstadoMotor() == DESLIGADO) {
               FSMstate = stateLigaMotor;
             } else { 
-              pos = 15;
+              posicaoServo = 15;
               FSMstate = stateIncrementVel;
             }
         } 
-        if(analogRead(VelAtual)>VelMax && motor.checaEstadoMotor() == LIGADO) {
+        if(analogRead(velAtual)>VelMax && motor.checaEstadoMotor() == LIGADO) {
           FSMstate = stateDesligaMotor;
         } 
 
@@ -95,13 +99,13 @@ void loop() {
           FSMstate = stateFreiando;
         }
 
-        if(analogRead(VelAtual)<VelMax && pos <= 35 && (millis()-time_ac>200)) {
-          pos += 1;
-          motor.servoWrite(pos);
+        if(analogRead(velAtual)<VelMax && posicaoServo <= posMaxServo && (millis()-timeIncrement>intervIncrementaVel)) {
+          posicaoServo += 1;
+          motor.servoWrite(posicaoServo);
 
-          time_ac = millis();
+          timeIncrement = millis();
         }
-        if(analogRead(VelAtual)>=VelMax)
+        if(analogRead(velAtual)>=VelMax)
           FSMstate = stateMonitoraVel;
 
       } else { FSMstate = motor.desligaStartStop(); }
@@ -112,7 +116,7 @@ void loop() {
     case stateDesligaMotor:
 
       if(digitalRead(switchSS) == LOW){
-        pos = 0;
+        posicaoServo = 0;
         motor.desligaMotor();
         FSMstate = stateMonitoraVel;
         
@@ -140,8 +144,8 @@ void loop() {
       if(digitalRead(switchSS) == LOW) {
         if(digitalRead(freio) == PRESSIONADO) {
           digitalWrite(ledRed,HIGH);
-          pos = 0;
-          motor.servoWrite(pos);
+          posicaoServo = 0;
+          motor.servoWrite(posicaoServo);
         }
         else{
           digitalWrite(ledRed,LOW);
@@ -161,7 +165,7 @@ void loop() {
 
   }
 
-  display.atualizaDisplay(motor, FSMstate, pos);
+  display.atualizaDisplay(motor, FSMstate, posicaoServo );
 
   motor.setEstadoMotor(motor.checaEstadoMotor()); 
 }
