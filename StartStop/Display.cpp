@@ -1,5 +1,14 @@
 #include "Display.h"
 
+
+#define stateSS_off       0
+#define stateSS_on        1
+#define stateMonitoraVel  2
+#define stateIncrementVel 3
+#define stateDesligaMotor 4
+#define stateLigaMotor    5
+#define stateFreiando     6
+
 void Display::iniciaDisplay(){
   this->lcd.init();
   this->lcd.backlight();
@@ -34,27 +43,31 @@ void Display::atualizaDisplay(Motor &motor, int FSMState_int, int generic_number
 
   switch (FSMState_int)
   {
-    case 0:
+    case stateSS_off:
       FSMState = "SS_off";
       break;
+
+    case stateSS_on:
+      FSMState = "SS__on";
+      break;
     
-    case 1:
+    case stateMonitoraVel:
       FSMState = "monitV";
       break;
 
-    case 2:
+    case stateIncrementVel:
       FSMState = "incrmV";
       break;
 
-    case 3:
+    case stateDesligaMotor:
       FSMState = "deslgM";
       break;
 
-    case 4:
+    case stateLigaMotor:
       FSMState = "ligaM";
       break;
 
-    case 5:
+    case stateFreiando:
       FSMState = "freou";
       break;
 
