@@ -17,14 +17,16 @@
 #define stateDesligaMotor 4
 #define stateLigaMotor    5
 #define stateFreiando     6
-
+#define TensaoMotorAcelerando   2.7
 
 Motor motor;
 Display display;
 
 int FSMstate = stateSS_off;
-int pos;
+int pos = 0;
 long int time_ac = 0;
+
+float tensao = motor.analisaTensao();
 
 void setup() {
   motor.setEstadoMotor(DESLIGADO);
@@ -102,16 +104,27 @@ void loop() {
 
     case stateIncrementVel: 
 
+      tensao = motor.analisaTensao(); 
+
       if(digitalRead(switchSS) == LOW) {
         if(digitalRead(freio) == PRESSIONADO){
           FSMstate = stateFreiando;
         }
 
-        if(analogRead(VelAtual)<VelMax && pos <= 35 && (millis()-time_ac>200)) {
-          pos += 1;
+        if(analogRead(VelAtual)<VelMax && pos <= 180 && (millis()-time_ac > 200)) { //incremento ocorrendo a cada 200ms
+          /* pos += 1;
           motor.servoWrite(pos);
-
+          time_ac = millis(); */
           time_ac = millis();
+          if(time_ac > 2000 &&  tensao < TensaoMotorAcelerando){
+            pos = 70;
+            motor.servoWrite(pos);
+            time_ac = millis();
+          }else{
+              pos += 5;
+              motor.servoWrite(pos);
+              time_ac = millis();
+          }
         }
         if(analogRead(VelAtual)>=VelMax)
           FSMstate = stateMonitoraVel;
