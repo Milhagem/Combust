@@ -11,11 +11,14 @@
 #define PRESSIONADO   0
 
 #define stateSS_off       0
-#define stateMonitoraVel  1
-#define stateIncrementVel 2
-#define stateDesligaMotor 3
-#define stateLigaMotor    4
-#define stateFreiando     5
+
+#define stateSS_on        1
+#define stateMonitoraVel  2
+#define stateIncrementVel 3
+#define stateDesligaMotor 4
+#define stateLigaMotor    5
+#define stateFreiando     6
+#define TensaoMotorAcelerando   2.7
 
 /* Variaveis para o stateIncrementVel*/
 #define posMaxServo         180 // 100 graus (angulo)
@@ -62,13 +65,24 @@ void loop() {
   switch (FSMstate)
   { 
     case stateSS_off:
-
-      if(digitalRead(switchSS) == LOW && analogRead(velAtual)>ZEROVel){
-        FSMstate = stateMonitoraVel;
-      }
+      if(digitalRead(switchSS) == LOW && analogRead(VelAtual)<ZEROVel){
+          FSMstate = stateSS_on;
+        }else{
+          if(digitalRead(switchSS) == LOW && analogRead(VelAtual) > ZEROVel){
+            FSMstate = stateMonitoraVel;
+          }
+        }
 
     break;
   
+  case stateSS_on:
+    if(analogRead(VelAtual) > ZEROVel){
+        FSMstate = stateMonitoraVel;
+    }
+    if(digitalRead(switchSS) == HIGH){
+      FSMstate = stateSS_off;
+    } 
+    break;
 
     case stateMonitoraVel: 
 
@@ -96,16 +110,28 @@ void loop() {
 
     case stateIncrementVel: 
 
+      tensao = motor.analisaTensao(); 
+
       if(digitalRead(switchSS) == LOW) {
         if(digitalRead(freio) == PRESSIONADO){
           FSMstate = stateFreiando;
         }
 
-        if(analogRead(velAtual)<VelMax && posicaoServo <= posMaxServo && millis() - timeIncrement > intervIncrementaVel) {
-          posicaoServo += increvementoServo;
-          motor.servoWrite(posicaoServo);
+        if(analogRead(VelAtual)<VelMax && pos <= 180 && (millis() - timeIncrement > intervIncrementaVel)) { //incremento ocorrendo a cada 200ms
+          /* pos += 1;
+          motor.servoWrite(pos);
+          time_ac = millis(); */
+          time_ac = millis();
+          if(time_ac > 2000 &&  tensao < TensaoMotorAcelerando){
+            pos = 70;
+            motor.servoWrite(pos);
+            time_ac = millis();
+          }else{
+              pos += 5;
+              motor.servoWrite(pos);
+              time_ac = millis();
+          }
 
-          timeIncrement = millis();
         }
         if(analogRead(velAtual)>=VelMax)
           FSMstate = stateMonitoraVel;
