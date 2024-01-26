@@ -18,17 +18,19 @@
 #define stateFreiando     5
 
 /* Variaveis para o stateIncrementVel*/
-#define posMaxServo         100  // 100 graus (angulo)
-#define intervIncrementaVel 2000 // ms
+#define posMaxServo         180 // 100 graus (angulo)
+#define intervIncrementaVel 200 // ms
+#define increvementoServo   1   // graus
 long int timeIncrement = 0;
+
+#define posicaoZeroServo     0  // graus
+#define posicaoInicialServo  40
 
 Motor motor;
 Display display;
 
 int FSMstate = stateSS_off;
-int posicaoServo = 0;
-
-
+int posicaoServo = posicaoZeroServo;
 
 void setup() {
   motor.setEstadoMotor(DESLIGADO);
@@ -99,8 +101,8 @@ void loop() {
           FSMstate = stateFreiando;
         }
 
-        if(analogRead(velAtual)<VelMax && posicaoServo <= posMaxServo && (millis()-timeIncrement>intervIncrementaVel)) {
-          posicaoServo += 1;
+        if(analogRead(velAtual)<VelMax && posicaoServo <= posMaxServo && millis() - timeIncrement > intervIncrementaVel) {
+          posicaoServo += increvementoServo;
           motor.servoWrite(posicaoServo);
 
           timeIncrement = millis();
@@ -116,7 +118,7 @@ void loop() {
     case stateDesligaMotor:
 
       if(digitalRead(switchSS) == LOW){
-        posicaoServo = 0;
+        posicaoServo = posicaoZeroServo;
         motor.desligaMotor();
         FSMstate = stateMonitoraVel;
         
@@ -144,7 +146,7 @@ void loop() {
       if(digitalRead(switchSS) == LOW) {
         if(digitalRead(freio) == PRESSIONADO) {
           digitalWrite(ledRed,HIGH);
-          posicaoServo = 0;
+          posicaoServo = posicaoZeroServo;
           motor.servoWrite(posicaoServo);
         }
         else{
