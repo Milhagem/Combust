@@ -30,7 +30,7 @@ void Display::mostraTensaoEVel(Motor &motor, int generic_number2){
     lcd.setCursor(0,1);
     lcd.print("Vel:            ");
     lcd.setCursor(6,1);
-    lcd.print(analogRead(VelAtual));
+    lcd.print(analogRead(velAtual));
 
     timeOld = millis();
   }
