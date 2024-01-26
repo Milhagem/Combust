@@ -28,6 +28,6 @@ void loop() {
   
   // Repassa o angulo ao ServoWrite
   servo1.write(map(angle, 0, 1023, 0, 180));
-  
+    
   delay(15);
 }
