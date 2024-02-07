@@ -11,11 +11,12 @@
 #define PRESSIONADO   0
 
 #define stateSS_off       0
-#define stateMonitoraVel  1
-#define stateIncrementVel 2
-#define stateDesligaMotor 3
-#define stateLigaMotor    4
-#define stateFreiando     5
+#define stateSS_on        1
+#define stateMonitoraVel  2
+#define stateIncrementVel 3
+#define stateDesligaMotor 4
+#define stateLigaMotor    5
+#define stateFreando      6
 
 /* Variaveis para o stateIncrementVel*/
 #define posMaxServo         180 // 100 graus (angulo)
@@ -62,11 +63,25 @@ void loop() {
   switch (FSMstate)
   { 
     case stateSS_off:
+      if(digitalRead(switchSS) == LOW && analogRead(velAtual)<ZEROVel){
+          FSMstate = stateSS_on;
+        }else{
+          if(digitalRead(switchSS) == LOW && analogRead(velAtual) > ZEROVel){
+            FSMstate = stateMonitoraVel;
+          }
+        }
 
-      if(digitalRead(switchSS) == PRESSIONADO && analogRead(velAtual)>ZEROVel){
+    break;
+
+
+    case stateSS_on:
+      if(analogRead(velAtual) > ZEROVel){
         FSMstate = stateMonitoraVel;
       }
-
+      if(digitalRead(switchSS) == HIGH){
+        FSMstate = stateSS_off;
+      } 
+      
     break;
   
 
@@ -74,7 +89,7 @@ void loop() {
 
       if(digitalRead(switchSS) == PRESSIONADO) {
         if(digitalRead(freio) == PRESSIONADO) {
-          FSMstate = stateFreiando;
+          FSMstate = stateFreando;
         }
 
         if(analogRead(velAtual)<VelMin && analogRead(velAtual)>ZEROVel) {
@@ -98,7 +113,7 @@ void loop() {
 
       if(digitalRead(switchSS) == PRESSIONADO) {
         if(digitalRead(freio) == PRESSIONADO){
-          FSMstate = stateFreiando;
+          FSMstate = stateFreando;
         }
 
         if(analogRead(velAtual)<VelMax && posicaoServo <= posMaxServo && millis() - timeIncrement > intervIncrementaVel) {
@@ -131,7 +146,7 @@ void loop() {
 
       if(digitalRead(switchSS) == PRESSIONADO){
         if(digitalRead(freio) == PRESSIONADO) {
-          FSMstate = stateFreiando;
+          FSMstate = stateFreando;
         } else {
           motor.ligaMotor();
           FSMstate = stateMonitoraVel;
@@ -142,7 +157,7 @@ void loop() {
     break;
   
 
-    case stateFreiando:
+    case stateFreando:
       if(digitalRead(switchSS) == PRESSIONADO) {
         if(digitalRead(freio) == PRESSIONADO) {
           digitalWrite(ledRed,HIGH);
