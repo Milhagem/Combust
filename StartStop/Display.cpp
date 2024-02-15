@@ -37,24 +37,28 @@ void Display::atualizaDisplay(Motor &motor, int FSMState_int, int generic_number
     case 0:
       FSMState = "SS_off";
       break;
-    
+
     case 1:
+      FSMState = "SS_on";
+      break;
+    
+    case 2:
       FSMState = "monitV";
       break;
 
-    case 2:
+    case 3:
       FSMState = "incrmV";
       break;
 
-    case 3:
+    case 4:
       FSMState = "deslgM";
       break;
 
-    case 4:
+    case 5:
       FSMState = "ligaM";
       break;
 
-    case 5:
+    case 6:
       FSMState = "freou";
       break;
 
