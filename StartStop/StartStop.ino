@@ -11,7 +11,6 @@
 #define PRESSIONADO   0
 
 #define stateSS_off       0
-
 #define stateSS_on        1
 #define stateMonitoraVel  2
 #define stateIncrementVel 3
@@ -20,14 +19,14 @@
 #define stateFreiando     6
 #define TensaoMotorAcelerando   2.7
 
-/* Variaveis para o stateIncrementVel*/
+/* Variaveis para o stateIncrementVel */
 #define posMaxServo         180 // 100 graus (angulo)
 #define intervIncrementaVel 200 // ms
 #define increvementoServo   1   // graus
 long int timeIncrement = 0;
 
 #define posicaoZeroServo     0  // graus
-#define posicaoInicialServo  40
+#define posicaoInicialServo  40 // graus
 
 Motor motor;
 Display display;
@@ -65,14 +64,31 @@ void loop() {
   switch (FSMstate)
   { 
     case stateSS_off:
-      if(digitalRead(switchSS) == LOW && analogRead(VelAtual)<ZEROVel){
+
+      motor.desligaStartStop();
+      if(digitalRead(switchSS) == LOW && analogRead(velAtual)<ZEROVel){
           FSMstate = stateSS_on;
         }else{
-          if(digitalRead(switchSS) == LOW && analogRead(VelAtual) > ZEROVel){
+          if(digitalRead(switchSS) == LOW && analogRead(velAtual) > ZEROVel){
             FSMstate = stateMonitoraVel;
           }
         }
 
+    break;
+
+
+    case stateSS_on:
+
+      if(digitalRead(switchSS) == PRESSIONADO) {
+        if(digitalRead(switchSS) == PRESSIONADO) {
+          FSMstate = stateFreando;
+        } else {
+          if(digitalRead(velAtual) > ZEROVel){
+            FSMstate = stateMonitoraVel;
+          }
+        }
+      } else { FSMstate = motor.desligaStartStop(); }
+      
     break;
   
   case stateSS_on:
@@ -86,16 +102,16 @@ void loop() {
 
     case stateMonitoraVel: 
 
-      if(digitalRead(switchSS) == LOW) {
+      if(digitalRead(switchSS) == PRESSIONADO) {
         if(digitalRead(freio) == PRESSIONADO) {
-          FSMstate = stateFreiando;
+          FSMstate = stateFreando;
         }
 
         if(analogRead(velAtual)<VelMin && analogRead(velAtual)>ZEROVel) {
             if(motor.checaEstadoMotor() == DESLIGADO) {
               FSMstate = stateLigaMotor;
             } else { 
-              posicaoServo = 15;
+              posicaoServo = posicaoInicialServo;
               FSMstate = stateIncrementVel;
             }
         } 
@@ -110,11 +126,9 @@ void loop() {
 
     case stateIncrementVel: 
 
-      tensao = motor.analisaTensao(); 
-
-      if(digitalRead(switchSS) == LOW) {
+      if(digitalRead(switchSS) == PRESSIONADO) {
         if(digitalRead(freio) == PRESSIONADO){
-          FSMstate = stateFreiando;
+          FSMstate = stateFreando;
         }
 
         if(analogRead(VelAtual)<VelMax && pos <= 180 && (millis() - timeIncrement > intervIncrementaVel)) { //incremento ocorrendo a cada 200ms
@@ -133,6 +147,7 @@ void loop() {
           }
 
         }
+        
         if(analogRead(velAtual)>=VelMax)
           FSMstate = stateMonitoraVel;
 
@@ -143,7 +158,7 @@ void loop() {
 
     case stateDesligaMotor:
 
-      if(digitalRead(switchSS) == LOW){
+      if(digitalRead(switchSS) == PRESSIONADO){
         posicaoServo = posicaoZeroServo;
         motor.desligaMotor();
         FSMstate = stateMonitoraVel;
@@ -155,9 +170,9 @@ void loop() {
 
     case stateLigaMotor:
 
-      if(digitalRead(switchSS) == LOW){
+      if(digitalRead(switchSS) == PRESSIONADO){
         if(digitalRead(freio) == PRESSIONADO) {
-          FSMstate = stateFreiando;
+          FSMstate = stateFreando;
         } else {
           motor.ligaMotor();
           FSMstate = stateMonitoraVel;
@@ -168,8 +183,9 @@ void loop() {
     break;
   
 
-    case stateFreiando:
-      if(digitalRead(switchSS) == LOW) {
+    case stateFreando:
+
+      if(digitalRead(switchSS) == PRESSIONADO) {
         if(digitalRead(freio) == PRESSIONADO) {
           digitalWrite(ledRed,HIGH);
           posicaoServo = posicaoZeroServo;

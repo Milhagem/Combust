@@ -68,6 +68,7 @@ void Display::atualizaDisplay(Motor &motor, int FSMState_int, int generic_number
       break;
 
     case stateFreiando:
+
       FSMState = "freou";
       break;
 
