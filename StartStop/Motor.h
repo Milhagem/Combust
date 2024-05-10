@@ -4,20 +4,20 @@
 #include "Arduino.h"
 #include "Servo.h"
 
-#define pinLigaMotor    12
-#define pinDesligaMotor 11
+#define pinLigaMotor    6
+#define pinDesligaMotor 5
 #define LM2907          A2 
 
 #define LIGADO    1
 #define DESLIGADO 0
-#define velAtual  A9 
+#define velAtual  A10 
 
 
 
 #define VelMin         400  // Valores para teste
 #define VelMax         700  // Valores para teste
 #define ZEROVel        150  // Valores para teste
-#define tensaoMotorON  1.7
+#define tensaoMotorON  2.75
 
 class Motor{
   

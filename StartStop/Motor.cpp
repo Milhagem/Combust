@@ -21,7 +21,7 @@ void Motor::ligaMotor(){
   if(this->checaEstadoMotor() == DESLIGADO){
     digitalWrite(pinLigaMotor, HIGH);
 
-    for (int i = 0; i < 10; i++) {    
+    for (int i = 0; i < 100; i++) {    
       delay(100);
       float tensao = analisaTensao();      
       if(tensao > (tensaoMotorON-0.2))

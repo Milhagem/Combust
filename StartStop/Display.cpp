@@ -15,6 +15,7 @@ void Display::iniciaDisplay(){
   this->lcd.setCursor(0,0);
   this->lcd.print("Iniciando CR7");
   delay(500);
+  
 }
 
 void Display::mostraTensaoEVel(Motor &motor, int generic_number2){
@@ -68,7 +69,6 @@ void Display::atualizaDisplay(Motor &motor, int FSMState_int, int generic_number
       break;
 
     case stateFreiando:
-
       FSMState = "freou";
       break;
 
