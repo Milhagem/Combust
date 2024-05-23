@@ -8,7 +8,8 @@
 #define switchSS A13
 #define ledRed     2
 
-#define PRESSIONADO   0
+#define PRESSIONADO     0x0
+#define NAO_PRESSIONADO 0X1
 
 #define stateSS_off       0
 
@@ -65,28 +66,23 @@ void loop() {
   switch (FSMstate)
   { 
     case stateSS_off:
-      if(digitalRead(switchSS) == LOW && analogRead(velAtual)<ZEROVel){
-          FSMstate = stateSS_on;
-        }else{
-          if(digitalRead(switchSS) == LOW && analogRead(velAtual) > ZEROVel){
-            FSMstate = stateMonitoraVel;
-          }
-        }
-
+      if(digitalRead(switchSS) == PRESSIONADO){
+        FSMstate = stateSS_on;
+      }
     break;
   
   case stateSS_on:
     if(analogRead(velAtual) > ZEROVel){
         FSMstate = stateMonitoraVel;
     }
-    if(digitalRead(switchSS) == HIGH){
+    if(digitalRead(switchSS) == NAO_PRESSIONADO){
       FSMstate = stateSS_off;
     } 
     break;
 
     case stateMonitoraVel: 
 
-      if(digitalRead(switchSS) == LOW) {
+      if(digitalRead(switchSS) == PRESSIONADO) {
         if(digitalRead(freio) == PRESSIONADO) {
           FSMstate = stateFreiando;
         }
@@ -110,7 +106,7 @@ void loop() {
 
     case stateIncrementVel: 
 
-      if(digitalRead(switchSS) == LOW) {
+      if(digitalRead(switchSS) == PRESSIONADO) {
         if(digitalRead(freio) == PRESSIONADO){
           FSMstate = stateFreiando;
         }else{
@@ -146,7 +142,7 @@ void loop() {
 
     case stateDesligaMotor:
 
-      if(digitalRead(switchSS) == LOW){
+      if(digitalRead(switchSS) == PRESSIONADO){
         posicaoServo = posicaoZeroServo;
         motor.desligaMotor();
         FSMstate = stateMonitoraVel;
@@ -158,7 +154,7 @@ void loop() {
 
     case stateLigaMotor:
 
-      if(digitalRead(switchSS) == LOW){
+      if(digitalRead(switchSS) == PRESSIONADO){
         if(digitalRead(freio) == PRESSIONADO) {
           FSMstate = stateFreiando;
         } else {
@@ -172,7 +168,7 @@ void loop() {
   
 
     case stateFreiando:
-      if(digitalRead(switchSS) == LOW) {
+      if(digitalRead(switchSS) == PRESSIONADO) {
         if(digitalRead(freio) == PRESSIONADO) {
           digitalWrite(ledRed,HIGH);
           posicaoServo = posicaoZeroServo;
