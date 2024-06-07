@@ -13,7 +13,7 @@ void Display::iniciaDisplay(){
   this->lcd.init();
   this->lcd.backlight();
   this->lcd.setCursor(0,0);
-  this->lcd.print("Iniciando CR7");
+  this->lcd.print("Iniciando M10");
   delay(500);
   
 }

@@ -14,7 +14,6 @@ float Motor::analisaTensao(){
   const float RESOLUCAO_ARDUINO = 1024.0;
   const float TENSAO_ARDUINO = 5.0;
 
-
   float valorInicial = analogRead(LM2907); 
   float tensao = (valorInicial/RESOLUCAO_ARDUINO)*TENSAO_ARDUINO; 
   return tensao;

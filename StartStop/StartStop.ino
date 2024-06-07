@@ -2,7 +2,7 @@
 #include "Display.h"
 
 #define pedalGND  A8
-#define pedalVCC A9
+#define pedalVCC  A9
 #define pinServo   8
 #define freio    A15
 #define switchSS A13
@@ -19,6 +19,7 @@
 #define stateDesligaMotor 4
 #define stateLigaMotor    5
 #define stateFreiando     6
+
 #define TensaoMotorAcelerando   2.7
 
 /* Variaveis para o stateIncrementVel*/
