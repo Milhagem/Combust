@@ -1,21 +1,36 @@
+#include <Arduino.h>
+#include <stdlib.h>
+#include <Wire.h>
 
-int hallPin = 19;
-int ledRed = 2;
+#define SENSOR_HALL DD3
 
-void setup() {
-  pinMode(hallPin, INPUT);
-  pinMode(0, OUTPUT);
-  pinMode(1, OUTPUT);
-  pinMode(ledRed, OUTPUT);
-  digitalWrite(0, LOW); // Desliga LED verde
-  digitalWrite(1, LOW); // Desliga LED azul
-  digitalWrite(ledRed, LOW);
+volatile int pico = 0;
+const int taxaAtualizacao = 1000; // Intervalo de tempo entre as medições
+unsigned long oldtime;
+
+void variador(){
+  pico++;
+} 
+
+void setup(){
+  Serial.begin(115220);
+
+  pinMode(SENSOR_HALL, INPUT);
+  attachInterrupt(digitalPinToInterrupt(SENSOR_HALL), variador, FALLING);
+
+  oldtime = 0; // ms
 }
 
-void loop() {
-  while(digitalRead(hallPin) == HIGH){
-    digitalWrite(ledRed, LOW);
-  }
-  digitalWrite(ledRed, HIGH);
+void loop(){
+  if((millis() - oldtime) > taxaAtualizacao){ 
+    
+    detachInterrupt(digitalPinToInterrupt(DD3));
+    oldtime = millis();
+    pico = 0;
 
+    attachInterrupt(digitalPinToInterrupt(SENSOR_HALL), variador, FALLING);
+  }
+
+  Serial.print("Pico:");
+  Serial.println(pico);
 }
