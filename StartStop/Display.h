@@ -18,18 +18,20 @@ class Display {
     */
     void iniciaDisplay();
     /**
-     * Atualiza o Display com a velocidade e tensao. Taxa de atualizacao = timeInterval
+     * @brief Atualiza o Display com a velocidade e tensao. Taxa de atualizacao = timeInterval
      * 
      * @param motor Motor cujos dados serao lidos
+     * @param velocidade Velocidade a ser exibida
     */
-    void mostraTensaoEVel(Motor &motor, int generic_number2);
+    void mostraTensaoEVel(Motor &motor, int velocidade, int generic_number2);
     /**
-     * Atualiza o Display com a velocidade e FSM. Taxa de atualizacao = timeInterval
+     * @brief Atualiza o Display com a velocidade e FSM. Taxa de atualizacao = timeInterval
      * 
      * @param motor Motor cujos dados serao lidos
+     * @param velocidade Velocidade a ser exibida
+     * @param FSMState_int Numero correspondente ao estado da Maquina de Estados
     */
-    void atualizaDisplay(Motor &motor, int FSMState_int, int generic_number);
-
+    void atualizaDisplay(Motor &motor, int velocidade, int FSMState_int, int generic_number);
 
 };
 

@@ -9,32 +9,41 @@
 #define ledRed     2
 
 #define PRESSIONADO     0x0
-#define NAO_PRESSIONADO 0X1
+#define NAO_PRESSIONADO 0x1
 
 #define stateSS_off       0
-
 #define stateSS_on        1
 #define stateMonitoraVel  2
 #define stateIncrementVel 3
 #define stateDesligaMotor 4
 #define stateLigaMotor    5
 #define stateFreiando     6
-#define TensaoMotorAcelerando   2.7
+
+/* Variaveis para medicao de velocidade */
+#define MPS_to_KMPH   3.6      // metros por segundo p/ quilometro por hora
+#define MS_to_S     000.1      // milisegundos p/ segundos
+volatile int picoLeituraHall;
+float distanciaPercorrida = 0; // m
+float velocidadeRaw;           // m/ms
+int velocidadeAtual;           // m/s
+unsigned long lastmillis;      // ms  
 
 /* Variaveis para o stateIncrementVel*/
 #define posMaxServo         180 // 100 graus (angulo)
-#define intervIncrementaVel 200 // ms
 #define increvementoServo   1   // graus
-long int timeIncrement = 0;
-
 #define posicaoZeroServo     0  // graus
 #define posicaoInicialServo  40
+#define intervIncrementaVel 200 // ms
+long int timeIncrement;
 
 Motor motor;
 Display display;
 
 int FSMstate = stateSS_off;
 int posicaoServo = posicaoZeroServo;
+
+void atualizaVelocidadeAtual();
+void variador () { picoLeituraHall++; }
 
 void setup() {
   motor.setEstadoMotor(DESLIGADO);
@@ -43,7 +52,7 @@ void setup() {
   pinMode(pinDesligaMotor, OUTPUT);
   pinMode(freio, INPUT_PULLUP);
   pinMode(switchSS, INPUT_PULLUP);
-  pinMode(velAtual, INPUT); 
+  pinMode(pinVelPedal, INPUT); 
   pinMode(LM2907, INPUT);
 
   digitalWrite(pinLigaMotor, LOW);
@@ -51,9 +60,16 @@ void setup() {
   analogWrite(pedalGND, 0);    // Pino 8 -> GND Pedal
   analogWrite(pedalVCC, 1023); // Pino 10 -> Vcc Pedal
 
+  // Sensor Hall
+  picoLeituraHall = 0;
+  pinMode(pinSensorHall, INPUT);
+  attachInterrupt(digitalPinToInterrupt(pinSensorHall), variador, RISING);
+  lastmillis = 0;
+
   // Servo
+  timeIncrement = 0;
   motor.servoAttach(pinServo);
-  motor.servoWrite(0);  // Poe o servo na posicao inicial
+  motor.servoWrite(posicaoZeroServo);  // Poe o servo na posicao inicial
   
   // Display LCD
   display.iniciaDisplay();
@@ -72,7 +88,7 @@ void loop() {
     break;
   
   case stateSS_on:
-    if(analogRead(velAtual) > ZEROVel){
+    if(analogRead(pinVelPedal) > ZEROVel){
         FSMstate = stateMonitoraVel;
     }
     if(digitalRead(switchSS) == NAO_PRESSIONADO){
@@ -81,22 +97,21 @@ void loop() {
     break;
 
     case stateMonitoraVel: 
-
       if(digitalRead(switchSS) == PRESSIONADO) {
         if(digitalRead(freio) == PRESSIONADO) {
-          FSMstate = stateFreiando;
+          FSMstate = stateMonitoraVel;
         }
 
-        if(analogRead(velAtual)<VelMin && analogRead(velAtual)>ZEROVel) {
+        if(velocidadeAtual<VelMin && velocidadeAtual>ZEROVel) {
             if(motor.checaEstadoMotor() == DESLIGADO) {
-              FSMstate = stateLigaMotor;
+              FSMstate = stateMonitoraVel;
             } else { 
               posicaoServo = 15;
-              FSMstate = stateIncrementVel;
+              FSMstate = stateMonitoraVel;
             }
         } 
-        if(analogRead(velAtual)> VelMax && motor.checaEstadoMotor() == LIGADO) {
-          FSMstate = stateDesligaMotor;
+        if(analogRead(pinVelPedal)> VelMax && motor.checaEstadoMotor() == LIGADO) {
+          FSMstate = stateMonitoraVel;
         } 
 
       } else { FSMstate = motor.desligaStartStop(); }
@@ -110,13 +125,13 @@ void loop() {
         if(digitalRead(freio) == PRESSIONADO){
           FSMstate = stateFreiando;
         }else{
-            if(analogRead(velAtual)<VelMax /*  && posicaoServo <= 180 */ /* && (millis() - timeIncrement > intervIncrementaVel) */) { //incremento ocorrendo a cada 200ms
+            if(analogRead(pinVelPedal)<VelMax /*  && posicaoServo <= 180 */ /* && (millis() - timeIncrement > intervIncrementaVel) */) { //incremento ocorrendo a cada 200ms
              
               motor.servoWrite(posicaoServo);
             }
           }
         
-        /* if(analogRead(VelAtual)<VelMax && pos <= 180 && (millis() - timeIncrement > intervIncrementaVel)) { //incremento ocorrendo a cada 200ms
+        /* if(analogRead(pinVelPedal)<VelMax && pos <= 180 && (millis() - timeIncrement > intervIncrementaVel)) { //incremento ocorrendo a cada 200ms
            pos += 1;
           motor.servoWrite(pos);
           time_ac = millis(); 
@@ -132,7 +147,7 @@ void loop() {
           }
 
         }*/
-        if(analogRead(velAtual)>=VelMax)
+        if(analogRead(pinVelPedal)>=VelMax)
           FSMstate = stateMonitoraVel;
 
       } else { FSMstate = motor.desligaStartStop(); }
@@ -192,7 +207,7 @@ void loop() {
 
   }
 
-  display.atualizaDisplay(motor, FSMstate, posicaoServo );
+  display.atualizaDisplay(motor, velocidadeAtual, FSMstate, posicaoServo);
 
   motor.setEstadoMotor(motor.checaEstadoMotor()); 
 }
@@ -220,12 +235,28 @@ void incrementaPosicaoServo(){
   short int tempoParaAcelerar = 2000; // Tempo para simular a velocidade do carro, isso é, espera-se que em 2000ms
 
   // Situação 1
-  if(velAtual < 250 && tensao < TensaoMotorAcelerando){
+  if(pinVelPedal < 250 && tensao < TensaoMotorAcelerando){
     posicaoServo = 70;
     motor.servoWrite(posicaoServo);
   }
   if(timeIncrement > tempoParaAcelerar && tensao >= TensaoMotorAcelerando && (intervaloTempoServo > intervIncrementaVel)){
     posicaoServo += 5;
     motor.servoWrite(posicaoServo);
+  }
+}
+
+void atualizaVelocidadeAtual() {
+  if((millis() - lastmillis) > taxaAtualizacaoVel){ 
+    
+    detachInterrupt(digitalPinToInterrupt(pinSensorHall));
+
+    distanciaPercorrida = picoLeituraHall/quantImas * tamanhoRodaUrban;
+    velocidadeRaw = distanciaPercorrida/taxaAtualizacaoVel;
+    velocidadeAtual = velocidadeAtual * MS_to_S * MPS_to_KMPH;
+
+    lastmillis = millis();
+    picoLeituraHall = 0;
+
+    attachInterrupt(digitalPinToInterrupt(pinSensorHall), variador, RISING);
   }
 }

@@ -6,18 +6,23 @@
 
 #define pinLigaMotor    6
 #define pinDesligaMotor 5
-#define LM2907          A2 
+#define LM2907         A2
+
+#define pinSensorHall       DD2
+#define taxaAtualizacaoVel 1000 // ms
+#define pinVelPedal         A10 // Pino p/ simulacao de velocidade em testes em bancada
+#define tamanhoRodaUrban    1.0 // m
+#define quantImas             6
 
 #define LIGADO    1
 #define DESLIGADO 0
-#define velAtual  A10 
 
+#define VelMin          400  // Valores para teste
+#define VelMax          700  // Valores para teste
+#define ZEROVel         150  // Valores para teste
+#define tensaoMotorON  2.75 // V
 
-
-#define VelMin         400  // Valores para teste
-#define VelMax         700  // Valores para teste
-#define ZEROVel        150  // Valores para teste
-#define tensaoMotorON  2.75
+#define TensaoMotorAcelerando   3.0 // V
 
 class Motor{
   
@@ -55,9 +60,6 @@ class Motor{
 
     bool getEstadoMotor() { return this->estadoMotor; }
     void setEstadoMotor(bool estadoMotor) { this->estadoMotor = estadoMotor; }
-
-
-
 };
 
 #endif
