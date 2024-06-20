@@ -8,12 +8,6 @@
 #define pinDesligaMotor 5
 #define LM2907         A2
 
-#define pinSensorHall       DD2
-#define taxaAtualizacaoVel 1000 // ms
-#define pinVelPedal         A10 // Pino p/ simulacao de velocidade em testes em bancada
-#define tamanhoRodaUrban    1.0 // m
-#define quantImas             6
-
 #define LIGADO    1
 #define DESLIGADO 0
 
