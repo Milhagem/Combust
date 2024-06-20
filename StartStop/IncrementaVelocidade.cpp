@@ -1,6 +1,6 @@
 #include "IncrementaVelocidade.h"
 
-int posicaoServo; // graus
+int posServo; // graus
 
 void funcIncrementaVel() {
     // Logica de incremento

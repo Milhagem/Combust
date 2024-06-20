@@ -3,7 +3,6 @@
 #include "IncrementaVelocidade.h"
 #include "Display.h"
 
-#define pinServo   8
 #define pinFreio A15
 #define switchSS A13
 
@@ -18,15 +17,15 @@
 #define PRESSIONADO     0x0
 #define NOT_PRESSIONADO 0x1
 
+extern int velocidadeAtual;
+extern unsigned long lastmillis;
+extern volatile int picoLeituraHall;
+extern int posServo;
+
 Motor motor;
 Display display;
 
 int FSMstate = stateSS_off;
-
-extern int velocidadeAtual;
-extern unsigned long lastmillis;
-extern volatile int picoLeituraHall;
-extern int posicaoServo;
 
 void setup() {
   pinMode(pinLigaMotor, OUTPUT);
@@ -51,8 +50,9 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(pinSensorHall), variador, RISING);
 
   // Servo
+  posServo = 0;
   motor.servoAttach(pinServo);
-  motor.servoWrite(posicaoZeroServo);  // Poe o servo na posicao inicial
+  motor.servoWrite(posZeroServo);  // Poe o servo na posicao inicial
   
   // Display LCD
   display.iniciaDisplay();
@@ -138,7 +138,7 @@ void loop() {
         break;
       }
 
-      posicaoServo = posicaoZeroServo;
+      posServo = posZeroServo;
       motor.desligaMotor();
       FSMstate = stateMonitoraVel;
     break;
@@ -166,8 +166,8 @@ void loop() {
       }
 
       if(digitalRead(pinFreio) == PRESSIONADO) {
-        posicaoServo = posicaoZeroServo;
-        motor.servoWrite(posicaoServo);
+        posServo = posZeroServo;
+        motor.servoWrite(posServo);
         FSMstate = stateFreando;
         break;
       } else {

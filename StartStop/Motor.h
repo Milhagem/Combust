@@ -6,14 +6,13 @@
 
 #define pinLigaMotor    6
 #define pinDesligaMotor 5
-#define LM2907         A2
+#define LM2907          A2
 
 #define LIGADO    1
 #define DESLIGADO 0
 
-#define tensaoMotorON  2.75 // V
-
-#define TensaoMotorAcelerando   3.0 // V
+#define tensaoMotorON         2.75 // V
+#define TensaoMotorAcelerando 3.0 // V
 
 class Motor{
   
@@ -47,7 +46,7 @@ class Motor{
     /**
      * @return LIGADO (expands to 1) ou DESLIGADO (expands to 0)
     */
-    boolean checaEstadoMotor();
+    bool checaEstadoMotor();
 
     bool getEstadoMotor() { return this->estadoMotor; }
     void setEstadoMotor(bool estadoMotor) { this->estadoMotor = estadoMotor; }
