@@ -1,24 +1,23 @@
 #include "Display.h"
 
-
 #define stateSS_off       0
 #define stateSS_on        1
 #define stateMonitoraVel  2
 #define stateIncrementVel 3
 #define stateDesligaMotor 4
 #define stateLigaMotor    5
-#define stateFreiando     6
+#define stateFreando     6
 
-void Display::iniciaDisplay(){
+void Display:: iniciaDisplay(){
   this->lcd.init();
   this->lcd.backlight();
   this->lcd.setCursor(0,0);
-  this->lcd.print("Iniciando CR7");
+  this->lcd.print("Iniciando M10");
   delay(500);
   
 }
 
-void Display::mostraTensaoEVel(Motor &motor, int velocidade, int generic_number2){
+void Display::mostraTensaoEVel(Motor &motor, int velocidade){
     if ( (millis()-timeOld) >= timeInterval){
 
     // Exibir leitura LM2907
@@ -37,8 +36,8 @@ void Display::mostraTensaoEVel(Motor &motor, int velocidade, int generic_number2
   }
 }
 
-void Display::atualizaDisplay(Motor &motor, int velocidade, int FSMState_int, int generic_number){
-  mostraTensaoEVel(motor, velocidade, generic_number);
+void Display::atualizaDisplay(Motor &motor, int velocidade, int FSMState_int){
+  mostraTensaoEVel(motor, velocidade);
 
   String FSMState;
 
@@ -68,7 +67,7 @@ void Display::atualizaDisplay(Motor &motor, int velocidade, int FSMState_int, in
       FSMState = "ligaM";
       break;
 
-    case stateFreiando:
+    case stateFreando:
       FSMState = "freou";
       break;
 
