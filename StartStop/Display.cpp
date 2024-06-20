@@ -6,7 +6,7 @@
 #define stateIncrementVel 3
 #define stateDesligaMotor 4
 #define stateLigaMotor    5
-#define stateFreando     6
+#define stateFreando      6
 
 void Display:: iniciaDisplay(){
   this->lcd.init();

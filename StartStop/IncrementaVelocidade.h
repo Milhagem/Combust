@@ -7,9 +7,7 @@
 #define posicaoInicialServo  40 // graus
 #define intervIncrementaVel 200 // ms
 
-int posicaoServo; // graus
-
-void incrementaVelocidade();
+void funcIncrementaVel();
 
 #endif
 

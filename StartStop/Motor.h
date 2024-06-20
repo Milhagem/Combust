@@ -11,9 +11,6 @@
 #define LIGADO    1
 #define DESLIGADO 0
 
-#define VelMin          400  // Valores para teste
-#define VelMax          700  // Valores para teste
-#define ZEROVel         150  // Valores para teste
 #define tensaoMotorON  2.75 // V
 
 #define TensaoMotorAcelerando   3.0 // V

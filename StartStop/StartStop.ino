@@ -23,6 +23,11 @@ Display display;
 
 int FSMstate = stateSS_off;
 
+extern int velocidadeAtual;
+extern unsigned long lastmillis;
+extern volatile int picoLeituraHall;
+extern int posicaoServo;
+
 void setup() {
   pinMode(pinLigaMotor, OUTPUT);
   pinMode(pinDesligaMotor, OUTPUT);
@@ -69,7 +74,7 @@ void loop() {
         break;
       }
       velocidadeAtual = atualizaVelocidadeAtual(velocidadeAtual);
-      if(velocidadeAtual > ZEROVel){
+      if(velocidadeAtual > velZERO){
         FSMstate = stateMonitoraVel;
         break;
       }
@@ -87,7 +92,7 @@ void loop() {
       }
 
       velocidadeAtual = atualizaVelocidadeAtual(velocidadeAtual);
-      if(velocidadeAtual<VelMin && velocidadeAtual>ZEROVel) {
+      if(velocidadeAtual<velMin && velocidadeAtual>velZERO) {
         if(motor.checaEstadoMotor() == DESLIGADO) {
           FSMstate = stateLigaMotor;
           break;
@@ -97,7 +102,7 @@ void loop() {
         }
       }
 
-      if(velocidadeAtual > VelMax && motor.checaEstadoMotor() == LIGADO) {
+      if(velocidadeAtual > velMax && motor.checaEstadoMotor() == LIGADO) {
         FSMstate = stateDesligaMotor;
         break;
       } 
@@ -115,12 +120,12 @@ void loop() {
         break;
       }
       
-      if(velocidadeAtual<VelMax) {
+      if(velocidadeAtual<velMax) {
         /* Desenvolver logica de incremento de velocidade*/
         break;
       }
 
-      if(velocidadeAtual>=VelMax) {
+      if(velocidadeAtual>=velMax) {
         FSMstate = stateMonitoraVel;
         break;
       }

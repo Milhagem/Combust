@@ -1,11 +1,16 @@
 #ifndef VELOCIDADE_H
 #define VELOCIDADE_H
 
+#include "Arduino.h"
+
 #define pinSensorHall      DD2
 #define pinPedalGND        A8  // Pino p/ simulacao de velocidade em testes em bancada
 #define pinPedalVCC        A9  // Pino p/ simulacao de velocidade em testes em bancada
 #define pinVelPedal        A10 // Pino p/ simulacao de velocidade em testes em bancada
 
+#define velZERO             150  // Valores para teste
+#define velMin              400  // Valores para teste
+#define velMax              700  // Valores para teste
 #define taxaAtualizacaoVel 1000  // ms
 #define diametroRodaURban  0.015 // m
 #define quantImas          5
@@ -13,10 +18,7 @@
 #define MPS_to_KMPH   3.6 // metros por segundo p/ quilometro por hora
 #define MS_to_S     000.1 // milisegundos p/ segundos
 
-int velocidadeAtual;          // km/h
-unsigned long lastmillis;     // ms
-volatile int picoLeituraHall;
-
+void variador();
 /**
  * @brief Atualiza a velocidade com base nos pulsos do Sensor Hall
  * 
@@ -27,7 +29,5 @@ volatile int picoLeituraHall;
  * @return velocidade (m/s)
  */
 int atualizaVelocidadeAtual(int velocidadeAtual);
-void variador () { picoLeituraHall++; }
-
 
 #endif
