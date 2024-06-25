@@ -64,7 +64,7 @@ void Display::atualizaDisplay(Motor &motor, int velocidade, int FSMState_int){
       break;
 
     case stateLigaMotor:
-      FSMState = "ligaM";
+      FSMState = "ligaM ";
       break;
 
     case stateFreando:
