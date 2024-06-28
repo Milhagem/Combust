@@ -11,7 +11,7 @@
 #define LIGADO    1
 #define DESLIGADO 0
 
-#define tensaoMotorON         2.75 // V
+#define tensaoMotorON         2.50 // V
 #define TensaoMotorAcelerando 3.0 // V
 
 class Motor{
