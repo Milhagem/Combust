@@ -34,7 +34,7 @@ void calc();
  * 
  * @return velocidade (m/s)
  */
-float calculaVelocidade(float speed);
+void calculaVelocidade(float &veloc);
 
 /**
  * @brief Filtra variacoes absuradas de velocidade

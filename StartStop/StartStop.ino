@@ -17,11 +17,15 @@
 #define PRESSIONADO     0x0
 #define NOT_PRESSIONADO 0x1
 
-extern volatile int picoLeituraHall;
-extern float speed;
-extern float last_speed;
-extern int posServo;
+extern unsigned long timerCalcVel;
+extern unsigned long lastTimerCalcVel;
+extern unsigned long pulseInterval;
+extern unsigned long lastPulseInterval;
+extern float velocidade;
+extern unsigned long pulseIntervals[sampleSize];
+extern int pulseIndex;
 
+extern int posServo;
 
 Motor motor;
 Display display;
@@ -47,9 +51,13 @@ void setup() {
   motor.setEstadoMotor(DESLIGADO);
 
   // Sensor Hall
-  picoLeituraHall = 0;
-  speed = 0;
-  last_speed = 0;
+  timerCalcVel = 0;
+  lastTimerCalcVel = 0;
+  pulseInterval = 0;
+  lastPulseInterval = 0;
+  velocidade = 0.0;
+  for (int i = 0; i < sampleSize; i++) { pulseIntervals[i] = 0; }
+  pulseIndex = 0;
 
   // Servo
   posServo = 0;
@@ -64,25 +72,27 @@ void setup() {
 void loop() {
   switch (FSMstate) {
     case stateSS_off:
-      speed = calculaVelocidade(speed);
+    calculaVelocidade(velocidade);
       if(digitalRead(switchSS) == PRESSIONADO){
         FSMstate = stateSS_on;
       }
     break;
   
     case stateSS_on:
+      calculaVelocidade(velocidade);
       if(digitalRead(switchSS) == NOT_PRESSIONADO){
         FSMstate = motor.desligaStartStop();
         break;
       }
-      speed = calculaVelocidade(speed);
-      if(speed > velZERO){
+
+      if(velocidade > velZERO){
         FSMstate = stateMonitoraVel;
         break;
       }
     break;
 
     case stateMonitoraVel:
+      calculaVelocidade(velocidade);
       if(digitalRead(switchSS) == NOT_PRESSIONADO) {
         FSMstate = motor.desligaStartStop();
         break;
@@ -93,8 +103,7 @@ void loop() {
         break;
       }
       
-      speed = calculaVelocidade(speed);
-      if(speed<velMin && speed>velZERO) {
+      if(velocidade<velMin && velocidade>velZERO) {
         if(motor.checaEstadoMotor() == DESLIGADO) {
           FSMstate = stateLigaMotor;
           break;
@@ -104,15 +113,15 @@ void loop() {
         }
       }
 
-      speed = calculaVelocidade(speed);
-      if(speed > velMax && motor.checaEstadoMotor() == LIGADO) {
+      if(velocidade > velMax && motor.checaEstadoMotor() == LIGADO) {
         FSMstate = stateDesligaMotor;
         break;
       } 
     break;
   
 
-    case stateIncrementVel: 
+    case stateIncrementVel:
+      calculaVelocidade(velocidade);
       if(digitalRead(switchSS) == NOT_PRESSIONADO) {
         FSMstate = motor.desligaStartStop();
         break;
@@ -122,15 +131,13 @@ void loop() {
         FSMstate = stateFreando;
         break;
       }
-      
-      speed = calculaVelocidade(speed);
-      if(speed<velMax) {
+
+      if(velocidade<velMax) {
         /* Desenvolver logica de incremento de velocidade*/
         break;
       }
 
-      speed = calculaVelocidade(speed);
-      if(speed>=velMax) {
+      if(velocidade>=velMax) {
         FSMstate = stateMonitoraVel;
         break;
       }
@@ -138,6 +145,7 @@ void loop() {
   
 
     case stateDesligaMotor:
+      calculaVelocidade(velocidade);
       if(digitalRead(switchSS) == NOT_PRESSIONADO) {
         FSMstate = motor.desligaStartStop(); ;
         break;
@@ -150,6 +158,7 @@ void loop() {
   
 
     case stateLigaMotor:
+      calculaVelocidade(velocidade);
       if(digitalRead(switchSS) == NOT_PRESSIONADO) {
         FSMstate = motor.desligaStartStop();
         break;
@@ -165,6 +174,7 @@ void loop() {
     break;
 
     case stateFreando:
+      calculaVelocidade(velocidade);
       if(digitalRead(switchSS) == NOT_PRESSIONADO) {
         FSMstate = motor.desligaStartStop();
         break;
@@ -184,6 +194,6 @@ void loop() {
     default: FSMstate = stateSS_off;
   }
 
-  display.atualizaDisplay(motor, speed, FSMstate);
+  display.atualizaDisplay(motor, velocidade, FSMstate);
   motor.setEstadoMotor(motor.checaEstadoMotor()); 
 }
