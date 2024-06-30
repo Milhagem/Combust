@@ -21,7 +21,7 @@
  * 
  * @param Motor objeto motor usado no codigo
  */
-void funcIncrementaVel(Motor &Motor);
+void giraServoMotor(Motor &Motor);
 
 #endif
 
