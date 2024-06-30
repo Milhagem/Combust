@@ -17,6 +17,7 @@
 #define PRESSIONADO     0x0
 #define NOT_PRESSIONADO 0x1
 
+// Variaveis para calculo de velocidade
 extern unsigned long timerCalcVel;
 extern unsigned long lastTimerCalcVel;
 extern unsigned long pulseInterval;
@@ -25,7 +26,9 @@ extern float velocidade;
 extern unsigned long pulseIntervals[sampleSize];
 extern int pulseIndex;
 
+// Variaveis para acelerar o motor
 extern int posServo;
+extern unsigned int timerIncrementoServo;
 
 Motor motor;
 Display display;
@@ -50,7 +53,7 @@ void setup() {
 
   motor.setEstadoMotor(DESLIGADO);
 
-  // Sensor Hall
+  // Calculo de velocidade
   timerCalcVel = 0;
   lastTimerCalcVel = 0;
   pulseInterval = 0;
@@ -59,10 +62,11 @@ void setup() {
   for (int i = 0; i < sampleSize; i++) { pulseIntervals[i] = 0; }
   pulseIndex = 0;
 
-  // Servo
+  // Acelerar motor
   posServo = 0;
   motor.servoAttach(pinServo);
   motor.servoWrite(posZeroServo);  // Poe o servo na posicao inicial
+  timerIncrementoServo = 0;
   
   // Display LCD
   display.iniciaDisplay();
@@ -71,6 +75,8 @@ void setup() {
 
 void loop() {
   switch (FSMstate) {
+
+
     case stateSS_off:
     calculaVelocidade(velocidade);
       if(digitalRead(switchSS) == PRESSIONADO){
@@ -78,6 +84,7 @@ void loop() {
       }
     break;
   
+
     case stateSS_on:
       calculaVelocidade(velocidade);
       if(digitalRead(switchSS) == NOT_PRESSIONADO){
@@ -90,6 +97,7 @@ void loop() {
         break;
       }
     break;
+
 
     case stateMonitoraVel:
       calculaVelocidade(velocidade);
@@ -132,8 +140,9 @@ void loop() {
         break;
       }
 
-      if(velocidade<velMax) {
-        /* Desenvolver logica de incremento de velocidade*/
+      if(velocidade<velMax && posServo < posMaxServo) {
+        giraServoMotor(motor);
+        FSMstate = stateIncrementVel;
         break;
       }
 
@@ -172,6 +181,7 @@ void loop() {
       motor.ligaMotor();
       FSMstate = stateMonitoraVel;
     break;
+
 
     case stateFreando:
       calculaVelocidade(velocidade);

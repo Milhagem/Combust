@@ -8,9 +8,9 @@
 #define pinPedalVCC        A9  // Pino p/ simulacao de velocidade em testes em bancada
 #define pinVelPedal        A10 // Pino p/ simulacao de velocidade em testes em bancada
 
-#define velZERO            150  // Valores para teste
-#define velMin             400  // Valores para teste
-#define velMax             700  // Valores para teste
+#define velZERO            3  // Valores para teste
+#define velMin             6  // Valores para teste
+#define velMax             12  // Valores para teste
 #define taxaAtualizacaoVel 1000 // ms
 #define circunfRoda        0.47 // m
 #define pulsosPorVolta     5
