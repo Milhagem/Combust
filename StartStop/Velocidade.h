@@ -47,7 +47,7 @@ void calculaVelocidade(float &veloc);
  * @param velocidadeNew possivel novo valor de velocidada
  * @return velocidade (km/h) 
  */
-float filtroVelocidade(float velocidadeOld, float velocidadeNew);
+float filtroVelocVariacoesGrandes(float velocidadeOld, float velocidadeNew);
 
 /**
  * @brief retorna um valor de velocidade com base na leitura de um pino analogico para testes em bancada
