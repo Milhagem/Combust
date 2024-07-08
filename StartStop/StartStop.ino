@@ -17,13 +17,13 @@
 #define PRESSIONADO     0x0
 #define NOT_PRESSIONADO 0x1
 
-extern unsigned long timerCalcVel;
-extern unsigned long lastTimerCalcVel;
-extern unsigned long pulseInterval;
-extern unsigned long lastPulseInterval;
-extern float velocidade;
-extern unsigned long pulseIntervals[sampleSize];
-extern int pulseIndex;
+extern volatile unsigned long pulseInterval;     // ms
+extern volatile unsigned long lastPulseInterval; // ms
+extern volatile unsigned long pulseIntervals[sampleSize];
+extern volatile int pulseIndex;
+extern unsigned long timerCalcVel;      // ms
+extern unsigned long lastTimerCalcVel;  // ms
+extern float velocidade;                // km/h 
 
 extern int posServo;
 
@@ -85,7 +85,7 @@ void loop() {
         break;
       }
 
-      if(velocidade > velZERO){
+      if(velocidade >= velZERO){
         FSMstate = stateMonitoraVel;
         break;
       }
@@ -103,7 +103,7 @@ void loop() {
         break;
       }
       
-      if(velocidade<velMin && velocidade>velZERO) {
+      if(velocidade<velMin && velocidade>=velZERO) {
         if(motor.checaEstadoMotor() == DESLIGADO) {
           FSMstate = stateLigaMotor;
           break;
@@ -134,6 +134,7 @@ void loop() {
 
       if(velocidade<velMax) {
         /* Desenvolver logica de incremento de velocidade*/
+        FSMstate = stateIncrementVel;
         break;
       }
 

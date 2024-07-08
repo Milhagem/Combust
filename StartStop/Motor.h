@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include "Servo.h"
+#include "Velocidade.h"
 
 #define pinLigaMotor    6
 #define pinDesligaMotor 5
