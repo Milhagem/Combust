@@ -3,21 +3,17 @@
 
 #include "Arduino.h"
 #include "Servo.h"
+#include "Velocidade.h"
 
 #define pinLigaMotor    6
 #define pinDesligaMotor 5
-#define LM2907          A2 
+#define LM2907          A2
 
 #define LIGADO    1
 #define DESLIGADO 0
-#define velAtual  A10 
 
-
-
-#define VelMin         400  // Valores para teste
-#define VelMax         700  // Valores para teste
-#define ZEROVel        150  // Valores para teste
-#define tensaoMotorON  2.75
+#define tensaoMotorON         2.50 // V
+#define TensaoMotorAcelerando 3.0 // V
 
 class Motor{
   
@@ -51,13 +47,10 @@ class Motor{
     /**
      * @return LIGADO (expands to 1) ou DESLIGADO (expands to 0)
     */
-    boolean checaEstadoMotor();
+    bool checaEstadoMotor();
 
     bool getEstadoMotor() { return this->estadoMotor; }
     void setEstadoMotor(bool estadoMotor) { this->estadoMotor = estadoMotor; }
-
-
-
 };
 
 #endif

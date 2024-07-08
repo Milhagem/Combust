@@ -1,232 +1,200 @@
 #include "Motor.h"
+#include "Velocidade.h"
+#include "IncrementaVelocidade.h"
 #include "Display.h"
 
-#define pedalGND  A8
-#define pedalVCC  A9
-#define pinServo   8
-#define freio    A15
+#define pinFreio A15
 #define switchSS A13
-#define ledRed     2
-
-#define PRESSIONADO     0x0
-#define NAO_PRESSIONADO 0X1
 
 #define stateSS_off       0
-
 #define stateSS_on        1
 #define stateMonitoraVel  2
 #define stateIncrementVel 3
 #define stateDesligaMotor 4
 #define stateLigaMotor    5
-#define stateFreiando     6
+#define stateFreando      6
 
-#define TensaoMotorAcelerando   2.7
+#define PRESSIONADO     0x0
+#define NOT_PRESSIONADO 0x1
 
-/* Variaveis para o stateIncrementVel*/
-#define posMaxServo         180 // 100 graus (angulo)
-#define intervIncrementaVel 200 // ms
-#define increvementoServo   1   // graus
-long int timeIncrement = 0;
+extern volatile unsigned long pulseInterval;     // ms
+extern volatile unsigned long lastPulseInterval; // ms
+extern volatile unsigned long pulseIntervals[sampleSize];
+extern volatile int pulseIndex;
+extern unsigned long timerCalcVel;      // ms
+extern unsigned long lastTimerCalcVel;  // ms
+extern float velocidade;                // km/h 
 
-#define posicaoZeroServo     0  // graus
-#define posicaoInicialServo  40
+extern int posServo;
 
 Motor motor;
 Display display;
 
 int FSMstate = stateSS_off;
-int posicaoServo = posicaoZeroServo;
 
 void setup() {
-  motor.setEstadoMotor(DESLIGADO);
+  Serial.begin(115200);
   
   pinMode(pinLigaMotor, OUTPUT);
   pinMode(pinDesligaMotor, OUTPUT);
-  pinMode(freio, INPUT_PULLUP);
-  pinMode(switchSS, INPUT_PULLUP);
-  pinMode(velAtual, INPUT); 
+  pinMode(pinVelPedal, INPUT); 
   pinMode(LM2907, INPUT);
-
+  pinMode(pinSensorHall, INPUT);
+  pinMode(pinFreio, INPUT_PULLUP);
+  pinMode(switchSS, INPUT_PULLUP);
+  
   digitalWrite(pinLigaMotor, LOW);
   digitalWrite(pinDesligaMotor, LOW);
-  analogWrite(pedalGND, 0);    // Pino 8 -> GND Pedal
-  analogWrite(pedalVCC, 1023); // Pino 10 -> Vcc Pedal
+  analogWrite(pinPedalGND, 0);    // Pino A8  -> GND Pedal
+  analogWrite(pinPedalVCC, 1023); // Pino A10 -> VCC Pedal
+
+  motor.setEstadoMotor(DESLIGADO);
+
+  // Sensor Hall
+  timerCalcVel = 0;
+  lastTimerCalcVel = 0;
+  pulseInterval = 0;
+  lastPulseInterval = 0;
+  velocidade = 0.0;
+  for (int i = 0; i < sampleSize; i++) { pulseIntervals[i] = 0; }
+  pulseIndex = 0;
 
   // Servo
+  posServo = 0;
   motor.servoAttach(pinServo);
-  motor.servoWrite(0);  // Poe o servo na posicao inicial
+  motor.servoWrite(posZeroServo);  // Poe o servo na posicao inicial
   
   // Display LCD
   display.iniciaDisplay();
-
 }
 
 
 void loop() {
-
-  switch (FSMstate)
-  { 
+  switch (FSMstate) {
     case stateSS_off:
+    calculaVelocidade(velocidade);
       if(digitalRead(switchSS) == PRESSIONADO){
         FSMstate = stateSS_on;
       }
     break;
   
-  case stateSS_on:
-    if(analogRead(velAtual) > ZEROVel){
+    case stateSS_on:
+      calculaVelocidade(velocidade);
+      if(digitalRead(switchSS) == NOT_PRESSIONADO){
+        FSMstate = motor.desligaStartStop();
+        break;
+      }
+
+      if(velocidade >= velZERO){
         FSMstate = stateMonitoraVel;
-    }
-    if(digitalRead(switchSS) == NAO_PRESSIONADO){
-      FSMstate = stateSS_off;
-    } 
+        break;
+      }
     break;
 
-    case stateMonitoraVel: 
-
-      if(digitalRead(switchSS) == PRESSIONADO) {
-        if(digitalRead(freio) == PRESSIONADO) {
-          FSMstate = stateFreiando;
+    case stateMonitoraVel:
+      calculaVelocidade(velocidade);
+      if(digitalRead(switchSS) == NOT_PRESSIONADO) {
+        FSMstate = motor.desligaStartStop();
+        break;
+      } 
+      
+      if(digitalRead(pinFreio) == PRESSIONADO) {
+        FSMstate = stateFreando;
+        break;
+      }
+      
+      if(velocidade<velMin && velocidade>=velZERO) {
+        if(motor.checaEstadoMotor() == DESLIGADO) {
+          FSMstate = stateLigaMotor;
+          break;
+        } else if(motor.checaEstadoMotor() == LIGADO) { 
+          FSMstate = stateIncrementVel;
+          break;
         }
+      }
 
-        if(analogRead(velAtual)<VelMin && analogRead(velAtual)>ZEROVel) {
-            if(motor.checaEstadoMotor() == DESLIGADO) {
-              FSMstate = stateLigaMotor;
-            } else { 
-              posicaoServo = 15;
-              FSMstate = stateIncrementVel;
-            }
-        } 
-        if(analogRead(velAtual)> VelMax && motor.checaEstadoMotor() == LIGADO) {
-          FSMstate = stateDesligaMotor;
-        } 
-
-      } else { FSMstate = motor.desligaStartStop(); }
-
+      if(velocidade > velMax && motor.checaEstadoMotor() == LIGADO) {
+        FSMstate = stateDesligaMotor;
+        break;
+      } 
     break;
   
 
-    case stateIncrementVel: 
+    case stateIncrementVel:
+      calculaVelocidade(velocidade);
+      if(digitalRead(switchSS) == NOT_PRESSIONADO) {
+        FSMstate = motor.desligaStartStop();
+        break;
+      }
 
-      if(digitalRead(switchSS) == PRESSIONADO) {
-        if(digitalRead(freio) == PRESSIONADO){
-          FSMstate = stateFreiando;
-        }else{
-            if(analogRead(velAtual)<VelMax /*  && posicaoServo <= 180 */ /* && (millis() - timeIncrement > intervIncrementaVel) */) { //incremento ocorrendo a cada 200ms
-             
-              motor.servoWrite(posicaoServo);
-            }
-          }
-        
-        /* if(analogRead(VelAtual)<VelMax && pos <= 180 && (millis() - timeIncrement > intervIncrementaVel)) { //incremento ocorrendo a cada 200ms
-           pos += 1;
-          motor.servoWrite(pos);
-          time_ac = millis(); 
-          time_ac = millis();
-          if(time_ac > 2000 &&  tensao < TensaoMotorAcelerando){
-            pos = 70;
-            motor.servoWrite(pos);
-            time_ac = millis();
-          }else{
-              pos += 5;
-              motor.servoWrite(pos);
-              time_ac = millis();
-          }
+      if(digitalRead(pinFreio) == PRESSIONADO) {
+        FSMstate = stateFreando;
+        break;
+      }
 
-        }*/
-        if(analogRead(velAtual)>=VelMax)
-          FSMstate = stateMonitoraVel;
+      if(velocidade<velMax) {
+        /* Desenvolver logica de incremento de velocidade*/
+        FSMstate = stateIncrementVel;
+        break;
+      }
 
-      } else { FSMstate = motor.desligaStartStop(); }
-       
+      if(velocidade>=velMax) {
+        FSMstate = stateMonitoraVel;
+        break;
+      }
     break;
   
 
     case stateDesligaMotor:
+      calculaVelocidade(velocidade);
+      if(digitalRead(switchSS) == NOT_PRESSIONADO) {
+        FSMstate = motor.desligaStartStop(); ;
+        break;
+      }
 
-      if(digitalRead(switchSS) == PRESSIONADO){
-        posicaoServo = posicaoZeroServo;
-        motor.desligaMotor();
-        FSMstate = stateMonitoraVel;
-        
-      } else { FSMstate = motor.desligaStartStop(); }
-
+      posServo = posZeroServo;
+      motor.desligaMotor();
+      FSMstate = stateMonitoraVel;
     break;
   
 
     case stateLigaMotor:
-
-      if(digitalRead(switchSS) == PRESSIONADO){
-        if(digitalRead(freio) == PRESSIONADO) {
-          FSMstate = stateFreiando;
-        } else {
-          motor.ligaMotor();
-          FSMstate = stateMonitoraVel;
-        }
-          
-      } else { FSMstate = motor.desligaStartStop(); }
-
-    break;
-  
-
-    case stateFreiando:
-      if(digitalRead(switchSS) == PRESSIONADO) {
-        if(digitalRead(freio) == PRESSIONADO) {
-          digitalWrite(ledRed,HIGH);
-          posicaoServo = posicaoZeroServo;
-          motor.servoWrite(posicaoServo);
-        }
-        else{
-          digitalWrite(ledRed,LOW);
-          FSMstate = stateMonitoraVel;
-        }
-
-      } else { 
-        digitalWrite(ledRed,LOW);
+      calculaVelocidade(velocidade);
+      if(digitalRead(switchSS) == NOT_PRESSIONADO) {
         FSMstate = motor.desligaStartStop();
+        break;
       }
 
+      if(digitalRead(pinFreio) == PRESSIONADO) {
+        FSMstate = stateFreando;
+        break;
+      }
+      
+      motor.ligaMotor();
+      FSMstate = stateMonitoraVel;
+    break;
+
+    case stateFreando:
+      calculaVelocidade(velocidade);
+      if(digitalRead(switchSS) == NOT_PRESSIONADO) {
+        FSMstate = motor.desligaStartStop();
+        break;
+      }
+
+      if(digitalRead(pinFreio) == PRESSIONADO) {
+        posServo = posZeroServo;
+        motor.servoWrite(posServo);
+        FSMstate = stateFreando;
+        break;
+      } else {
+        FSMstate = stateMonitoraVel;
+        break;
+      }
     break;
     
     default: FSMstate = stateSS_off;
-
-    break;
-
   }
 
-  display.atualizaDisplay(motor, FSMstate, posicaoServo );
-
+  display.atualizaDisplay(motor, velocidade, FSMstate);
   motor.setEstadoMotor(motor.checaEstadoMotor()); 
-}
-
-void incrementaPosicaoServo(){
-
-  /*Quatro situações:
-  1 - Posicionamento do servo até realizar a tensão do cabo mas sem acelerar
-  2 - Início da aceleração, o servo deve se mover de forma ainda rápida e com maior ângulo para vencer a força oposta da borboleta
-  3 - Borboleta diminui a força oposta, logo o servo pode se movimentar mais devagar e com menor amplitude
-
-  Todas as situações acima dependem da análise da velocidade do veículo, caso a velocidade não modifique, deve-se entrar em estado de exceção
-  Em teste de bancada ainda não se possui a medição da velocidade de fato, para realizar essa 
-
-  4 - Estado de exceção
-  */ 
-
-  /* pos += 1;
-  motor.servoWrite(pos);
-  time_ac = millis(); */
-
-  timeIncrement = millis();
-  float tensao = motor.analisaTensao(); 
-  int intervaloTempoServo = millis() - timeIncrement; 
-  short int tempoParaAcelerar = 2000; // Tempo para simular a velocidade do carro, isso é, espera-se que em 2000ms
-
-  // Situação 1
-  if(velAtual < 250 && tensao < TensaoMotorAcelerando){
-    posicaoServo = 70;
-    motor.servoWrite(posicaoServo);
-  }
-  if(timeIncrement > tempoParaAcelerar && tensao >= TensaoMotorAcelerando && (intervaloTempoServo > intervIncrementaVel)){
-    posicaoServo += 5;
-    motor.servoWrite(posicaoServo);
-  }
 }
