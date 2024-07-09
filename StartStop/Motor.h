@@ -7,13 +7,13 @@
 
 #define pinLigaMotor    6
 #define pinDesligaMotor 5
-#define LM2907          A2
+#define LM2907          A6
 
 #define LIGADO    1
 #define DESLIGADO 0
 
-#define tensaoMotorON         2.50 // V
-#define TensaoMotorAcelerando 3.0 // V
+#define tensaoMotorON         1.75 // V
+#define TensaoMotorAcelerando 2.75 // V
 
 class Motor{
   
@@ -32,16 +32,20 @@ class Motor{
      */
     float analisaTensao();
     /**
-    * @brief Fecha o rele LIGA MOTOR e isso liga o motor de arranque por no maximo 2 segundos
+    * @brief Fecha o rele LIGA MOTOR e isso liga o motor de arranque por um tempo maximo determiando;
+    * 
+    * @param veloc usado para atualizar a velocidade do carro
     */
-    void ligaMotor();
+    void ligaMotor(float &veloc);
     /**
     * @brief Abre o rele DESLIGA MOTOR e isso desliga o motor do carro. Volta servo pra posicao inicial
     *
     */
-    void desligaMotor();
+    void desligaMotor(float &veloc);
     /**
      * @brief desliga o Start Stop (passa para o Modo Manual) e volta o servo para a posicao inicial
+     * 
+     * @param veloc usado para atualizar a velocidade do carro
      */
     int desligaStartStop();
     /**

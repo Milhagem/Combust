@@ -4,14 +4,14 @@
 #include "Arduino.h"
 
 #define pinSensorHall      DD3
-#define pinPedalGND        A8  // Pino p/ simulacao de velocidade em testes em bancada
-#define pinPedalVCC        A9  // Pino p/ simulacao de velocidade em testes em bancada
-#define pinVelPedal        A10 // Pino p/ simulacao de velocidade em testes em bancada
+// #define pinPedalGND        A8  // Pino p/ simulacao de velocidade em testes em bancada
+// #define pinPedalVCC        A9  // Pino p/ simulacao de velocidade em testes em bancada
+// #define pinVelPedal        A10 // Pino p/ simulacao de velocidade em testes em bancada
 
 #define velZERO            0  // Valores para teste
 #define velMin             6  // Valores para teste
-#define velMax             12  // Valores para teste
-#define taxaAtualizacaoVel 1000 // ms
+#define velMax             15  // Valores para teste
+#define taxaAtualizacaoVel 100 // ms
 #define circunfRoda        0.47 // m
 #define pulsosPorVolta     5
 #define sampleSize         3    // Numero de amostras para calcular velocidade
@@ -20,6 +20,7 @@
 #define MS_to_S     1000 // milisegundos p/ segundos
 
 /** 
+ * @brief Calcula o periodo dos pulsos do sensor Hall
  * @brief Calcula o periodo dos pulsos do sensor Hall
  * 
  */
@@ -33,7 +34,12 @@ void calc();
  * 1 - Media da amostra dos periodos; 
  * 2 - Corte de alteracoes bruscas.  no calculo dessa 
  * Essa funcao altera variavel passada como parametro (variavel global velocidade)
+ * @details Usa amostras do PERIODO dos pulsos do Sensor Hall p/ calculo da velocidade. Sao aplicados 2 filtros: 
+ * 1 - Media da amostra dos periodos; 
+ * 2 - Corte de alteracoes bruscas.  no calculo dessa 
+ * Essa funcao altera variavel passada como parametro (variavel global velocidade)
  * 
+ * @param veloc velocidade antes da chamada da funcao.
  * @param veloc velocidade antes da chamada da funcao.
  * 
  * @return velocidade (m/s)
@@ -42,11 +48,15 @@ void calculaVelocidade(float &veloc);
 
 /**
  * @brief Filtra variacoes absurdas de velocidade
+ * @brief Filtra variacoes absurdas de velocidade
  * 
+ * @param velocidadeOld velocidade antes da atualizacao
+ * @param velocidadeNew possivel novo valor de velocidada
  * @param velocidadeOld velocidade antes da atualizacao
  * @param velocidadeNew possivel novo valor de velocidada
  * @return velocidade (km/h) 
  */
+float filtroVelocVariacoesGrandes(float velocidadeOld, float velocidadeNew);
 float filtroVelocVariacoesGrandes(float velocidadeOld, float velocidadeNew);
 
 /**
