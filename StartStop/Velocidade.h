@@ -21,6 +21,7 @@
 
 /** 
  * @brief Calcula o periodo dos pulsos do sensor Hall
+ * @brief Calcula o periodo dos pulsos do sensor Hall
  * 
  */
 void calc();
@@ -33,7 +34,12 @@ void calc();
  * 1 - Media da amostra dos periodos; 
  * 2 - Corte de alteracoes bruscas.  no calculo dessa 
  * Essa funcao altera variavel passada como parametro (variavel global velocidade)
+ * @details Usa amostras do PERIODO dos pulsos do Sensor Hall p/ calculo da velocidade. Sao aplicados 2 filtros: 
+ * 1 - Media da amostra dos periodos; 
+ * 2 - Corte de alteracoes bruscas.  no calculo dessa 
+ * Essa funcao altera variavel passada como parametro (variavel global velocidade)
  * 
+ * @param veloc velocidade antes da chamada da funcao.
  * @param veloc velocidade antes da chamada da funcao.
  * 
  * @return velocidade (m/s)
@@ -42,11 +48,15 @@ void calculaVelocidade(float &veloc);
 
 /**
  * @brief Filtra variacoes absurdas de velocidade
+ * @brief Filtra variacoes absurdas de velocidade
  * 
+ * @param velocidadeOld velocidade antes da atualizacao
+ * @param velocidadeNew possivel novo valor de velocidada
  * @param velocidadeOld velocidade antes da atualizacao
  * @param velocidadeNew possivel novo valor de velocidada
  * @return velocidade (km/h) 
  */
+float filtroVelocVariacoesGrandes(float velocidadeOld, float velocidadeNew);
 float filtroVelocVariacoesGrandes(float velocidadeOld, float velocidadeNew);
 
 /**

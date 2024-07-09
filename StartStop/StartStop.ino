@@ -92,7 +92,7 @@ void loop() {
         break;
       }
 
-      if(velocidade > velZERO){
+      if(velocidade >= velZERO){
         FSMstate = stateMonitoraVel;
         break;
       }
@@ -111,7 +111,7 @@ void loop() {
         break;
       }
       
-      if(velocidade<velMin && velocidade>velZERO) {
+      if(velocidade<velMin && velocidade>=velZERO) {
         if(motor.checaEstadoMotor() == DESLIGADO) {
           FSMstate = stateLigaMotor;
           break;

@@ -8,6 +8,14 @@ unsigned long timerCalcVel;      // ms
 unsigned long lastTimerCalcVel;  // ms
 
 float velocidade;                // km/h 
+volatile unsigned long pulseInterval;     // ms
+volatile unsigned long lastPulseInterval; // ms
+volatile unsigned long pulseIntervals[sampleSize];
+volatile int pulseIndex;
+unsigned long timerCalcVel;      // ms
+unsigned long lastTimerCalcVel;  // ms
+
+float velocidade;                // km/h 
 
 void calculaVelocidade(float &veloc) {
   timerCalcVel = millis() - lastTimerCalcVel;
@@ -34,7 +42,18 @@ void calculaVelocidade(float &veloc) {
 float filtroVelocVariacoesGrandes(float velocidadeOld, float velocidadeNew) {
   const int limiteSuperiorVel = 1.9;
   const int limiteInferiorVel = 0.4;
+float filtroVelocVariacoesGrandes(float velocidadeOld, float velocidadeNew) {
+  const int limiteSuperiorVel = 1.9;
+  const int limiteInferiorVel = 0.4;
 
+  if(velocidadeNew >= limiteSuperiorVel*velocidadeOld && velocidadeOld != 0){
+    return velocidadeOld;
+   } else if(velocidadeNew <= limiteInferiorVel*velocidadeOld && velocidadeOld != 0){
+    return velocidadeOld;
+   } else {
+    return velocidadeNew;
+   }
+ }
   if(velocidadeNew >= limiteSuperiorVel*velocidadeOld && velocidadeOld != 0){
     return velocidadeOld;
    } else if(velocidadeNew <= limiteInferiorVel*velocidadeOld && velocidadeOld != 0){
@@ -47,6 +66,8 @@ float filtroVelocVariacoesGrandes(float velocidadeOld, float velocidadeNew) {
 void calc() {
   pulseInterval = millis() - lastPulseInterval;
   lastPulseInterval = millis();
+  pulseIntervals[pulseIndex] = timerCalcVel;
+  pulseIndex = (pulseIndex + 1) % sampleSize; 
   pulseIntervals[pulseIndex] = timerCalcVel;
   pulseIndex = (pulseIndex + 1) % sampleSize; 
 }
