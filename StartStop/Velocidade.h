@@ -4,13 +4,13 @@
 #include "Arduino.h"
 
 #define pinSensorHall      DD3
-#define pinPedalGND        A8  // Pino p/ simulacao de velocidade em testes em bancada
-#define pinPedalVCC        A9  // Pino p/ simulacao de velocidade em testes em bancada
-#define pinVelPedal        A10 // Pino p/ simulacao de velocidade em testes em bancada
+// #define pinPedalGND        A8  // Pino p/ simulacao de velocidade em testes em bancada
+// #define pinPedalVCC        A9  // Pino p/ simulacao de velocidade em testes em bancada
+// #define pinVelPedal        A10 // Pino p/ simulacao de velocidade em testes em bancada
 
 #define velZERO            0  // Valores para teste
 #define velMin             6  // Valores para teste
-#define velMax             12  // Valores para teste
+#define velMax             15  // Valores para teste
 #define taxaAtualizacaoVel 100 // ms
 #define circunfRoda        0.47 // m
 #define pulsosPorVolta     5
