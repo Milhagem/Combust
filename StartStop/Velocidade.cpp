@@ -23,8 +23,6 @@ void calculaVelocidade(float &veloc) {
     averagePulseInterval /= sampleSize;
     veloc = circunfRoda/(pulsosPorVolta*pulseInterval) * MS_to_S * MPS_to_KMPH;
     attachInterrupt(digitalPinToInterrupt(pinSensorHall), calc, RISING);
-    Serial.print("veloc:");
-    Serial.println(veloc);
   }
 }
 

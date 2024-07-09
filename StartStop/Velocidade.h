@@ -3,7 +3,7 @@
 
 #include "Arduino.h"
 
-#define pinSensorHall      DD2
+#define pinSensorHall      DD3
 #define pinPedalGND        A8  // Pino p/ simulacao de velocidade em testes em bancada
 #define pinPedalVCC        A9  // Pino p/ simulacao de velocidade em testes em bancada
 #define pinVelPedal        A10 // Pino p/ simulacao de velocidade em testes em bancada
