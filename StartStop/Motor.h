@@ -32,16 +32,20 @@ class Motor{
      */
     float analisaTensao();
     /**
-    * @brief Fecha o rele LIGA MOTOR e isso liga o motor de arranque por no maximo 2 segundos
+    * @brief Fecha o rele LIGA MOTOR e isso liga o motor de arranque por um tempo maximo determiando;
+    * 
+    * @param veloc usado para atualizar a velocidade do carro
     */
-    void ligaMotor();
+    void ligaMotor(float &veloc);
     /**
     * @brief Abre o rele DESLIGA MOTOR e isso desliga o motor do carro. Volta servo pra posicao inicial
     *
     */
-    void desligaMotor();
+    void desligaMotor(float &veloc);
     /**
      * @brief desliga o Start Stop (passa para o Modo Manual) e volta o servo para a posicao inicial
+     * 
+     * @param veloc usado para atualizar a velocidade do carro
      */
     int desligaStartStop();
     /**

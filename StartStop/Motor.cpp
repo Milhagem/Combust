@@ -20,16 +20,26 @@ float Motor::analisaTensao(){
 }
 
 
-void Motor::ligaMotor(){
+void Motor::ligaMotor(float &veloc){
   if(this->checaEstadoMotor() == DESLIGADO){
     digitalWrite(pinLigaMotor, HIGH);
 
-    for (int i = 0; i < 40; i++) {    
-      delay(100);
-      float tensao = analisaTensao();      
-      if(tensao > (tensaoMotorON-0.2))
+    const float margemMotorON = 0.2;
+    const unsigned long tempoMaxPartida = 4000; // ms
+    unsigned long timerPartida = millis();      // ms
+
+    while(millis() - timerPartida <= tempoMaxPartida) {
+      calculaVelocidade(veloc);
+      float tensao = analisaTensao();
+      if(tensao >(tensaoMotorON-margemMotorON)){
         break;
+      }
     }
+
+    if(checaEstadoMotor() == DESLIGADO ) {
+      // FSMState == stateNaoLigou
+    }
+
   }
 
   digitalWrite(pinLigaMotor, LOW);
@@ -38,12 +48,19 @@ void Motor::ligaMotor(){
 }
 
 
-void Motor::desligaMotor(){
+void Motor::desligaMotor(float &veloc){
   if(this->checaEstadoMotor() == LIGADO){
-    servo.write(0);
+    servo.write(0); // posZeroServo
 
     digitalWrite(pinDesligaMotor, HIGH);
-    delay(1600); // Mantem o rele aberto por um tempo
+
+    const unsigned long tempoInjecaoAberta = 4000; // ms
+    unsigned long timerInjecaoAberta = millis();      // ms
+
+    while(millis() - timerInjecaoAberta <= tempoInjecaoAberta) {
+      // Mantem o rele da Injecao aberto por um tempo
+      calculaVelocidade(veloc);
+    }
 
     digitalWrite(pinDesligaMotor, LOW);
     
