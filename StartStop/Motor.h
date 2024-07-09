@@ -6,7 +6,7 @@
 
 #define pinLigaMotor    6
 #define pinDesligaMotor 5
-#define LM2907          A2
+#define LM2907          A6
 
 #define LIGADO    1
 #define DESLIGADO 0
