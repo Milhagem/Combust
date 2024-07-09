@@ -18,29 +18,29 @@
 #define NOT_PRESSIONADO 0x1
 
 // Variaveis para calculo de velocidade
-extern unsigned long timerCalcVel;
-extern unsigned long lastTimerCalcVel;
-extern unsigned long pulseInterval;
-extern unsigned long lastPulseInterval;
-extern float velocidade;
-extern unsigned long pulseIntervals[sampleSize];
-extern int pulseIndex;
+extern volatile unsigned long pulseInterval;     // ms
+extern volatile unsigned long lastPulseInterval; // ms
+extern volatile unsigned long pulseIntervals[sampleSize];
+extern volatile int pulseIndex;
+extern unsigned long timerCalcVel;      // ms
+extern unsigned long lastTimerCalcVel;  // ms
+extern float velocidade;                // km/h 
 
 // Variaveis para acelerar o motor
 extern int posServo;
-extern unsigned int timerIncrementoServo;
+extern unsigned long timerIncrementoServo;
 
 Motor motor;
 Display display;
 
-int FSMstate = stateSS_off;
+int FSMstate = stateIncrementVel;
 
 void setup() {
   Serial.begin(115200);
   
   pinMode(pinLigaMotor, OUTPUT);
   pinMode(pinDesligaMotor, OUTPUT);
-  pinMode(pinVelPedal, INPUT); 
+  // pinMode(pinVelPedal, INPUT); 
   pinMode(LM2907, INPUT);
   pinMode(pinSensorHall, INPUT);
   pinMode(pinFreio, INPUT_PULLUP);
@@ -48,8 +48,8 @@ void setup() {
   
   digitalWrite(pinLigaMotor, LOW);
   digitalWrite(pinDesligaMotor, LOW);
-  analogWrite(pinPedalGND, 0);    // Pino A8  -> GND Pedal
-  analogWrite(pinPedalVCC, 1023); // Pino A10 -> VCC Pedal
+  // analogWrite(pinPedalGND, 0);    // Pino A8  -> GND Pedal
+  // analogWrite(pinPedalVCC, 1023); // Pino A10 -> VCC Pedal
 
   motor.setEstadoMotor(DESLIGADO);
 
@@ -178,7 +178,7 @@ void loop() {
         break;
       }
       
-      motor.ligaMotor();
+      motor.ligaMotor(velocidade);
       FSMstate = stateMonitoraVel;
     break;
 
