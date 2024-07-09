@@ -1,11 +1,11 @@
 #include "IncrementaVelocidade.h"
 
 int posServo;                       // graus
-unsigned int timerIncrementoServo; // ms
+unsigned long timerIncrementoServo; // ms
 
 void giraServoMotor(Motor &motor) {
     if(millis() - timerIncrementoServo > intervIncrementaVel) {
-        if (motor.analisaTensao() < TensaoMotorAcelerando && posServo <= posInicialServo) {
+        if (motor.analisaTensao() < TensaoMotorAcelerando && posServo < posInicialServo) {
             posServo = posInicialServo;
             motor.servoWrite(posServo);
             timerIncrementoServo = millis();

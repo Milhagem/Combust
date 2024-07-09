@@ -7,10 +7,10 @@
 #define pinServo   8
 
 #define posZeroServo          0 // graus. Posicao que o servo NAO puxa a borboleta
-#define posInicialServo      40 // graus. Posicao em que o servo comeca a puxar a borboleta
-#define posMaxServo         170 // graus
+#define posInicialServo       5 // graus. Posicao em que o servo comeca a puxar a borboleta
+#define posMaxServo         100 // graus
 #define increvementoServo     1 // graus
-#define intervIncrementaVel 200 // ms
+#define intervIncrementaVel 100 // ms
 
 /**
  * @brief Acelera o motor alterando o angulo do servo.
