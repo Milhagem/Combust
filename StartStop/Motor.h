@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include "Servo.h"
+#include "Velocidade.h"
 
 #define pinLigaMotor    6
 #define pinDesligaMotor 5
@@ -11,8 +12,8 @@
 #define LIGADO    1
 #define DESLIGADO 0
 
-#define tensaoMotorON         2.50 // V
-#define TensaoMotorAcelerando 3.0 // V
+#define tensaoMotorON         1.75 // V
+#define TensaoMotorAcelerando 2.75 // V
 
 class Motor{
   
