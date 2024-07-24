@@ -161,7 +161,7 @@ void loop() {
       }
 
       posServo = posZeroServo;
-      motor.desligaMotor();
+      motor.desligaMotor(velocidade);
       FSMstate = stateMonitoraVel;
     break;
   
