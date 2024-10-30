@@ -144,6 +144,9 @@ void loop() {
         FSMstate = stateDesligaMotor;
         break;
       } 
+
+      FSMstate = stateMonitoraVel;
+      
     break;
   
 
@@ -262,6 +265,8 @@ void loop() {
         FSMstate = stateDesligaMotor;
         break;
       }
+
+      FSMstate = stateMonitoraVel;
 
     break
 
