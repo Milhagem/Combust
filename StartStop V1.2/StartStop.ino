@@ -16,7 +16,7 @@
 #define stateNaoLigou     7
 #define estabilizaVel     8*/
 
-#define desligaSS 0
+#define stateSS_off 0
 #define stateSS_on        1
 #define LigaMotor  2
 #define Aguarda 3
@@ -38,7 +38,7 @@ extern volatile unsigned long pulseIntervals[sampleSize];
 extern volatile int pulseIndex;
 extern unsigned long lastTimerTax;  // ms
 //------------------------------------------Variaveis de teste
-unsigned long lastTimeinit;
+unsigned long lastTimeinit = 0;
 unsigned long timerIncrementoServo = 0; // ms
 unsigned long timerMantemVelMax = 0;
 unsigned long tempoMaxPista;
@@ -118,33 +118,39 @@ void setup() {
 
 
 void loop() {
-
-  if(millis() - timerAtualizaDisplay >= 500){
-    timerAtualizaDisplay = millis();
-    calculaVelocidade(velocidade);
-    //mostraTensaoEVel(motor,velocidade)
-    //display.atualizaDisplay(motor, velocidade, FSMstate);
-  }
-  
   switch (FSMstate) {
 
-    case desligaSS:
-      giraServoMotor_desaceleracao(motor);
-      delay(3000);
-      motor.desligaMotor(velocidade);
-      while(1);
+    case stateSS_off:
+      if(millis() - timerAtualizaDisplay >= 500){
+        timerAtualizaDisplay = millis();
+        calculaVelocidade(velocidade);
+        motor.setEstadoMotor(motor.checaEstadoMotor());
+        display.atualizaDisplay(motor, velocidade, FSMstate);
+        display.mostraTensaoEVel(motor,velocidade); 
+      }
+      if (digitalRead(switchSS)){FSMstate = stateSS_on;}
     break;
 
     case stateSS_on:
+      if (!digitalRead(switchSS)){
+        FSMstate = stateSS_off;
+        giraServoMotor_desaceleracao(motor);
+        break;
+      }
 
       if(millis() - lastTimeinit >= 5000){
         FSMstate = LigaMotor;
         break;
-      }
-      FSMstate = stateSS_on;
+      }else {FSMstate = stateSS_on;}
+
     break;
 
     case LigaMotor:
+      if (!digitalRead(switchSS)){
+        FSMstate = stateSS_off;
+        giraServoMotor_desaceleracao(motor);
+        break;
+      }
       motor.ligaMotor(velocidade);
       if(motor.analisaTensao() <= 2.7){
         delay(5000);
@@ -155,6 +161,11 @@ void loop() {
     break;  
 
     case Aguarda:
+      if (!digitalRead(switchSS)){
+        FSMstate = stateSS_off;
+        giraServoMotor_desaceleracao(motor);
+        break;
+      }
 
       if(time_max == 1){
         FSMstate = desligaSS;
@@ -166,10 +177,14 @@ void loop() {
         break;
       }
       FSMstate = ManipulaServo;
-
     break;
 
     case ManipulaServo:
+      if (!digitalRead(switchSS)){
+        FSMstate = stateSS_off;
+        giraServoMotor_desaceleracao(motor);
+        break;
+      }
       if(guarda_angulo >= 25){
         FSMstate = MantemVelMax;
         break;
@@ -181,10 +196,14 @@ void loop() {
         FSMstate = ManipulaServo;
         break;
       }
-
     break;
 
     case MantemVelMax:
+      if (!digitalRead(switchSS)){
+        FSMstate = stateSS_off;
+        giraServoMotor_desaceleracao(motor);
+        break;
+      }
       if(millis() - timerMantemVelMax <= tempoMaxPista) {
         timerMantemVelMax = millis();
         FSMstate = MantemVelMax;
@@ -194,9 +213,6 @@ void loop() {
       FSMstate = Aguarda;
     break;
 
-    default: FSMstate = stateSS_on;
+    default: FSMstate = stateSS_off;
   }
-  motor.setEstadoMotor(motor.checaEstadoMotor());
-  display.atualizaDisplay(motor, velocidade, FSMstate);
-  display.mostraTensaoEVel(motor,velocidade); 
 }
