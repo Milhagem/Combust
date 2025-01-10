@@ -197,3 +197,8 @@ void loop() {
   motor.setEstadoMotor(motor.checaEstadoMotor());
   display.atualizaDisplay(motor, velocidade, FSMstate);
 }
+
+/*
+  teste, envio comando
+
+*/
