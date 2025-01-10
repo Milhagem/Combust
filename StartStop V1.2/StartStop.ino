@@ -111,13 +111,9 @@ void setup() {
 
 void loop() {
 
-  calculaVelocidade(velocidade);
-
   if(millis() - timerAtualizaDisplay >= 500){
     timerAtualizaDisplay = millis();
     calculaVelocidade(velocidade);
-    //mostraTensaoEVel(motor,velocidade)
-    //display.atualizaDisplay(motor, velocidade, FSMstate);
   }
   
   switch (FSMstate) {
@@ -126,7 +122,7 @@ void loop() {
       giraServoMotor_desaceleracao(motor);
       delay(3000);
       motor.desligaMotor(velocidade);
-      while(1);
+      while(1);//Trava execução inicialmente.
     break;
 
     case stateSS_on:
@@ -137,6 +133,7 @@ void loop() {
       }
 
       FSMstate = stateSS_on;
+      
     break;
 
     case LigaMotor:
@@ -197,8 +194,3 @@ void loop() {
   motor.setEstadoMotor(motor.checaEstadoMotor());
   display.atualizaDisplay(motor, velocidade, FSMstate);
 }
-
-/*
-  teste, envio comando
-
-*/
