@@ -11,9 +11,9 @@
 #define velZERO            0  // Valores para teste
 #define velMin             6  // Valores para teste
 #define velMax             15  // Valores para teste
-#define taxaAtualizacaoVel 100 // ms
-#define circunfRoda        0.47 // m
-#define pulsosPorVolta     5
+#define taxaAtualizacaoVel 300 // ms
+#define circunfRoda        1.80 // m
+#define pulsosPorVolta     1
 #define sampleSize         3    // Numero de amostras para calcular velocidade
 
 #define MPS_to_KMPH 3.6  // metros por segundo p/ quilometro por hora
@@ -38,7 +38,7 @@ void calc();
  * 
  * @return velocidade (m/s)
  */
-void calculaVelocidade(float &veloc);
+void calculaVelocidade(float &veloc,float &aceleracao);
 
 /**
  * @brief Filtra variacoes absurdas de velocidade
@@ -56,6 +56,5 @@ float filtroVelocVariacoesGrandes(float velocidadeOld, float velocidadeNew);
  * @param pinPedal 
  * @return int entre 0 e 1023
  */
-int calculaVelocidade_Pedal(int pinPedal);
 
 #endif

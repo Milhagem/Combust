@@ -2,6 +2,7 @@
 #include "Velocidade.h"
 #include "IncrementaVelocidade.h"
 #include "Display.h"
+#include "Aceleracao.h"
 
 #define pinFreio A15
 #define switchSS A13
@@ -48,6 +49,10 @@ extern float velocidade;                // km/h
 
 // Variavel para acelerar o motor
 extern volatile int posServo; // representação de uma determinada angulatura
+unsigned long time_aceleracao;
+
+extern volatile unsigned long averagePulseIntervalOld;
+extern float aceleracao;
 //-----------------------------------------------------------------------------------
 
 Motor motor;
@@ -91,9 +96,12 @@ void setup() {
   //------------------------------------------------------------------
 
   tempoMaxPista = 40000;
+
+  time_aceleracao = 200;
   
   //pontero para o calculo da velocidade
   velocidade = 0.0;
+  aceleracao = 0.0;
 
   // Acelerar motor
   //posServo = 0;
@@ -113,15 +121,18 @@ void loop() {
 
   if(millis() - timerAtualizaDisplay >= 500){
     timerAtualizaDisplay = millis();
-    calculaVelocidade(velocidade);
+    motor.setEstadoMotor(motor.checaEstadoMotor());
+    display.atualizaDisplay(motor, velocidade, FSMstate, aceleracao);
   }
+
+  calculaVelocidade(velocidade,aceleracao);
   
   switch (FSMstate) {
 
     case desligaSS:
       giraServoMotor_desaceleracao(motor);
       delay(3000);
-      motor.desligaMotor(velocidade);
+      motor.desligaMotor(velocidade,aceleracao);
       while(1);//Trava execução inicialmente.
     break;
 
@@ -133,11 +144,10 @@ void loop() {
       }
 
       FSMstate = stateSS_on;
-      
     break;
 
     case LigaMotor:
-      motor.ligaMotor(velocidade);
+      motor.ligaMotor(velocidade,aceleracao);
       if(motor.analisaTensao() <= 2.7){
         delay(5000);
         FSMstate = LigaMotor;
@@ -169,8 +179,9 @@ void loop() {
         break;
       }
 
-      if(millis() - timerIncrementoServo >= 200) {
+      if(millis() - timerIncrementoServo >= time_aceleracao) {
         giraServoMotor_aceleracao(motor,guarda_angulo);
+        //manipula_aceleração_motor(aceleracao,guarda_angulo,time_aceleracao,motor);
         timerIncrementoServo = millis();
         FSMstate = ManipulaServo;
         break;
@@ -191,6 +202,4 @@ void loop() {
 
     default: FSMstate = stateSS_on;
   }
-  motor.setEstadoMotor(motor.checaEstadoMotor());
-  display.atualizaDisplay(motor, velocidade, FSMstate);
 }

@@ -37,12 +37,12 @@ class Motor{
     * 
     * @param veloc usado para atualizar a velocidade do carro
     */
-    void ligaMotor(float &veloc);
+    void ligaMotor(float &veloc,float &aceleracao);
     /**
     * @brief Abre o rele DESLIGA MOTOR e isso desliga o motor do carro. Volta servo pra posicao inicial
     *
     */
-    void desligaMotor(float &veloc);
+    void desligaMotor(float &veloc,float &aceleracao);
     /**
      * @brief desliga o Start Stop (passa para o Modo Manual) e volta o servo para a posicao inicial
      * 

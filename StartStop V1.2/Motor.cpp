@@ -20,7 +20,7 @@ float Motor::analisaTensao(){
 }
 
 
-void Motor::ligaMotor(float &veloc){
+void Motor::ligaMotor(float &veloc,float &aceleracao){
   if(this->checaEstadoMotor() == DESLIGADO){
     digitalWrite(pinLigaMotor, HIGH);
 
@@ -29,7 +29,7 @@ void Motor::ligaMotor(float &veloc){
     unsigned long timerPartida = millis();      // ms
 
     while(millis() - timerPartida <= tempoMaxPartida) {
-      calculaVelocidade(veloc);
+      calculaVelocidade(veloc,aceleracao);
       float tensao = analisaTensao();
       if(tensao >(tensaoMotorON-margemMotorON)){
         break;
@@ -48,7 +48,7 @@ void Motor::ligaMotor(float &veloc){
 }
 
 
-void Motor::desligaMotor(float &veloc){
+void Motor::desligaMotor(float &veloc,float &aceleracao){
   if(this->checaEstadoMotor() == LIGADO){
     servo.write(0); // posZeroServo
 
@@ -59,7 +59,7 @@ void Motor::desligaMotor(float &veloc){
 
     while(millis() - timerInjecaoAberta <= tempoInjecaoAberta) {
       // Mantem o rele da Injecao aberto por um tempo
-      calculaVelocidade(veloc);
+      calculaVelocidade(veloc,aceleracao);
     }
 
     digitalWrite(pinDesligaMotor, LOW);

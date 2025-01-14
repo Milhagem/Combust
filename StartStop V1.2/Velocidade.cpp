@@ -1,4 +1,5 @@
 #include "Velocidade.h"
+#include "Display.h"
 
 volatile unsigned long pulseInterval;     // ms
 volatile unsigned long lastPulseInterval; // ms
@@ -11,14 +12,23 @@ volatile unsigned long lastTimerCalcVel;  // ms
 volatile unsigned long timeEstabilizaVel;
 volatile float velocidade;
 unsigned long lastTimerTax;  // ms
+unsigned long averagePulseInterval = 0;
 
-void calculaVelocidade(float &veloc) {
+//Variaveis calculo aceleração --- Variaveis de teste
+float velocOld;
+volatile unsigned long averagePulseIntervalOld;
+volatile float aceleracao;
+
+
+
+
+void calculaVelocidade(float &veloc, float &aceleracao) {
 
   if(millis() - lastTimerTax >= taxaAtualizacaoVel) {
-    lastTimerTax = millis();
-
+    //lastTimerTax = millis();
+    unsigned long timer_agora = millis();
     detachInterrupt(digitalPinToInterrupt(pinSensorHall));
-    unsigned long averagePulseInterval = 0;
+    averagePulseInterval = 0;
     // filtro media movel -----------------------------------
     for (int i = 0; i < sampleSize; i++) {
       averagePulseInterval += pulseIntervals[i];
@@ -27,9 +37,16 @@ void calculaVelocidade(float &veloc) {
     //-------------------------------------------------------
 
     veloc = circunfRoda/(pulsosPorVolta*averagePulseInterval) * MS_to_S * MPS_to_KMPH;
-    float velocOld = veloc;
     //veloc = filtroVelocVariacoesGrandes(velocOld, velocNew);
 
+    //Calculo aceleração.
+
+
+    aceleracao = (veloc - velocOld) / ((timer_agora - lastTimerTax) * MS_to_S);
+    aceleracao = velocOld;
+    lastTimerTax = millis();
+    velocOld = veloc;
+    averagePulseIntervalOld = averagePulseInterval;
     attachInterrupt(digitalPinToInterrupt(pinSensorHall), calc, RISING);
     Serial.print("veloc:");
   }
