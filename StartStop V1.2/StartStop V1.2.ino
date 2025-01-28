@@ -4,25 +4,11 @@
 #include "Display.h"
 
 #define pinFreio A15
-<<<<<<< HEAD
-#define switchSS 20
-
-/*#define stateSS_off       0
-#define stateSS_on        1
-#define stateMonitoraVel  2
-#define stateIncrementVel 3
-#define stateDesligaMotor 4
-#define stateLigaMotor    5
-#define stateFreando      6
-#define stateNaoLigou     7
-#define estabilizaVel     8*/
-=======
 #define switchSS A13
 //#define pinSensorHall DD2
->>>>>>> main
 
-#define stateSS_off 0
-#define stateSS_on  1
+#define desligaSS 0
+#define stateSS_on        1
 #define LigaMotor  2
 #define Aguarda 3
 #define ManipulaServo 4
@@ -43,7 +29,7 @@ extern volatile unsigned long pulseIntervals[sampleSize];
 extern volatile int pulseIndex;
 extern unsigned long lastTimerTax;  // ms
 //------------------------------------------Variaveis de teste
-unsigned long lastTimeinit = 0;
+unsigned long lastTimeinit;
 unsigned long timerIncrementoServo = 0; // ms
 unsigned long timerMantemVelMax = 0;
 unsigned long tempoMaxPista;
@@ -67,7 +53,7 @@ extern volatile int posServo; // representação de uma determinada angulatura
 Motor motor;
 Display display;
 
-int FSMstate = stateSS_off;
+int FSMstate = stateSS_on;
 
 void setup() {
   Serial.begin(115200);
@@ -124,22 +110,6 @@ void setup() {
 
 
 void loop() {
-<<<<<<< HEAD
-  
-  switch (FSMstate) {
-
-    case stateSS_off:
-      if(digitalRead(switchSS)) {FSMstate = stateSS_on;}
-    break;
-
-    case stateSS_on:
-      if (!digitalRead(switchSS)) {
-        FSMstate = stateSS_off;
-        motor.desligaStartStop();
-        break;
-      }
-      if(millis() - lastTimeinit >= 5000){
-=======
 
   if(millis() - timerAtualizaDisplay >= 500){
     timerAtualizaDisplay = millis();
@@ -158,26 +128,15 @@ void loop() {
     case stateSS_on:
 
       if(millis() - lastTimeinit >= 10000){
->>>>>>> main
         FSMstate = LigaMotor;
         break;
-      }else {
-        FSMstate = stateSS_on;
       }
-<<<<<<< HEAD
-=======
 
       FSMstate = stateSS_on;
->>>>>>> main
       
     break;
 
     case LigaMotor:
-       if (!digitalRead(switchSS)) {
-        FSMstate = stateSS_off;
-        motor.desligaStartStop();
-        break;
-      }
       motor.ligaMotor(velocidade);
       if(motor.analisaTensao() <= 2.7){
         delay(5000);
@@ -188,13 +147,9 @@ void loop() {
     break;  
 
     case Aguarda:
-       if (!digitalRead(switchSS)) {
-        FSMstate = stateSS_off;
-        motor.desligaStartStop();
-        break;
-      }
+
       if(time_max == 1){
-        FSMstate = stateSS_off;
+        FSMstate = desligaSS;
         break;
       }
 
@@ -204,20 +159,12 @@ void loop() {
       }
 
       FSMstate = ManipulaServo;
+
     break;
 
     case ManipulaServo:
-<<<<<<< HEAD
-       if (!digitalRead(switchSS)) {
-        FSMstate = stateSS_off;
-        motor.desligaStartStop();
-        break;
-      }
-      if(guarda_angulo >= 25){
-=======
 
       if(guarda_angulo >= 20){
->>>>>>> main
         FSMstate = MantemVelMax;
         break;
       }
@@ -232,17 +179,8 @@ void loop() {
     break;
 
     case MantemVelMax:
-<<<<<<< HEAD
-       if (!digitalRead(switchSS)) {
-        FSMstate = stateSS_off;
-        motor.desligaStartStop();
-        break;
-      }
-      if(millis() - timerMantemVelMax <= tempoMaxPista) {
-=======
-      mantemVel(motor,guarda_angulo);
+      //mantemVel(motor,guarda_angulo);
       if(millis() - timerMantemVelMax >= tempoMaxPista) {
->>>>>>> main
         timerMantemVelMax = millis();
         time_max = 1;
         FSMstate = Aguarda;
@@ -251,19 +189,8 @@ void loop() {
       FSMstate = MantemVelMax;
     break;
 
-    default: FSMstate = stateSS_off;
+    default: FSMstate = stateSS_on;
   }
-<<<<<<< HEAD
-  if(millis() - timerAtualizaDisplay >= 500){
-    timerAtualizaDisplay = millis();
-    calculaVelocidade(velocidade);
-    motor.setEstadoMotor(motor.checaEstadoMotor());
-    display.atualizaDisplay(motor, velocidade, FSMstate);
-    display.mostraTensaoEVel(motor,velocidade);
-  }
-  
-=======
   motor.setEstadoMotor(motor.checaEstadoMotor());
   display.atualizaDisplay(motor, velocidade, FSMstate);
->>>>>>> main
 }
