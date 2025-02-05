@@ -156,7 +156,7 @@ void loop() {
     case stateDesligaMotor:
       calculaVelocidade(velocidade);
       if(digitalRead(switchSS) == NOT_PRESSIONADO) {
-        FSMstate = motor.desligaStartStop(); ;
+        FSMstate = motor.desligaStartStop();
         break;
       }
 

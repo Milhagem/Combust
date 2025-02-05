@@ -10,23 +10,22 @@
 #define stateNaoLigou     7
 #define estabilizaVel     8*/
 
-#define desligaSS 0
-#define stateSS_on        1
-#define LigaMotor  2
-#define Aguarda 3
+#define desligaSS     x0
+#define stateSS_on    1
+#define LigaMotor     2
+#define Aguarda       3
 #define ManipulaServo 4
-#define MantemVelMax 5
+#define MantemVelMax  5
 
-void Display:: iniciaDisplay(){
+void Display:: iniciaDisplay () {
   this->lcd.init();
   this->lcd.backlight();
   this->lcd.setCursor(0,0);
   this->lcd.print("Iniciando M10");
   delay(500);
-  
 }
 
-void Display::mostraTensaoEVel(Motor &motor, int velocidade){
+void Display::mostraTensaoEVel(Motor &motor, int velocidade) {
     if ( (millis()-timeOld) >= timeInterval){
 
     // Exibir leitura LM2907
@@ -45,7 +44,7 @@ void Display::mostraTensaoEVel(Motor &motor, int velocidade){
   }
 }
 
-void Display::atualizaDisplay(Motor &motor, int velocidade, int FSMState_int){
+void Display::atualizaDisplay(Motor &motor, int velocidade, int FSMState_int) {
   mostraTensaoEVel(motor, velocidade);
 
   String FSMState;

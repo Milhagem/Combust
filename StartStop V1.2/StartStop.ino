@@ -4,7 +4,6 @@
 #include "Display.h"
 
 #define pinFreio A15
-<<<<<<< HEAD
 #define switchSS 20
 
 /*#define stateSS_off       0
@@ -16,10 +15,8 @@
 #define stateFreando      6
 #define stateNaoLigou     7
 #define estabilizaVel     8*/
-=======
 #define switchSS A13
 //#define pinSensorHall DD2
->>>>>>> main
 
 #define stateSS_off 0
 #define stateSS_on  1
@@ -124,7 +121,6 @@ void setup() {
 
 
 void loop() {
-<<<<<<< HEAD
   
   switch (FSMstate) {
 
@@ -139,7 +135,6 @@ void loop() {
         break;
       }
       if(millis() - lastTimeinit >= 5000){
-=======
 
   if(millis() - timerAtualizaDisplay >= 500){
     timerAtualizaDisplay = millis();
@@ -158,17 +153,13 @@ void loop() {
     case stateSS_on:
 
       if(millis() - lastTimeinit >= 10000){
->>>>>>> main
         FSMstate = LigaMotor;
         break;
       }else {
         FSMstate = stateSS_on;
       }
-<<<<<<< HEAD
-=======
 
       FSMstate = stateSS_on;
->>>>>>> main
       
     break;
 
@@ -207,17 +198,14 @@ void loop() {
     break;
 
     case ManipulaServo:
-<<<<<<< HEAD
        if (!digitalRead(switchSS)) {
         FSMstate = stateSS_off;
         motor.desligaStartStop();
         break;
       }
       if(guarda_angulo >= 25){
-=======
 
       if(guarda_angulo >= 20){
->>>>>>> main
         FSMstate = MantemVelMax;
         break;
       }
@@ -232,17 +220,14 @@ void loop() {
     break;
 
     case MantemVelMax:
-<<<<<<< HEAD
        if (!digitalRead(switchSS)) {
         FSMstate = stateSS_off;
         motor.desligaStartStop();
         break;
       }
       if(millis() - timerMantemVelMax <= tempoMaxPista) {
-=======
       mantemVel(motor,guarda_angulo);
       if(millis() - timerMantemVelMax >= tempoMaxPista) {
->>>>>>> main
         timerMantemVelMax = millis();
         time_max = 1;
         FSMstate = Aguarda;
@@ -253,7 +238,6 @@ void loop() {
 
     default: FSMstate = stateSS_off;
   }
-<<<<<<< HEAD
   if(millis() - timerAtualizaDisplay >= 500){
     timerAtualizaDisplay = millis();
     calculaVelocidade(velocidade);
@@ -262,8 +246,7 @@ void loop() {
     display.mostraTensaoEVel(motor,velocidade);
   }
   
-=======
   motor.setEstadoMotor(motor.checaEstadoMotor());
   display.atualizaDisplay(motor, velocidade, FSMstate);
->>>>>>> main
 }
+
