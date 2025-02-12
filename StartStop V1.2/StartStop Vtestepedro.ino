@@ -172,7 +172,7 @@ void loop() {
       if(millis() - timerIncrementoServo >= 100) { //devo diminuir tempo de incremento e delimitar vel limite prévia a vel ideal
         giraServoMotor_aceleracao(motor,guarda_angulo);
         timerIncrementoServo = millis();
-        FSMstate = ManipulaServo;
+        FSMstate = ManipulaServo1;
         break;
       } 
     }
@@ -185,8 +185,8 @@ void loop() {
         break;
       }
     if(velocidade<25){
-      if(millis() - timerIncrementoServo >= 300) { //devo aumentar o tempo de decremento e delimitar qual vel ideal para passar para o prox estado
-        giraServoMotor_estabilizacao(motor,guarda_angulo);
+      if(millis() - timerIncrementoServo >= 300) { //devo diminuir tempo de incremento e delimitar vel limite prévia a vel ideal
+        giraServoMotor_aceleracao(motor,guarda_angulo);
         timerIncrementoServo = millis();
         FSMstate = ManipulaServo2;
         break;
