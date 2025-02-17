@@ -1,48 +1,50 @@
 #ifndef STARTSTOP_H
 #define STARTSTOP_H
 
-
+#include "Motor.hpp" 
+#include "Velocidade.hpp"
 
 class StartStop {
 public:
     enum StatesStartStop {
-        stateSwitchOFF,
         stateSwitchON,
-        stateMonitoraVel,
-        stateIncrementaVel,
-        stateDesligaMotor,
+        stateSwitchOFF,
         stateLigaMotor,
+        stateDesligaMotor,
+        stateMonitoraVel,
+        stateManipulaBorboleta,
+        stateEstabilizaVel,
         stateFreando,
-        stateNãoLigou,
-        stateEstabilizaVel
+        stateNãoLigou
     };
 
     StartStop  ();
 
-    StatesStartStop getFSMstate();
+    static float getVelocidadeMaxVariavel ();
 
-    void setFSMstate(StatesStartStop state);
+    static void setVelocidadeMaxVariavel (float &velMax);
 
     StatesStartStop switchOFF ();
 
     StatesStartStop switchON (); 
 
-    StatesStartStop monitoraVel ();
-
-    StatesStartStop incrementaVel ();
+    StatesStartStop ligaMotor ();
 
     StatesStartStop desligaMotor ();
 
-    StatesStartStop ligaMotor ();
+    StatesStartStop monitoraVel ();
+
+    StatesStartStop manipulaBorboleta ();
+
+    StatesStartStop estabilizaVel ();
 
     StatesStartStop freando ();
 
     StatesStartStop nãoLigou ();
 
-    StatesStartStop estabilizaVel ();
-
 private:
-    StatesStartStop FSMstate;
+    static int velocidadeMaxVariavel;
+    int tempoIncrementoBorboleta;
 };
 
 #endif

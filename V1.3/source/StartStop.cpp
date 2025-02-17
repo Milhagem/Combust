@@ -1,61 +1,50 @@
 #include "StartStop.hpp"
 
-StartStop () : FSMstate(stateSwitchOFF){}
+StartStop () : FSMstate(stateSwitchOFF) {}
 
-StatesStartStop getFSMstate() { return FSMstate; }
+static float getVelocidadeMaxVariavel(){ return velocidadeMaxVariavel; }
 
-void setFSMstate(StatesStartStop state) { FSMstate = state; }
+static void setVelocidadeMaxVariavel (float &velMax) { velocidadeMaxVariavel = velMax; }
 
 StatesStartStop switchOFF () {
-    float velocidade = calculateSpeed();
-    if(digitalRead(switchSS) == PRESSIONADO){
+    if (digitalRead(switchSS) == PRESSIONADO) {
         return stateSwitchON;
-    }
-    return stateSwitchOFF;
+    } else { return stateSwitchOFF; }
 }
 
 StatesStartStop switchON () {
-    float velocidade = calculateSpeed();
-    if(digitalRead(switchSS) == NOT_PRESSIONADO){
-        return desligaMotor();
+    if (digitalRead(switchSS) == NOT_PRESSIONADO){
+        return stateDesligaStartStop;
     }
 
-    if(velocidade >= velZERO){
-        return monitoraVel();
-    }
-    return stateSwitchON;
+    if ( Velocidade::getVelocidade () >= velocidadeMinima ) {
+        return stateVelocidadeMax;
+    } else if ( velocidade >= velZERO ) {
+        return stateMonitoraVel;
+    } else { return stateSwitchON; }
+
 } 
 
 StatesStartStop monitoraVel () {
-    float velocidade = calculateSpeed();
-    if(digitalRead(switchSS) == NOT_PRESSIONADO) {
-        return desligaMotor();
-    } 
+    if (digitalRead(switchSS) == NOT_PRESSIONADO) { return stateDesligaStartStop; }
 
-    if(digitalRead(pinFreio) == PRESSIONADO) {
-        return freando();
-    }
+    if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
 
-    if(velocidade<velMin && velocidade>=velZERO) {
-        if(motor.checaEstadoMotor() == DESLIGADO) {
-            return ligaMotor();
-        } else if(motor.checaEstadoMotor() == LIGADO) { 
-            return incrementaVel();
-        }
-    }
+   
+    if(motor.checaEstadoMotor() == DESLIGADO) {
+        return stateLigaMotor;
+    }    
 
-    if(velocidade > velMax && motor.checaEstadoMotor() == LIGADO) {
-        return desligaMotor();
-    } 
-    return monitoraVel();
+    if ( Velocidade::getVelocidade () >= velocidadeMaxVariavel ) {
+        velocidadeMaxVariavel = Velocidade::getVelocidade() + 2;
+        tempoIncrementoBorboleta += 50;
+        return stateManipulaBorboleta;
+    } else { return stateManipulaBorboleta; }
+
 }
 
-StatesStartStop incrementaVel () {
-    float velocidade = calculateSpeed();
-    if(velocidade>=velMax) {
-        return estabilizaVel();
-    }
-    return incrementaVel();
+StatesStartStop manipulaBorboleta () {
+    
 }
 
 StatesStartStop desligaMotor () {
@@ -77,6 +66,7 @@ StatesStartStop desligaMotor () {
     }
     return desligaMotor();
 }
+StatesStartStop estabilizaVel ();
 
 StatesStartStop ligaMotor ();
 
@@ -84,4 +74,3 @@ StatesStartStop freando ();
 
 StatesStartStop nãoLigou ();
 
-StatesStartStop estabilizaVel ();
