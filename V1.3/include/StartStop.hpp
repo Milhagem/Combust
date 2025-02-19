@@ -4,6 +4,9 @@
 #include "Motor.hpp" 
 #include "Velocidade.hpp"
 
+#define erroAcel 0.1
+#define aceleraçãoIdeal 0.5
+
 class StartStop {
 public:
     enum StatesStartStop {
@@ -11,9 +14,11 @@ public:
         stateSwitchOFF,
         stateLigaMotor,
         stateDesligaMotor,
-        stateMonitoraVel,
-        stateManipulaBorboleta,
+        stateEstabilizaAceleração,
         stateEstabilizaVel,
+        stateManipulaBorboleta,
+        stateStart,
+        stateStop,
         stateFreando,
         stateNãoLigou
     };
@@ -24,27 +29,28 @@ public:
 
     static void setVelocidadeMaxVariavel (float &velMax);
 
-    StatesStartStop switchOFF ();
+    static StatesStartStop switchOFF ();
 
-    StatesStartStop switchON (); 
+    static StatesStartStop switchON (); 
 
-    StatesStartStop ligaMotor ();
+    static StatesStartStop ligaMotor ();
 
-    StatesStartStop desligaMotor ();
+    static StatesStartStop desligaMotor ();
 
-    StatesStartStop monitoraVel ();
+    static StatesStartStop estabilizaAceleração ();
+    
+    static StatesStartStop estabilizaVel ();
+    
+    static StatesStartStop manipulaBorboleta ();
 
-    StatesStartStop manipulaBorboleta ();
+    static StatesStartStop start ();
+    
+    static StatesStartStop stop ();
 
-    StatesStartStop estabilizaVel ();
+    static StatesStartStop freando ();
 
-    StatesStartStop freando ();
+    static StatesStartStop nãoLigou ();
 
-    StatesStartStop nãoLigou ();
-
-private:
-    static int velocidadeMaxVariavel;
-    int tempoIncrementoBorboleta;
 };
 
 #endif

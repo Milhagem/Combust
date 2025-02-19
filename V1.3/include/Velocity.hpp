@@ -45,7 +45,7 @@ public:
      * 
      * @return velocidade (m/s)
      */
-    static float calculaVelocidade(float &veloc);
+    static float calculaVelocidade();
 
     /**
      * @brief Filtra variacoes absurdas de velocidade
@@ -64,6 +64,8 @@ public:
      * @return int entre 0 e 1023
      */
     int calculaVelocidade_Pedal(int pinPedal);
+
+    void 
 private:
     static float Velocidade;
 };

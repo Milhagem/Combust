@@ -2,7 +2,7 @@
 
 StartStop () : FSMstate(stateSwitchOFF) {}
 
-static float getVelocidadeMaxVariavel(){ return velocidadeMaxVariavel; }
+static float getVelocidadeMaxVariavel () { return velocidadeMaxVariavel; }
 
 static void setVelocidadeMaxVariavel (float &velMax) { velocidadeMaxVariavel = velMax; }
 
@@ -18,14 +18,14 @@ StatesStartStop switchON () {
     }
 
     if ( Velocidade::getVelocidade () >= velocidadeMinima ) {
-        return stateVelocidadeMax;
-    } else if ( velocidade >= velZERO ) {
-        return stateMonitoraVel;
+        return stateStop;
+    } else if ( Velocidade::getVelocidade ()  >= velZERO ) {
+        return stateStart;
     } else { return stateSwitchON; }
 
 } 
 
-StatesStartStop monitoraVel () {
+StatesStartStop estabilizaAceleração () {
     if (digitalRead(switchSS) == NOT_PRESSIONADO) { return stateDesligaStartStop; }
 
     if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
@@ -34,18 +34,25 @@ StatesStartStop monitoraVel () {
     if(motor.checaEstadoMotor() == DESLIGADO) {
         return stateLigaMotor;
     }    
-
+    
     if ( Velocidade::getVelocidade () >= velocidadeMaxVariavel ) {
         velocidadeMaxVariavel = Velocidade::getVelocidade() + 2;
         tempoIncrementoBorboleta += 50;
         return stateManipulaBorboleta;
     } else { return stateManipulaBorboleta; }
-
+    
 }
+
+StatesStartStop estabilizaVel ();
 
 StatesStartStop manipulaBorboleta () {
     
 }
+
+StatesStartStop ligaMotor () {
+    
+}
+
 
 StatesStartStop desligaMotor () {
     float velocidade = calculateSpeed();
@@ -66,7 +73,24 @@ StatesStartStop desligaMotor () {
     }
     return desligaMotor();
 }
-StatesStartStop estabilizaVel ();
+
+StatesStartStop start (Motor &motor) {
+
+    if (digitalRead(switchSS) == NOT_PRESSIONADO) { return stateDesligaStartStop; }
+
+    if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
+
+    if (motor.checaEstadoMotor() == engineOFF) { return stateLigaMotor }
+
+
+    if (Velocidade::getVelocidade() < velocidadeMinima) {
+        motor.servoWrite(posServoInicial);
+        return stateStart;
+    } else { return stateEstabilizaAceleração }
+
+}
+
+StatesStartStop stop ()
 
 StatesStartStop ligaMotor ();
 

@@ -18,7 +18,7 @@ void setVelocidade (float &vel) { velocidade = vel; }
 float getVelocidade () { return velocidade; }
 
 
-void calculaVelocidade (float &veloc) {
+void calculaVelocidade () {
 
   if(millis() - lastTimerTax >= taxaAtualizacaoVel) {
     lastTimerTax = millis();
@@ -32,8 +32,8 @@ void calculaVelocidade (float &veloc) {
     averagePulseInterval /= sampleSize;
     //-------------------------------------------------------
 
-    veloc = circunfRoda/(pulsosPorVolta*averagePulseInterval) * MS_to_S * MPS_to_KMPH;
-    float velocOld = veloc;
+    velocidade = circunfRoda/(pulsosPorVolta*averagePulseInterval) * MS_to_S * MPS_to_KMPH;
+    float velocOld = velocidade;
     //veloc = filtroVelocVariacoesGrandes(velocOld, velocNew);
 
     attachInterrupt(digitalPinToInterrupt (pinSensorHall), calc, RISING);

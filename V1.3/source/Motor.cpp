@@ -22,8 +22,9 @@ statesStartStop Motor::ligaMotor(float &veloc){
     while(millis() - timerPartida <= tempoMaxPartida) {
       calculaVelocidade(veloc);
       float tensao = analisaTensao();
-      if(tensao >(tensaoMotorON)){
-        return 
+      if (tensao > tensaoMotorON) {
+        
+        return engineON;
       }
     }
 
