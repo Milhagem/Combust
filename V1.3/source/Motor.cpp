@@ -11,7 +11,7 @@ float Motor::analisaTensao(){
 }
 
 
-statesStartStop Motor::ligaMotor(float &veloc){
+statesStartStop Motor::ligaMotor(){
   if(this->checaEstadoMotor() == DESLIGADO){
     digitalWrite(pinLigaMotor, HIGH);
 
@@ -20,7 +20,7 @@ statesStartStop Motor::ligaMotor(float &veloc){
     unsigned long timerPartida = millis();      // ms
 
     while(millis() - timerPartida <= tempoMaxPartida) {
-      calculaVelocidade(veloc);
+      calculaVelocidade();
       float tensao = analisaTensao();
       if (tensao > tensaoMotorON) {
         
@@ -29,7 +29,7 @@ statesStartStop Motor::ligaMotor(float &veloc){
     }
 
     if(checaEstadoMotor() == DESLIGADO ) {
-      // FSMState == stateNaoLigou
+      return engineOFF;
     }
 
   }

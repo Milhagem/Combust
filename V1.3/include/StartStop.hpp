@@ -8,6 +8,7 @@
 #define aceleraçãoIdeal 0.5
 #define posServoInicial 15
 #define velocidadeMinima 5
+#define velocidadeMax 30
 
 class StartStop {
 public:
@@ -23,6 +24,12 @@ public:
         stateStop,
         stateFreando,
         stateNãoLigou
+    };
+
+    enum StatesManipulaBorboleta {
+        manterAceleração,
+        manterVelocidadeAcima,
+        manterVelocidadeAbaixo
     };
 
     StartStop  ();
@@ -53,6 +60,10 @@ public:
 
     static StatesStartStop nãoLigou ();
 
+private:
+    static StatesManipulaBorboleta borboleta;
+
 };
+
 
 #endif
