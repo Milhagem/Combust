@@ -26,6 +26,10 @@ public:
     static void setVelocidade (float &vel);
 
     static float getVelocidade ();
+
+    static void setAceleração (float &acel);
+
+    static float getAceleração ();
     /** 
      * @brief Calcula o periodo dos pulsos do sensor Hall
      * 
@@ -67,6 +71,7 @@ public:
 
     void 
 private:
-    static float Velocidade;
+    static float velocidade;
+    static float aceleração;
 };
 #endif

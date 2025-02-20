@@ -1,10 +1,5 @@
 #include "StartStop.hpp"
 
-StartStop () : FSMstate(stateSwitchOFF) {}
-
-static float getVelocidadeMaxVariavel () { return velocidadeMaxVariavel; }
-
-static void setVelocidadeMaxVariavel (float &velMax) { velocidadeMaxVariavel = velMax; }
 
 StatesStartStop switchOFF () {
     if (digitalRead(switchSS) == PRESSIONADO) {
@@ -25,20 +20,16 @@ StatesStartStop switchON () {
 
 } 
 
-StatesStartStop estabilizaAceleração () {
+StatesStartStop estabilizaAceleração (Motor &motor) {
     if (digitalRead(switchSS) == NOT_PRESSIONADO) { return stateDesligaStartStop; }
 
     if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
 
    
-    if(motor.checaEstadoMotor() == DESLIGADO) {
-        return stateLigaMotor;
-    }    
+    if(motor.checaEstadoMotor() == DESLIGADO) { return stateStart; }    
     
-    if ( Velocidade::getVelocidade () >= velocidadeMaxVariavel ) {
-        velocidadeMaxVariavel = Velocidade::getVelocidade() + 2;
-        tempoIncrementoBorboleta += 50;
-        return stateManipulaBorboleta;
+    if ( Velocidade::getAceleração () >= (aceleraçãoIdeal- aceleraçãoIdeal*erroDeAceitaçao) &&  Velocidade::getAceleração () >= (aceleraçãoIdeal  aceleraçãoIdeal*erroDeAceitaçao)) {
+
     } else { return stateManipulaBorboleta; }
     
 }
@@ -80,7 +71,7 @@ StatesStartStop start (Motor &motor) {
 
     if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
 
-    if (motor.checaEstadoMotor() == engineOFF) { return stateLigaMotor }
+    if (motor.checaEstadoMotor() == engineOFF) { return stateLigaMotor; }
 
 
     if (Velocidade::getVelocidade() < velocidadeMinima) {
@@ -90,7 +81,15 @@ StatesStartStop start (Motor &motor) {
 
 }
 
-StatesStartStop stop ()
+StatesStartStop stop (Motor &motor) {
+    if (digitalRead(switchSS) == NOT_PRESSIONADO) { return stateDesligaStartStop; }
+
+    if (motor.checaEstadoMotor() == engineON) { return stateDesligaMotor; }
+
+    if (Velocidade::getVelocidade() > (velocidadeMinima - velocidadeMinima*erroAcel) ) {
+        return stateStop;
+    } else { return stateStart; }
+}
 
 StatesStartStop ligaMotor ();
 

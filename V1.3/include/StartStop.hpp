@@ -4,8 +4,10 @@
 #include "Motor.hpp" 
 #include "Velocidade.hpp"
 
-#define erroAcel 0.1
+#define erroDeAceitaçao 0.1
 #define aceleraçãoIdeal 0.5
+#define posServoInicial 15
+#define velocidadeMinima 5
 
 class StartStop {
 public:
@@ -43,9 +45,9 @@ public:
     
     static StatesStartStop manipulaBorboleta ();
 
-    static StatesStartStop start ();
+    static StatesStartStop start (Motor &motor);
     
-    static StatesStartStop stop ();
+    static StatesStartStop stop (Motor &motor);
 
     static StatesStartStop freando ();
 
