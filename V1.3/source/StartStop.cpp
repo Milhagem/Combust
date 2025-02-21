@@ -1,16 +1,14 @@
 #include "StartStop.hpp"
 
 
-StatesStartStop switchOFF () {
+StatesStartStop StartStop::switchOFF () {
     if (digitalRead(switchSS) == PRESSIONADO) {
         return stateSwitchON;
     } else { return stateSwitchOFF; }
 }
 
-StatesStartStop switchON () {
-    if (digitalRead(switchSS) == NOT_PRESSIONADO){
-        return stateDesligaStartStop;
-    }
+StatesStartStop StartStop::switchON () {
+    if (digitalRead(switchSS) == NOT_PRESSIONADO){ return stateDesligaStartStop; }
 
     if ( Velocidade::getVelocidade () >= velocidadeMinima ) {
         return stateStop;
@@ -20,12 +18,12 @@ StatesStartStop switchON () {
 
 } 
 
-StatesStartStop estabilizaAceleração (Motor &motor) {
+StatesStartStop StartStop::estabilizaAceleração (Motor &motor) {
     if (digitalRead(switchSS) == NOT_PRESSIONADO) { return stateDesligaStartStop; }
 
     if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
  
-    if (motor.checaEstadoMotor() == DESLIGADO) { return stateStart; }  
+    if (motor.checaEstadoMotor() == Motor::engineOFF) { return stateStart; }  
     
     if (Velocidade::getVelocidade() >= (velocidadeMax - velocidadeMax*erroDeAceitaçao) &&  Velocidade::getVelocidade() <= (velocidadeMax + velocidadeMax*erroDeAceitaçao)) {
         return stateEstabilizaVelocidade;
@@ -34,75 +32,88 @@ StatesStartStop estabilizaAceleração (Motor &motor) {
     if ( Velocidade::getAceleração () >= (aceleraçãoIdeal - aceleraçãoIdeal*erroDeAceitaçao) &&  Velocidade::getAceleração () <= (aceleraçãoIdeal + aceleraçãoIdeal*erroDeAceitaçao)) {
         return stateEstabilizaAceleração;
     } else {
-        borboleta = mantemAceleração;
+        borboleta = manterAceleração;
         return stateManipulaBorboleta;
     }
     
 }
 
-StatesStartStop estabilizaVel (float &tempoInicio) {
+StatesStartStop StartStop::estabilizaVelocidade (Motor &motor, float &tempoInicio) {
     if (digitalRead(switchSS) == NOT_PRESSIONADO) { return stateDesligaStartStop; }
 
     if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
  
-    if (motor.checaEstadoMotor() == DESLIGADO) { return stateStart; }   
+    if (motor.checaEstadoMotor() == Motor::engineOFF) { return stateStart; }   
     
     if (millis() - tempoInicio >= tempoMaximoVelocidade) { return stateStop; }
 
     if (Velocidade::getVelocidade() >= (velocidadeMax - velocidadeMax*erroDeAceitaçao) &&  Velocidade::getVelocidade() <= (velocidadeMax + velocidadeMax*erroDeAceitaçao)) {
         return stateEstabilizaVelocidade;
     } else if (Velocidade::getVelocidade() >= (velocidadeMax + velocidadeMax*erroDeAceitaçao)) {
-        borboleta = mantemVelocidadeAcima;
+        borboleta = manterVelocidadeAcima;
         return stateManipulaBorboleta;
         
     } else if (Velocidade::getVelocidade() <= (velocidadeMax - velocidadeMax*erroDeAceitaçao)) {
-        borboleta = mantemVelocideAbaixo;
+        borboleta = manterVelocidadeAbaixo;
         return stateManipulaBorboleta;
     }
 }
 
-StatesStartStop manipulaBorboleta () {
+StatesStartStop StartStop::manipulaBorboleta (Motor &motor, float &tempoUltimoImcremento) {
 
-    if 
+    if (digitalRead(switchSS) == NOT_PRESSIONADO) { return stateDesligaStartStop; }
+
+    if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
+
+    if ( millis() - tempoUltimoImcremento >= tempoImcrementoIdeal) {
+        if (borboleta == manterAceleração) {
+            motor.imcrementaServo ();
+            return stateEstabilizaAceleração;
+        } else if (borboleta == manterVelocidadeAcima) {
+            motor.decrementaServo ();
+            return stateEstabilizaVelocidade;
+        } else if (borboleta == manterVelocidadeAbaixo) {
+            motor.imcrementaServo ();
+            return stateEstabilizaVelocidade;
+        }
+    } else {
+        if (borboleta == manterAceleração) {
+            return stateEstabilizaAceleração;
+        } else if (borboleta == manterVelocidadeAcima || borboleta == manterVelocidadeAbaixo) {
+            return stateEstabilizaVelocidade;
+        }
+
+    }
     
 }
 
-StatesStartStop ligaMotor (Motor &motor) {
+StatesStartStop StartStop::ligaMotor (Motor &motor, Display &display) {
 
-    if ( motor.ligaMotor() == engineON ) {
+    if ( motor.ligaMotor(display) == Motor::engineON ) {       
         return stateStart;
     } else { return stateNãoLigou; }
     
 }
 
 
-StatesStartStop desligaMotor () {
-    float velocidade = calculateSpeed();
-    if(digitalRead(switchSS) == NOT_PRESSIONADO) {
-        return desligaMotor();
-    }
+StatesStartStop StartStop::desligaMotor (Motor &motor, Display &display) {
+    if (digitalRead(switchSS) == NOT_PRESSIONADO) { return stateDesligaStartStop; }
 
-    if(digitalRead(pinFreio) == PRESSIONADO) {
-        return freando();
-    }
+    if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
 
-    motor.ligaMotor(velocidade);
-    if (motor.estadoMotor == TRUE){
-        return monitoraVel();
-    }
-    else{
-        return nãoLigou();
-    }
-    return desligaMotor();
+    if ( motor.desligaMotor(display) == Motor::engineOFF ) {       
+        return stateStop;
+    } else { return stateNãoDesligou; }
+
 }
 
-StatesStartStop start (Motor &motor) {
+StatesStartStop StartStop::start (Motor &motor) {
 
     if (digitalRead(switchSS) == NOT_PRESSIONADO) { return stateDesligaStartStop; }
 
     if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
 
-    if (motor.checaEstadoMotor() == engineOFF) { return stateLigaMotor; }
+    if (motor.checaEstadoMotor() == Motor::engineOFF) { return stateLigaMotor; }
 
 
     if (Velocidade::getVelocidade() < velocidadeMinima) {
@@ -112,26 +123,44 @@ StatesStartStop start (Motor &motor) {
 
 }
 
-StatesStartStop stop (Motor &motor) {
+StatesStartStop StartStop::stop (Motor &motor) {
     if (digitalRead(switchSS) == NOT_PRESSIONADO) { return stateDesligaStartStop; }
 
-    if (motor.checaEstadoMotor() == engineON) { return stateDesligaMotor; }
+    if (motor.checaEstadoMotor() == Motor::engineON) { return stateDesligaMotor; }
 
-    if (Velocidade::getVelocidade() > (velocidadeMinima - velocidadeMinima*erroAcel) ) {
+    if (Velocidade::getVelocidade() > (velocidadeMinima - velocidadeMinima*erroDeAceitaçao) ) {
         return stateStop;
     } else { return stateStart; }
 }
 
-StatesStartStop ligaMotor ();
 
-StatesStartStop freando ();
+StatesStartStop StartStop::freando () {
+    if (digitalRead(switchSS) == NOT_PRESSIONADO) { return stateDesligaStartStop; }
 
-StatesStartStop nãoLigou (int &tentativas, Display &display) {
+    return stateStop;
+
+}
+
+StatesStartStop StartStop::desligaStartStop (Display &display) {
+    if ( motor.desligaMotor(display) == Motor::engineOFF ) {       
+        return stateSwitchOFF;
+    } else { return stateNãoDesligou; }
+}
+
+StatesStartStop StartStop::nãoLigou (int &tentativas, Display &display) {
     if (tentativas <= 2) {
         return stateLigaMotor;
     } else {
-        prin
-        return stateDesligaStartStop
+        //prin
+        return stateDesligaStartStop;
     }
 }
 
+SatesStartStop StartStop::nãoDesligou (int &tentativas, Display &display) {
+    if (tentativas <= 2) {
+        return stateDesligaMotor;
+    } else {
+        //print
+        return stateSwitchOFF;
+    }
+}

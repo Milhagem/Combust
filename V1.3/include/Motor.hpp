@@ -3,7 +3,8 @@
 
 #include "Arduino.h"
 #include "Servo.h"
-#include "Velocidade.h"
+#include "Velocity.hpp"
+#include "Display.hpp"
 
 #define pinLigaMotor    6
 #define pinDesligaMotor 5
@@ -11,6 +12,7 @@
 
 #define tensaoMotorON         1.75 
 #define TensaoMotorAcelerando 2.75
+#define posServoInicial       15
 
 class Motor {
     
@@ -19,21 +21,22 @@ public:
 
     void setStateEngine ();
 
-    statesEngine Motor::checaEstadoMotor ();
+    float analisaTensao();
 
-    float Motor::analisaTensao();
+    statesEngine ligaMotor(Display &display);
 
-    void Motor::ligaMotor(float &veloc);
+    statesEngine desligaMotor(Display &display);
 
-    void Motor::desligaMotor(float &veloc);
+    statesEngine checaEstadoMotor();
 
-    bool Motor::desligaStartStop();
+    void imcrementaServo ();
 
-    statesEngine Motor::checaEstadoMotor();
+    void decrementaServo ();
 
 
 private:
-    statesEngine stateEngine;
+    int posiçãoServo;
+    Servo servoMotor;
 
 };
 

@@ -3,12 +3,20 @@
 
 #include "Motor.hpp" 
 #include "Velocidade.hpp"
+#include "Display.hpp"
 
 #define erroDeAceitaçao 0.1
 #define aceleraçãoIdeal 0.5
 #define posServoInicial 15
 #define velocidadeMinima 5
 #define velocidadeMax 30
+#define tempoImcrementoIdeal 100
+#define velZERO 0
+#define PRESSIONADO 1
+#define NOT_PRESSIONADO 0   
+#define switchSS
+#define pinFreio
+#define tempoMaximoVelocidade 10000
 
 class StartStop {
 public:
@@ -18,12 +26,14 @@ public:
         stateLigaMotor,
         stateDesligaMotor,
         stateEstabilizaAceleração,
-        stateEstabilizaVel,
+        stateEstabilizaVelocidade,
         stateManipulaBorboleta,
         stateStart,
         stateStop,
         stateFreando,
-        stateNãoLigou
+        stateNãoLigou,
+        stateNãoDesligou,
+        stateDesligaStartStop
     };
 
     enum StatesManipulaBorboleta {
@@ -32,23 +42,17 @@ public:
         manterVelocidadeAbaixo
     };
 
-    StartStop  ();
-
-    static float getVelocidadeMaxVariavel ();
-
-    static void setVelocidadeMaxVariavel (float &velMax);
-
     static StatesStartStop switchOFF ();
 
     static StatesStartStop switchON (); 
 
-    static StatesStartStop ligaMotor ();
+    static StatesStartStop ligaMotor (Motor &motor, Display &display);
 
-    static StatesStartStop desligaMotor ();
+    static StatesStartStop desligaMotor (Motor &motor, Display &display);
 
-    static StatesStartStop estabilizaAceleração ();
+    static StatesStartStop estabilizaAceleração (Motor &motor);
     
-    static StatesStartStop estabilizaVel ();
+    static StatesStartStop estabilizaVelocidade (Motor &motor, float &tempoInicio);
     
     static StatesStartStop manipulaBorboleta ();
 
@@ -58,7 +62,12 @@ public:
 
     static StatesStartStop freando ();
 
-    static StatesStartStop nãoLigou ();
+    static StatesStartStop nãoLigou (int &tentativas, Display &display);
+    
+    static StatesStartStop nãoDesligou (int &tentativas, Display &display);
+
+    static StatesStartStop desligaStartStop (Display &display);
+
 
 private:
     static StatesManipulaBorboleta borboleta;

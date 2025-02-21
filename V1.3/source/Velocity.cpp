@@ -17,9 +17,9 @@ void setVelocidade (float &vel) { velocidade = vel; }
 
 float getVelocidade () { return velocidade; }
 
-static void setAceleração (float &acel) { aceleração = acel; }
+void setAceleração (float &acel) { aceleração = acel; }
 
-static float getAceleração () { return aceleração; }
+float getAceleração () { return aceleração; }
 
 void calculaVelocidade () {
 
