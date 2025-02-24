@@ -1,4 +1,13 @@
-#include "Motor.h"
+#include "Motor.hpp"
+
+Motor () posiçaoServo(0) {
+
+  servoAttach(pinServo);
+  servoWrite(0);
+  
+}
+
+
 
 
 float Motor::analisaTensao(){

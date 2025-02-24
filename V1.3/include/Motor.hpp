@@ -3,12 +3,13 @@
 
 #include "Arduino.h"
 #include "Servo.h"
-#include "Velocity.hpp"
+#include "Velocidade.hpp"
 #include "Display.hpp"
 
 #define pinLigaMotor    6
 #define pinDesligaMotor 5
 #define LM2907          A6
+#define pinServo        8
 
 #define tensaoMotorON         1.75 
 #define TensaoMotorAcelerando 2.75
@@ -18,6 +19,8 @@ class Motor {
     
 public:
     enum statesEngine {engineOFF, engineON, accelerating};
+
+    Motor ();
 
     void setStateEngine ();
 

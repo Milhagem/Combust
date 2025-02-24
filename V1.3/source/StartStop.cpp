@@ -1,5 +1,8 @@
 #include "StartStop.hpp"
 
+int StartStop::tentativasLigar = 0;
+int StartStop::tentativasDesligar = 0;  
+
 
 StatesStartStop StartStop::switchOFF () {
     if (digitalRead(switchSS) == PRESSIONADO) {
@@ -38,14 +41,22 @@ StatesStartStop StartStop::estabilizaAceleração (Motor &motor) {
     
 }
 
-StatesStartStop StartStop::estabilizaVelocidade (Motor &motor, float &tempoInicio) {
+StatesStartStop StartStop::estabilizaVelocidade (Motor &motor) {
     if (digitalRead(switchSS) == NOT_PRESSIONADO) { return stateDesligaStartStop; }
 
     if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
  
-    if (motor.checaEstadoMotor() == Motor::engineOFF) { return stateStart; }   
+    if (motor.checaEstadoMotor() == Motor::engineOFF) { return stateStart; } 
     
-    if (millis() - tempoInicio >= tempoMaximoVelocidade) { return stateStop; }
+    if (inicioVel) { 
+        tempoInicioVel = millis(); 
+        inicioVel = false; 
+    }
+    
+    if (millis() - tempoInicio >= tempoMaximoVelocidade) {
+        inicioVel = true;
+        return stateStop; 
+    }
 
     if (Velocidade::getVelocidade() >= (velocidadeMax - velocidadeMax*erroDeAceitaçao) &&  Velocidade::getVelocidade() <= (velocidadeMax + velocidadeMax*erroDeAceitaçao)) {
         return stateEstabilizaVelocidade;
@@ -89,7 +100,8 @@ StatesStartStop StartStop::manipulaBorboleta (Motor &motor, float &tempoUltimoIm
 
 StatesStartStop StartStop::ligaMotor (Motor &motor, Display &display) {
 
-    if ( motor.ligaMotor(display) == Motor::engineON ) {       
+    if ( motor.ligaMotor(display) == Motor::engineON ) {   
+        tentativasLigar = 0;    
         return stateStart;
     } else { return stateNãoLigou; }
     
@@ -101,7 +113,8 @@ StatesStartStop StartStop::desligaMotor (Motor &motor, Display &display) {
 
     if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
 
-    if ( motor.desligaMotor(display) == Motor::engineOFF ) {       
+    if ( motor.desligaMotor(display) == Motor::engineOFF ) { 
+        tentativasDesligar = 0;      
         return stateStop;
     } else { return stateNãoDesligou; }
 
@@ -147,8 +160,10 @@ StatesStartStop StartStop::desligaStartStop (Display &display) {
     } else { return stateNãoDesligou; }
 }
 
-StatesStartStop StartStop::nãoLigou (int &tentativas, Display &display) {
-    if (tentativas <= 2) {
+StatesStartStop StartStop::nãoLigou (Display &display) {
+    if (tentativasLigar <= 2) {
+        tentativasDesligar++;
+        delay(1500);
         return stateLigaMotor;
     } else {
         //prin
@@ -156,8 +171,10 @@ StatesStartStop StartStop::nãoLigou (int &tentativas, Display &display) {
     }
 }
 
-SatesStartStop StartStop::nãoDesligou (int &tentativas, Display &display) {
-    if (tentativas <= 2) {
+SatesStartStop StartStop::nãoDesligou (Display &display) {
+    if (tentativasDesligar <= 2) {
+        tentativasDesligar++;
+        delay(1500);
         return stateDesligaMotor;
     } else {
         //print

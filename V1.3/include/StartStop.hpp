@@ -14,8 +14,8 @@
 #define velZERO 0
 #define PRESSIONADO 1
 #define NOT_PRESSIONADO 0   
-#define switchSS
-#define pinFreio
+#define switchSS 20
+#define pinFreio 21
 #define tempoMaximoVelocidade 10000
 
 class StartStop {
@@ -52,7 +52,7 @@ public:
 
     static StatesStartStop estabilizaAceleração (Motor &motor);
     
-    static StatesStartStop estabilizaVelocidade (Motor &motor, float &tempoInicio);
+    static StatesStartStop estabilizaVelocidade (Motor &motor);
     
     static StatesStartStop manipulaBorboleta ();
 
@@ -62,15 +62,18 @@ public:
 
     static StatesStartStop freando ();
 
-    static StatesStartStop nãoLigou (int &tentativas, Display &display);
+    static StatesStartStop nãoLigou (Display &display);
     
-    static StatesStartStop nãoDesligou (int &tentativas, Display &display);
+    static StatesStartStop nãoDesligou (Display &display);
 
     static StatesStartStop desligaStartStop (Display &display);
 
-
 private:
     static StatesManipulaBorboleta borboleta;
+    static int tentativasLigar;
+    static int tentativasDesligar;
+    static bool inicioVel;
+    static float tempoInicioVel;
 
 };
 

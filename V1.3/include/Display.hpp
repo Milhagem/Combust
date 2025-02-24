@@ -3,7 +3,7 @@
 
 #include "Wire.h"
 #include "LiquidCrystal_I2C.h"
-#include "Motor.h"
+#include "Motor.hpp"
 #include "StartStop.hpp"    
 
 #define timeInterval 200 // ms
