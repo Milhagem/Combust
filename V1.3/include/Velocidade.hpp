@@ -11,9 +11,9 @@
 #define velZERO            0  // Valores para teste
 #define velMin             6  // Valores para teste
 #define velMax             15  // Valores para teste
-#define taxaAtualizacaoVel 100 // ms
-#define circunfRoda        0.47 // m
-#define pulsosPorVolta     5
+#define taxaAtualizacaoVel 1000 // ms
+#define circunfRoda        0.37 // m
+#define pulsosPorVolta     1
 #define sampleSize         3    // Numero de amostras para calcular velocidade
 
 #define MPS_to_KMPH 3.6  // metros por segundo p/ quilometro por hora
@@ -69,9 +69,8 @@ public:
      */
     int calculaVelocidade_Pedal(int pinPedal);
 
-    void 
 private:
-    static int velocidade;
+    static float velocidade;
     static float aceleração;
 };
 #endif

@@ -1,8 +1,8 @@
-#include "Velocidade.h"
+#include "Velocidade.hpp"
 
 volatile unsigned long pulseInterval;     // ms
 volatile unsigned long lastPulseInterval; // ms
-volatile unsigned long pulseIntervals[sampleSize];
+volatile unsigned long pulseIntervals [sampleSize];
 volatile int pulseIndex;
 volatile unsigned long lastTime;          // ms
 volatile unsigned long timeAjust;         // ms
@@ -10,7 +10,8 @@ volatile unsigned long timerCalcVel;      // ms
 volatile unsigned long lastTimerCalcVel;  // ms
 volatile unsigned long timeEstabilizaVel;
 unsigned long lastTimerTax;  // ms
-
+volatile  float velocOld;
+volatile unsigned long averagePulseIntervalOld;
 
 void setVelocidade (float &vel) { velocidade = vel; }
 
@@ -35,12 +36,14 @@ int calculaVelocidade () {
     //-------------------------------------------------------
 
     velocidade = circunfRoda/(pulsosPorVolta*averagePulseInterval) * MS_to_S * MPS_to_KMPH;
-    float velocOld = velocidade;
-    //veloc = filtroVelocVariacoesGrandes(velocOld, velocNew);
+    aceleração = (velocidade - velocOld) / (taxaAtualizacaoVel/3600000.0);
+    velocOld = velocidade;
+    averagePulseIntervalOld = averagePulseInterval; 
 
     attachInterrupt(digitalPinToInterrupt (pinSensorHall), calc, RISING);
     Serial.print("veloc:");
-  }
+    return velocidade;
+  } else { return velocidade; }
 }
 
 float filtroVelocVariacoesGrandes (float velocidadeOld, float velocidadeNew) {

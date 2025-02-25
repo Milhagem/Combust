@@ -9,7 +9,7 @@ void Display::iniciaDisplay(){
   
 }
 
-void Display::mostraTensaoEVel(Motor &motor, int velocidade){
+void Display::mostraTensaoEVel(Motor &motor, float velocidade){
     if ( (millis()-timeOld) >= timeInterval){
 
     lcd.setCursor(0,0);
@@ -27,7 +27,7 @@ void Display::mostraTensaoEVel(Motor &motor, int velocidade){
   }
 }
 
-void Display::atualizaDisplay(Motor &motor, int velocidade, StartStop::StatesStartStop FSMState){
+void Display::atualizaDisplay(Motor &motor, float velocidade, StartStop::StatesStartStop FSMState){
   mostraTensaoEVel(motor, velocidade);
 
   std::string FSMState_str;
