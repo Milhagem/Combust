@@ -35,31 +35,31 @@ void Display::atualizaDisplay(Motor &motor, int velocidade, StartStop::StatesSta
   switch (FSMState)
   {
     case StartStop::stateSwitchOFF:
-      FSMState = "SS_off";
+      FSMState_str = "SS_off";
       break;
 
     case StartStop::stateSwitchON:
-      FSMState = "SS__on";
+      FSMState_str = "SS__on";
       break;
     
     case StartStop::stateMonitoraVel:
-      FSMState = "monitV";
+      FSMState_str = "monitV";
       break;
 
     case StartStop::stateIncrementaVel:
-      FSMState = "incrmV";
+      FSMState_str = "incrmV";
       break;
 
     case StartStop::stateDesligaMotor:
-      FSMState = "deslgM";
+      FSMState_str = "deslgM";
       break;
 
     case StartStop::stateLigaMotor:
-      FSMState = "ligaM ";
+      FSMState_str = "ligaM ";
       break;
 
     case StartStop::stateFreando:
-      FSMState = "freou";
+      FSMState_str = "freou";
       break;
 
     default:
@@ -67,8 +67,8 @@ void Display::atualizaDisplay(Motor &motor, int velocidade, StartStop::StatesSta
   }
 
   lcd.setCursor(10, 0);
-  lcd.print(FSMState);
+  lcd.print(FSMState_str);
 
   lcd.setCursor(15,1);
-  lcd.print(motor.getEstadoMotor());
+  lcd.print(motor.checaEstadoMotor());
   }

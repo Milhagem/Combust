@@ -31,7 +31,7 @@ void setup() {
     for (int i = 0; i < sampleSize; i++) { pulseIntervals[i] = 0; }
     pulseIndex = 0;
   
-    attachInterrupt (digitalPinToInterrupt (pinSensorHall), calc, RISING);
+    attachInterrupt (digitalPinToInterrupt (pinSensorHall), Velocidade::calc, RISING);
   
     //------------------------------------------------------------------
   
@@ -44,6 +44,7 @@ void loop() {
     StartStop::StatesStartStop FSMstate = StartStop::stateSwitchOFF;
 
     switch (FSMstate) {
+        display.atualizaDisplay (motor, Velocidade::calculaVelocidade(), FSMstate);
         case StartStop::stateSwitchOFF:
             FSMstate = StartStop::switchOFF();
             break;
@@ -77,6 +78,12 @@ void loop() {
         case StartStop::stateDesligaStartStop:
             FSMstate = StartStop::desligaStartStop(display);
             break;
+        case StartStop::stateNãoLigou:
+            FSMstate = StartStop::nãoLigou(display);
+            break;
+        case StartStop::stateNãoDesligou:    
+            FSMstate = StartStop::nãoDesligou(display);
+            break;    
         default:
             FSMstate = StartStop::stateDesligaStartStop;
     }

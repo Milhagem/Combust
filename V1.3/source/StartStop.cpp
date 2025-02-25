@@ -32,7 +32,7 @@ StatesStartStop StartStop::estabilizaAceleração (Motor &motor) {
         return stateEstabilizaVelocidade;
     }
 
-    if ( Velocidade::getAceleração () >= (aceleraçãoIdeal - aceleraçãoIdeal*erroDeAceitaçao) &&  Velocidade::getAceleração () <= (aceleraçãoIdeal + aceleraçãoIdeal*erroDeAceitaçao)) {
+    if ( Velocidade::getAceleração () >= (aceleraçãoIdeal - aceleraçãoIdeal*erroDeAceitaçao)) {
         return stateEstabilizaAceleração;
     } else {
         borboleta = manterAceleração;

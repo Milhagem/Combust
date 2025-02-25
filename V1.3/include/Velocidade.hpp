@@ -34,7 +34,7 @@ public:
      * @brief Calcula o periodo dos pulsos do sensor Hall
      * 
      */
-    void calc();
+    static void calc();
 
 
     /**
