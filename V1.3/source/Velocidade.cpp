@@ -9,7 +9,6 @@ volatile unsigned long timeAjust;         // ms
 volatile unsigned long timerCalcVel;      // ms
 volatile unsigned long lastTimerCalcVel;  // ms
 volatile unsigned long timeEstabilizaVel;
-volatile float velocidade;
 unsigned long lastTimerTax;  // ms
 
 
@@ -21,7 +20,7 @@ void setAceleração (float &acel) { aceleração = acel; }
 
 float getAceleração () { return aceleração; }
 
-void calculaVelocidade () {
+int calculaVelocidade () {
 
   if(millis() - lastTimerTax >= taxaAtualizacaoVel) {
     lastTimerTax = millis();

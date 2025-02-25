@@ -7,9 +7,6 @@ Motor () posiçaoServo(0) {
   
 }
 
-
-
-
 float Motor::analisaTensao(){
   const float RESOLUCAO_ARDUINO = 1024.0;
   const float TENSAO_ARDUINO = 5.0;
@@ -32,8 +29,7 @@ statesEngine Motor::ligaMotor(Display &display){
 
 
     while(millis() - timerPartida <= tempoMaxPartida) {
-      Velocidade::calculaVelocidade();
-      display.mostraTensaoEVel(*this, Velocidade::getVelocidade());
+      display.mostraTensaoEVel(*this, Velocidade::calculaVelocidade(););
       float tensao = analisaTensao();
       if (tensao > tensaoMotorON) {
         digitalWrite(pinLigaMotor, LOW);
@@ -66,8 +62,7 @@ statesEngine Motor::desligaMotor(Display &display){
 
     while(millis() - timerInjecaoAberta <= tempoInjecaoAberta) {
       // Mantem o rele da Injecao aberto por um tempo
-      Velocidade::calculaVelocidade();
-      display.mostraTensaoEVel(*this, Velocidade::getVelocidade());
+      display.mostraTensaoEVel(*this, Velocidade::calculaVelocidade(););
       if (checaEstadoMotor() == engineOFF) {
         digitalWrite(pinDesligaMotor, LOW);
         return engineOFF;

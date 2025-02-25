@@ -71,7 +71,7 @@ public:
 
     void 
 private:
-    static float velocidade;
+    static int velocidade;
     static float aceleração;
 };
 #endif
