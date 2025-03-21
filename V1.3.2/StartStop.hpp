@@ -14,7 +14,7 @@ class Motor;
 #define posServoInicial 15
 #define velocidadeMinima 5
 #define velocidadeMax 30
-#define tempoIncrementoIdeal 100
+#define tempoImcrementoIdeal 100
 #define velZERO 0
 #define PRESSIONADO 1
 #define NOT_PRESSIONADO 0   
@@ -25,26 +25,26 @@ class Motor;
 class StartStop {
 public:
     enum StatesStartStop {
-        stateSwitchON,//
-        stateSwitchOFF,//
-        stateLigaMotor,//
-        stateDesligaMotor,//
-        stateEstabilizaAcelera,//
+        stateSwitchON,
+        stateSwitchOFF,
+        stateLigaMotor,
+        stateDesligaMotor,
+        stateEstabilizaAcelera,
         stateEstabilizaVelocidade,
-        stateManipulaBorboleta,//
-        stateStart,//
-        stateStop,//
-        stateFreando,//
-        stateNotLigou,//
-        stateNotDesligou,//
-        stateDesligaStartStop//
+        stateManipulaBorboleta,
+        stateStart,
+        stateStop,
+        stateFreando,
+        stateNotLigou,
+        stateNotDesligou,
+        stateDesligaStartStop
     };
 
-//    enum StatesManipulaBorboleta {
-//        manterAcelera,
-//        manterVelocidadeAcima,
-//        manterVelocidadeAbaixo
-//    };
+    enum StatesManipulaBorboleta {
+        manterAcelera,
+        manterVelocidadeAcima,
+        manterVelocidadeAbaixo
+    };
 
     static StatesStartStop switchOFF ();
 
@@ -56,7 +56,7 @@ public:
 
     static StatesStartStop estabilizaAcelera (Motor &motor);
     
-//    static StatesStartStop estabilizaVelocidade (Motor &motor);
+    static StatesStartStop estabilizaVelocidade (Motor &motor);
     
     static StatesStartStop manipulaBorboleta (Motor &motor, float &tempoUltimoImcremento);
 
@@ -73,7 +73,7 @@ public:
     static StatesStartStop desligaStartStop (Motor &motor, Display &display);
 
 private:
-//    static StatesManipulaBorboleta borboleta;
+    static StatesManipulaBorboleta borboleta;
     static int tentativasLigar;
     static int tentativasDesligar;
     static bool inicioVel;
