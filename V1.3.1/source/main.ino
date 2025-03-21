@@ -1,7 +1,7 @@
-#include "Motor.hpp" 
-#include "Velocidade.hpp"
-#include "Display.hpp"
-#include "StartStop.hpp"
+#include "include/Motor.hpp" 
+#include "include/Velocidade.hpp"
+#include "include/Display.hpp"
+#include "include/StartStop.hpp"
 
 extern unsigned long timerIncrementoServo;
 extern volatile unsigned long pulseInterval;     // ms

@@ -1,6 +1,6 @@
-#include "Motor.hpp"
-#include "Display.hpp"
-#include "Velocidade.hpp"
+#include "include/Motor.hpp"
+#include "include/Display.hpp"
+#include "include/Velocidade.hpp"
 
 
 Motor::Motor () : posServo(0) {

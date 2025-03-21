@@ -127,4 +127,5 @@ void Display::atualizaDisplay(Motor &motor, int velocidade, int FSMState_int){
 
   lcd.setCursor(15,1);
   lcd.print(motor.getEstadoMotor());
+
   }

@@ -4,8 +4,7 @@
 #include "Display.h"
 
 #define pinFreio A15
-#define switchSS A13
-//#define pinSensorHall DD2
+#define pinSensorHall DD2
 
 /*Estados antigos
 #define desligaSS 0
@@ -41,9 +40,9 @@ unsigned long tempoUltimoIncremento = 0;
 #define velocidadeMax 30
 #define tempoIncrementoIdeal 100
 #define velZERO 0
-#define PRESSIONADO 1
-#define NOT_PRESSIONADO 0   
-#define switchSS 20
+//#define PRESSIONADO 1
+//#define NOT_PRESSIONADO 0  
+#define switchSS 4
 #define pinFreio 21
 #define tempoMaximoVelocidade 10000
 
@@ -160,17 +159,17 @@ void loop() {
   switch (FSMstate) {
 
     case stateSwitchOFF:
-      if (digitalRead(switchSS) == PRESSIONADO) {
+      if (digitalRead(switchSS) == LOW) {
         FSMstate = stateSwitchON;
       } else { FSMstate = stateSwitchOFF;}
-
+      delay(1000);
     break;
 
     case stateSwitchON:
 
-      if (digitalRead(switchSS) == NOT_PRESSIONADO){ FSMstate = stateDesligaStartStop; }
-      while(1);
-
+      if (digitalRead(switchSS) == HIGH){ FSMstate = stateSwitchOFF; }else{
+        FSMstate = stateSwitchON;
+      }
       if (velocidade >= velocidadeMinima ) {
           FSMstate = stateStop;
       } else if (velocidade  >= velZERO ) {
@@ -309,8 +308,6 @@ void loop() {
         //print
         FSMstate = stateSwitchOFF;
     }
-
-    break;
 
     break;
 

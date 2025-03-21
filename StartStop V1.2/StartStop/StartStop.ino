@@ -4,7 +4,7 @@
 #include "Display.h"
 
 #define pinFreio A15
-#define switchSS 20
+#define switchSS 4
 
 /*#define stateSS_off       0
 #define stateSS_on        1
@@ -62,7 +62,7 @@ extern volatile int posServo; // representação de uma determinada angulatura
 Motor motor;
 Display display;
 
-int FSMstate = 1;
+int FSMstate = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -122,21 +122,24 @@ void loop() {
   switch (FSMstate) {
 
     case stateSS_off:
-      if(digitalRead(switchSS) == LOW) {FSMstate = stateSS_on;}
+      if(digitalRead(switchSS) == LOW) {FSMstate = stateSS_on;}else{
+        FSMstate = stateSS_off;
+      }
     break;
 
     case stateSS_on:
       if (digitalRead(switchSS) == HIGH) {
         FSMstate = stateSS_off;
-        motor.desligaStartStop();
-        break;
+        //motor.desligaStartStop();
+      }else{
+        FSMstate = stateSS_on;
       }
-      if(millis() - lastTimeinit >= 5000){
+      /*if(millis() - lastTimeinit >= 5000){
         FSMstate = LigaMotor;
         break;
       }else {
         FSMstate = stateSS_on;
-      }
+      }*/
       
     break;
 
