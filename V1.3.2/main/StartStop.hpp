@@ -18,7 +18,7 @@ class Motor;
 #define velZERO 0
 #define PRESSIONADO 1
 #define NOT_PRESSIONADO 0   
-#define switchSS 20
+#define switchSS 4
 #define pinFreio 21
 #define tempoMaximoVelocidade 10000
 

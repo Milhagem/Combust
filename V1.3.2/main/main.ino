@@ -24,7 +24,9 @@ float tempoUltimoIncremento = 0;
 
 Motor motor;
 Display display; 
-unsigned int time = 0; 
+unsigned int time = 0;
+
+StartStop::StatesStartStop FSMstate = StartStop::stateSwitchOFF;
 
 void setup() {
    Serial.begin(9600);
@@ -35,7 +37,7 @@ void setup() {
     pinMode(LM2907, INPUT);
     pinMode(pinSensorHall, INPUT);
     pinMode(pinFreio, INPUT_PULLUP);
-    pinMode(switchSS, INPUT);
+    pinMode(switchSS, INPUT_PULLUP);
   
     
     digitalWrite(pinLigaMotor, LOW);
@@ -65,8 +67,7 @@ void setup() {
   }
 
 void loop() {
-    StartStop::StatesStartStop FSMstate = StartStop::stateSwitchOFF;
-    //display.atualizaDisplay (Velocidade::calculaVelocidade(), FSMstate);
+    display.atualizaDisplay (Velocidade::calculaVelocidade(), FSMstate);
     int valor = digitalRead (switchSS); 
     if (millis() - time >= 500) {
       time = millis();
@@ -113,6 +114,7 @@ void loop() {
             break;    
         default:
             FSMstate = StartStop::stateDesligaStartStop;
+            break;
     }  
 }  
    

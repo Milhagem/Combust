@@ -9,19 +9,21 @@ bool inicioVel = 0;
 float tempoInicioVel = 0;
 
 
-
 StartStop::StatesStartStop StartStop::switchOFF () {
-    if (digitalRead(switchSS) == LOW) {
+    if (digitalRead(switchSS) == PRESSIONADO) {
         return stateSwitchON;
-    } else { return stateSwitchOFF; }
+    } else { return stateSwitchOFF;}
 }
 
 StartStop::StatesStartStop StartStop::switchON () {
-    if (digitalRead(switchSS) == HIGH){ return stateDesligaStartStop; }
+    if (digitalRead(switchSS) == NOT_PRESSIONADO){ return stateDesligaStartStop; }
+    else{
+        return stateSwitchOFF;
+    }
 
     if ( Velocidade::getVelocidade () >= velocidadeMinima ) {
         return stateStop;
-    } else if ( Velocidade::getVelocidade ()  >= velZERO ) {
+    } else if ( Velocidade::getVelocidade () >= velZERO ) {
         return stateStart;
     } else { return stateSwitchON; }
 
@@ -34,11 +36,12 @@ StartStop::StatesStartStop StartStop::estabilizaAcelera (Motor &motor) {
  
     if (motor.checaEstadoMotor() == Motor::engineOFF) { return stateStart; }  
     
-    if (Velocidade::getVelocidade() >= (velocidadeMax - velocidadeMax*erroAceitavel) &&  Velocidade::getVelocidade() <= (velocidadeMax + velocidadeMax*erroAceitavel)) {
+    if (Velocidade::getVelocidade() >= (velocidadeMax)/* - velocidadeMax*erroAceitavel) &&
+      Velocidade::getVelocidade() <= (velocidadeMax + velocidadeMax*erroAceitavel)*/) {
         return stateStop;
     }
 
-    if ( Velocidade::getAcelera () >= (aceleraIdeal - aceleraIdeal*erroAceitavel)) {
+    if ( Velocidade::getAcelera() >= (aceleraIdeal - aceleraIdeal*erroAceitavel)) {
         return stateEstabilizaAcelera;
     } else {
 //       borboleta = manterAcelera;
@@ -155,7 +158,7 @@ StartStop::StatesStartStop StartStop::desligaStartStop (Motor& motor, Display &d
 
 StartStop::StatesStartStop StartStop::notLigou (Display &display) {
     if (tentativasLigar <= 2) {
-        tentativasDesligar++;
+        tentativasLigar++;
         delay(1500);
         return stateLigaMotor;
     } else {
