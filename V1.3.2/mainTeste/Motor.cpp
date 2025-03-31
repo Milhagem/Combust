@@ -3,9 +3,19 @@
 #include "Velocidade.hpp"
 
 
-Motor::Motor () : posServo(0) {
-  servo.attach(pinServo);
-  servo.write(0);
+void Motor::servoAttach(int pin){
+  this->servo.attach(pin);
+}
+
+
+void Motor::servoWrite(int value){
+  this->servo.write(value);
+}
+
+
+void Motor::zeraServo(int valor){
+  servo.write(valor);
+  posServo = valor;
 }
 
 float Motor::analisaTensao(){
@@ -89,9 +99,8 @@ Motor::statesEngine Motor::checaEstadoMotor() {
 }
 
 void Motor::incrementaServo () {
-  posServo += 5;
-  servo.write(posServo);
-
+  posServo += 1;
+  servo.write (posServo);
 }
 
 void Motor::decrementaServo () {

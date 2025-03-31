@@ -22,7 +22,9 @@ class Motor {
 public:
     enum statesEngine {engineOFF, engineON, accelerating};
 
-    Motor ();
+    void servoAttach(int pin);
+      
+    void servoWrite(int value);
 
     float analisaTensao();
 
@@ -36,9 +38,11 @@ public:
 
     void decrementaServo ();
 
+    void zeraServo (int valor);
+
 
 private:
-    int posServo;
+    int posServo = 0;
     Servo servo;
 
 };

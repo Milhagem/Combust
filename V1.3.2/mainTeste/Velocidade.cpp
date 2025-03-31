@@ -13,7 +13,7 @@ unsigned long lastTimerTax;  // ms
 volatile  float velocOld;
 volatile unsigned long averagePulseIntervalOld;
 
-float Velocidade::acelera = 0.1;
+float Velocidade::acelera = 0;
 
 float Velocidade::velocidade = 0;
 

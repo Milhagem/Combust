@@ -58,7 +58,7 @@ public:
     
 //    static StatesStartStop estabilizaVelocidade (Motor &motor);
     
-    static StatesStartStop manipulaBorboleta (Motor &motor, float &tempoUltimoImcremento);
+    static StatesStartStop manipulaBorboleta (Motor &motor, float &tempoUltimoImcremento,int &pos_servo);
 
     static StatesStartStop start (Motor &motor);
     

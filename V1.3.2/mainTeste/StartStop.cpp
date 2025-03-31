@@ -7,11 +7,14 @@ int tentativasLigar = 0;
 int tentativasDesligar = 0;
 bool inicioVel = 0;
 float tempoInicioVel = 0;
+//int pos_servo = 0;
+
+
 
 
 
 StartStop::StatesStartStop StartStop::switchOFF () {
-    if (digitalRead(switchSS) == 0) {
+    if (digitalRead(switchSS) == LOW) {
         return stateSwitchON;
     } else { return stateSwitchOFF; }
 }
@@ -76,19 +79,25 @@ StartStop::StatesStartStop StartStop::estabilizaAcelera (Motor &motor) {
 //    }
 //}
 
-StartStop::StatesStartStop StartStop::manipulaBorboleta (Motor &motor, float &tempoUltimoIncremento) {
+StartStop::StatesStartStop StartStop::manipulaBorboleta (Motor &motor, float &tempoUltimoIncremento,int &pos_servo) {
 
     // if (digitalRead(switchSS) == HIGH){ return stateDesligaStartStop; }
 
     // if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
 
     if ( millis() - tempoUltimoIncremento >= tempoIncrementoIdeal) {
-        if ( 0.1  <  aceleraIdeal) {
-            motor.incrementaServo ();
+        //if ( Velocidade::getAcelera () <  aceleraIdeal) {
+            pos_servo = 30;
+            motor.incrementaServo();
+            //pos_servo++;
             tempoUltimoIncremento = millis();
-            return stateManipulaBorboleta;
-        } else { return stateEstabilizaAcelera; }
+            //return stateManipulaBorboleta;
+        //} else { return stateEstabilizaAcelera; }
     } else { return stateManipulaBorboleta; }
+
+    if(pos_servo >= 30){
+        pos_servo = 0; 
+    }
     
 }
 
