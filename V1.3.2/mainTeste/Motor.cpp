@@ -2,7 +2,12 @@
 #include "Display.hpp"
 #include "Velocidade.hpp"
 
+void Motor::servoAttach(int pin){
+  this->servo.attach(pin);
+}
 
+
+<<<<<<< HEAD
 void Motor::servoAttach(int pin){
   this->servo.attach(pin);
 }
@@ -16,6 +21,11 @@ void Motor::servoWrite(int value){
 void Motor::zeraServo(int valor){
   servo.write(valor);
   posServo = valor;
+=======
+void Motor::servoWrite(int value){
+  this->servo.write(value);
+  posServo = value;
+>>>>>>> bafe57cb0758a4fdf6eac0270abd71f2f858d5c7
 }
 
 float Motor::analisaTensao(){

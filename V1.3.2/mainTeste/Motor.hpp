@@ -23,7 +23,11 @@ public:
     enum statesEngine {engineOFF, engineON, accelerating};
 
     void servoAttach(int pin);
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> bafe57cb0758a4fdf6eac0270abd71f2f858d5c7
     void servoWrite(int value);
 
     float analisaTensao();
