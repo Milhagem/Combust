@@ -61,6 +61,10 @@ void setup() {
     // Display LCD
     display.iniciaDisplay();
 
+    motor.servoAttach(pinServo);
+    motor.servoWrite (0);
+
+
 //    Serial.print("Memória livre (bytes): ");
 //    Serial.println(freeMemory());
 
