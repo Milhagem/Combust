@@ -14,7 +14,7 @@ class Motor;
 #define posServoInicial 15
 #define velocidadeMinima 5
 #define velocidadeMax 30
-#define tempoIncrementoIdeal 100
+#define tempoIncrementoIdeal 200
 #define velZERO 0
 #define PRESSIONADO 1
 #define NOT_PRESSIONADO 0   

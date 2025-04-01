@@ -1,5 +1,6 @@
 #include "Display.hpp"
 
+
 volatile unsigned long timeOld = 0;
 
 //Display::Display () {
@@ -39,62 +40,63 @@ void Display::mostraTensaoEVel(float velocidade){
 }
 
 void Display::atualizaDisplay( float velocidade, int FSMState) {
-  mostraTensaoEVel(velocidade);
 
   String FSMState_str;
 if ( (millis() - timeOld) >= timeInterval){
 
+  mostraTensaoEVel(velocidade);
+
   switch (FSMState)
   {
-    case 1:
+    case StartStop::stateSwitchOFF:
       FSMState_str = "SS_off";
       break;
 
-    case 2:
+    case StartStop::stateSwitchON:
       FSMState_str = "SS__on";
       break;
       
-    case 3:
+    case StartStop::stateDesligaMotor:
       FSMState_str = "deslgM";
       break;
       
-    case 4:
+    case StartStop::stateLigaMotor:
       FSMState_str = "ligaM ";
       break;
       
-    case 5:
+    case StartStop::stateEstabilizaAcelera:
       FSMState_str = "estabA";
       break;
       
-    case 6:
-      FSMState_str = "estabV";
-      break;
+//    case StartStop:::
+//      FSMState_str = "estabV";
+//      break;
 
-    case 7:
+    case StartStop::stateManipulaBorboleta:
       FSMState_str = "manipB";
       break;
 
-    case 8:
+    case StartStop::stateStart:
       FSMState_str = "iniciou";
       break;
 
-    case 9:
+    case StartStop::stateStop:
       FSMState_str = "parou";
       break;
       
-    case 10:
+    case StartStop::stateFreando:
       FSMState_str = "freou";
       break;
 
-    case 11:
+    case StartStop::stateNotLigou:
       FSMState_str = "notLig";
       break;
 
-    case 12:
+    case StartStop::stateNotDesligou:
       FSMState_str = "notDsg";
       break;
       
-    case 13:
+    case StartStop::stateDesligaStartStop:
       FSMState_str = "deslgSS";
       break;
       
@@ -102,10 +104,10 @@ if ( (millis() - timeOld) >= timeInterval){
       break;
   }
 
-  this->lcd.setCursor(10, 0);
+  this->lcd.setCursor(7, 0);
   this->lcd.print(FSMState_str);
 
   this->lcd.setCursor(15,1);
-  //this->lcd.print(motor.checaEstadoMotor());
+  // this->lcd.print(motor.checaEstadoMotor());
 }
 }

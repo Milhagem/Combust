@@ -79,7 +79,7 @@ StartStop::StatesStartStop StartStop::estabilizaAcelera (Motor &motor) {
 //    }
 //}
 
-StartStop::StatesStartStop StartStop::manipulaBorboleta (Motor &motor, float &tempoUltimoIncremento,int &pos_servo) {
+StartStop::StatesStartStop StartStop::manipulaBorboleta (Motor &motor, float &tempoUltimoIncremento) {
 
     // if (digitalRead(switchSS) == HIGH){ return stateDesligaStartStop; }
 

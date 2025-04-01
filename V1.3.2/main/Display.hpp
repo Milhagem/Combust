@@ -5,7 +5,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <Arduino.h>
 #include "Motor.hpp"
-//#include "StartStop.hpp"   
+#include "StartStop.hpp"   
 
 
 #define timeInterval 200 // ms

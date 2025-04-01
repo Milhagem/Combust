@@ -81,18 +81,20 @@ StartStop::StatesStartStop StartStop::estabilizaAcelera (Motor &motor) {
 
 StartStop::StatesStartStop StartStop::manipulaBorboleta (Motor &motor, float &tempoUltimoIncremento) {
 
-    if (digitalRead(switchSS) == NOT_PRESSIONADO) { return stateDesligaStartStop; }
+    //if (digitalRead(switchSS) == NOT_PRESSIONADO) { return stateDesligaStartStop; }
 
-    if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
+    //if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
 
     if ( millis() - tempoUltimoIncremento >= tempoIncrementoIdeal) {
-        if ( Velocidade::getAcelera () <  aceleraIdeal) {
-            motor.incrementaServo ();
+        //if ( /*Velocidade::getAcelera () <  aceleraIdeal*/ Velocidade::getVelocidade() <= 15) {
+            motor.incrementaServo();
             tempoUltimoIncremento = millis();
             return stateManipulaBorboleta;
-        } else { return stateEstabilizaAcelera; }
-    } else { return stateManipulaBorboleta; }
-    
+        //}else { return stateEstabilizaAcelera; }
+        } else { 
+        //motor.servoWrite(0);
+        return stateManipulaBorboleta; }
+        //}
 }
 
 StartStop::StatesStartStop StartStop::ligaMotorSS (Motor &motor, Display &display) {

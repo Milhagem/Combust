@@ -26,7 +26,9 @@ Motor motor;
 Display display; 
 unsigned int time = 0;
 
-StartStop::StatesStartStop FSMstate = StartStop::stateSwitchOFF;
+LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27,16,2);
+
+StartStop::StatesStartStop FSMstate = StartStop::stateManipulaBorboleta;
 
 void setup() {
    Serial.begin(9600);
@@ -60,6 +62,10 @@ void setup() {
     
     // Display LCD
     display.iniciaDisplay();
+    //lcd.backlight();
+
+    motor.servoAttach(pinServo);
+    motor.servoWrite (0);
 
 //    Serial.print("Memória livre (bytes): ");
 //    Serial.println(freeMemory());
@@ -68,10 +74,6 @@ void setup() {
 
 void loop() {
     display.atualizaDisplay (Velocidade::calculaVelocidade(), FSMstate);
-    int valor = digitalRead (switchSS); 
-    if (millis() - time >= 500) {
-      time = millis();
-     Serial.println (valor);  }
     switch (FSMstate) {
         case StartStop::stateSwitchOFF:
             FSMstate = StartStop::switchOFF();
@@ -88,9 +90,6 @@ void loop() {
         case StartStop::stateEstabilizaAcelera:
             FSMstate = StartStop::estabilizaAcelera(motor);
             break;
-//        case StartStop::stateEstabilizaVelocidade:
-//            FSMstate = StartStop::estabilizaVelocidade(motor);
-//            break;
         case StartStop::stateManipulaBorboleta:
             FSMstate = StartStop::manipulaBorboleta(motor, tempoUltimoIncremento);
             break;

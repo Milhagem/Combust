@@ -15,9 +15,8 @@ extern volatile int pulseIndex;
 extern unsigned long lastTimerTax;
 
 float tempoUltimoIncremento = 0;
-int pos = 0;
 
-StartStop::StatesStartStop FSMstate = StartStop::stateSwitchOFF;
+StartStop::StatesStartStop FSMstate = StartStop::stateManipulaBorboleta;
 
 //extern int __heap_start, *__brkval;
 //int freeMemory() {
@@ -26,8 +25,7 @@ StartStop::StatesStartStop FSMstate = StartStop::stateSwitchOFF;
 //}
 
 Motor motor;
-Display display;
-Servo servo;
+Display display; 
 unsigned int time = 0; 
 
 void setup() {
@@ -40,8 +38,6 @@ void setup() {
     pinMode(pinSensorHall, INPUT);
     pinMode(pinFreio, INPUT_PULLUP);
     pinMode(switchSS, INPUT_PULLUP);
-
-
   
     
     digitalWrite(pinLigaMotor, LOW);
@@ -64,9 +60,10 @@ void setup() {
     
     // Display LCD
     display.iniciaDisplay();
-    //motor.zeraServo(0);
-    //delay(500);
-    //motor.zeraServo(100);
+
+    motor.servoAttach(pinServo);
+    motor.servoWrite (0);
+
 
 //    Serial.print("Memória livre (bytes): ");
 //    Serial.println(freeMemory());
@@ -78,51 +75,62 @@ void loop() {
     // delay(3000);
     switch (FSMstate) {
         case StartStop::stateSwitchOFF:
-            FSMstate = StartStop::switchOFF();
-            break;
+          FSMstate = StartStop::switchOFF();
+          break;
         case StartStop::stateSwitchON:
-            delay(3000);
+              delay(3000);
             FSMstate = StartStop::switchON();
             break;
         case StartStop::stateLigaMotor:
-            delay(3000);
+             delay(3000);
             FSMstate = StartStop::ligaMotorSS(motor, display);
             break;
         case StartStop::stateDesligaMotor:
-            delay(3000);
+             delay(3000);
+
             FSMstate = StartStop::desligaMotorSS(motor, display);
             break;
         case StartStop::stateEstabilizaAcelera:
-            delay(3000);
+             delay(3000);
+
             FSMstate = StartStop::estabilizaAcelera(motor);
             break;
+//        case StartStop::stateEstabilizaVelocidade:
+//            FSMstate = StartStop::estabilizaVelocidade(motor);
+//            break;
         case StartStop::stateManipulaBorboleta:
-            motor.incrementaServo();
-            delay(3000);
-            //FSMstate = StartStop::manipulaBorboleta(motor, tempoUltimoIncremento, pos);
+            //  delay(3000);
+
+            FSMstate = StartStop::manipulaBorboleta(motor, tempoUltimoIncremento);
             break;
         case StartStop::stateStart:
-            delay(3000);
+             delay(3000);
+
             FSMstate = StartStop::start(motor);
             break;
         case StartStop::stateStop:
-            delay(3000);
+             delay(3000);
+
             FSMstate = StartStop::stop(motor);
             break;
         case StartStop::stateFreando:
-            delay(3000);
+               delay(3000);
+
             FSMstate = StartStop::freando();
             break;
         case StartStop::stateDesligaStartStop:
-            delay(3000);
+             delay(3000);
+
             FSMstate = StartStop::desligaStartStop(motor, display);
             break;
         case StartStop::stateNotLigou:
-            delay(3000);
             FSMstate = StartStop::notLigou(display);
+             delay(3000);
+
             break;
         case StartStop::stateNotDesligou:
-            delay(3000);
+             delay(3000);
+    
             FSMstate = StartStop::notDesligou(display);
             break;    
         default:

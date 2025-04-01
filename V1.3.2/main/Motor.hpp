@@ -10,10 +10,10 @@ class Display;
 
 #define pinLigaMotor    6
 #define pinDesligaMotor 5
-#define LM2907          A6
+#define LM2907          A2
 #define pinServo        8
 
-#define tensaoMotorON         1.75 
+#define tensaoMotorON         1.60
 #define TensaoMotorAcelerando 2.75
 #define posServoInicial       15
 
@@ -22,7 +22,9 @@ class Motor {
 public:
     enum statesEngine {engineOFF, engineON, accelerating};
 
-    Motor ();
+    void servoAttach(int pin);
+       
+    void servoWrite(int value);
 
     float analisaTensao();
 
