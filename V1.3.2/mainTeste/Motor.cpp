@@ -2,12 +2,12 @@
 #include "Display.hpp"
 #include "Velocidade.hpp"
 
-void Motor::servoAttach(int pin){
-  this->servo.attach(pin);
-}
 
+/*Motor::Motor () : posServo(0) {
+  servo.attach(pinServo);
+  servo.write(0);
+}*/
 
-<<<<<<< HEAD
 void Motor::servoAttach(int pin){
   this->servo.attach(pin);
 }
@@ -15,17 +15,6 @@ void Motor::servoAttach(int pin){
 
 void Motor::servoWrite(int value){
   this->servo.write(value);
-}
-
-
-void Motor::zeraServo(int valor){
-  servo.write(valor);
-  posServo = valor;
-=======
-void Motor::servoWrite(int value){
-  this->servo.write(value);
-  posServo = value;
->>>>>>> bafe57cb0758a4fdf6eac0270abd71f2f858d5c7
 }
 
 float Motor::analisaTensao(){
@@ -44,7 +33,7 @@ Motor::statesEngine Motor::ligaMotor(Display& display){
     const unsigned long tempoMaxPartida = 4000; // ms
     unsigned long timerPartida = millis();      // ms
 
-    servo.write(posServoInicial);
+    //servo.write(posServoInicial);
     posServo = posServoInicial;
     digitalWrite(pinLigaMotor, HIGH);
 
@@ -110,7 +99,8 @@ Motor::statesEngine Motor::checaEstadoMotor() {
 
 void Motor::incrementaServo () {
   posServo += 1;
-  servo.write (posServo);
+  servo.write(posServo);
+
 }
 
 void Motor::decrementaServo () {

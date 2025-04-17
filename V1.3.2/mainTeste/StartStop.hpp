@@ -11,10 +11,10 @@ class Motor;
 
 #define erroAceitavel 0.1
 #define aceleraIdeal 0.5
-#define posServoInicial 15
-#define velocidadeMinima 5
+#define posServoInicial 0
+#define velocidadeMinima 0
 #define velocidadeMax 10
-#define tempoIncrementoIdeal 10
+#define tempoIncrementoIdeal 200
 #define velZERO 0
 #define PRESSIONADO 1
 #define NOT_PRESSIONADO 0   
@@ -58,7 +58,7 @@ public:
     
 //    static StatesStartStop estabilizaVelocidade (Motor &motor);
     
-    static StatesStartStop manipulaBorboleta (Motor &motor, float &tempoUltimoImcremento,int &pos_servo);
+    static StatesStartStop manipulaBorboleta (Motor &motor, float &tempoUltimoImcremento);
 
     static StatesStartStop start (Motor &motor);
     

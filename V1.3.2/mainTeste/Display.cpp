@@ -1,5 +1,6 @@
 #include "Display.hpp"
 
+
 volatile unsigned long timeOld = 0;
 
 //Display::Display () {
@@ -23,7 +24,7 @@ void Display:: iniciaDisplay () {
 
 
 void Display::mostraTensaoEVel(float velocidade){
-  // if ( (millis() - timeOld) >= timeInterval){
+  if ( (millis() - timeOld) >= timeInterval){
     //this->lcd.setCursor(0,0);
     //this->lcd.print("DDP:    ");
     //this->lcd.setCursor(5,0);
@@ -35,7 +36,7 @@ void Display::mostraTensaoEVel(float velocidade){
     this->lcd.print(velocidade);
 
     timeOld = millis();
-  // }
+  }
 }
 
 void Display::atualizaDisplay( float velocidade, int FSMState) {
@@ -76,11 +77,11 @@ if ( (millis() - timeOld) >= timeInterval){
       break;
 
     case StartStop::stateStart:
-      FSMState_str = "iniciou";
+      FSMState_str = "start";
       break;
 
     case StartStop::stateStop:
-      FSMState_str = "parou";
+      FSMState_str = "stop";
       break;
       
     case StartStop::stateFreando:
