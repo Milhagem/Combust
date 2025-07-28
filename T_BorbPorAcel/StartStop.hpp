@@ -4,7 +4,7 @@
 #include "Motor.hpp" 
 #include "Velocidade.hpp"
 #include "Display.hpp"
-#include <cmath>
+//#include <cmath>
 
 class Display;
 class Motor;
@@ -20,8 +20,8 @@ class Motor;
 #define switchSS 4
 #define pinFreio 21
 #define tempoMaximoVelocidade 10000
-#define tempoIncrementoIdealMax 700
-#define tempoIncrementoIdealMin 100
+#define tempoIncrementoIdealMax 600
+#define tempoIncrementoIdealMin 300
 
 
 class StartStop {
@@ -51,6 +51,8 @@ public:
     static StatesStartStop switchOFF ();
 
     static StatesStartStop switchON (); 
+
+    static float getA () {return a; }
 
     static StatesStartStop ligaMotorSS (Motor &motor, Display &display);
 
