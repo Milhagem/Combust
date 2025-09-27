@@ -86,7 +86,7 @@ StartStop::StatesStartStop StartStop::manipulaBorboleta (Motor &motor, float &te
                 motor.incrementaServo();
                 tempoUltimoIncremento = millis();
                 testeBorb++;
-                if (testeBorb==100){return stateSwitchOFF;}
+                if (testeBorb==200){return stateSwitchOFF;}
                 return stateManipulaBorboleta;
             } else { 
                 tempoUltimoIncremento = 0;

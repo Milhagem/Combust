@@ -12,8 +12,8 @@ class Motor;
 
 #define erroAceitavel 0.1
 #define aceleraIdeal 0.5
-#define velocidadeMinima 5
-#define velocidadeMax 15
+#define velocidadeMinima 2
+#define velocidadeMax 8
 #define velZERO 0
 #define PRESSIONADO 1
 #define NOT_PRESSIONADO 0   

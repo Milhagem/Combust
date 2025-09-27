@@ -15,7 +15,7 @@ class Display;
 
 #define tensaoMotorON         0.8
 #define TensaoMotorAcelerando 2.75
-#define posServoInicial       20
+#define posServoInicial       100
 
 class Motor {
     
