@@ -7,7 +7,7 @@
 extern unsigned long timerIncrementoServo;
 extern volatile unsigned long pulseInterval;     // ms
 extern volatile unsigned long lastPulseInterval; // ms
-extern volatile unsigned long timerCalcVel;      // ms
+extern volatile unsigned long timerCalcVel;      // msche
 extern volatile unsigned long lastTimerCalcVel;  // ms
 extern volatile unsigned long timeEstabilizaVel;
 extern volatile unsigned long timeEstabilizacao; 
