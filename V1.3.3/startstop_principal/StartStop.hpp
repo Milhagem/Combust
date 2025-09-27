@@ -10,10 +10,10 @@ class Motor;
 
 
 #define erroAceitavel 0.1
-#define aceleraIdeal 0.10
+#define aceleraIdeal 0.5
 #define posServoInicial 0
-#define velocidadeMinima 4
-#define velocidadeMax 14
+#define velocidadeMinima 2
+#define velocidadeMax 8
 #define tempoIncrementoIdeal 15
 #define velZERO 0
 #define PRESSIONADO 1

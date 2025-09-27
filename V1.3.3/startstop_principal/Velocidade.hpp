@@ -11,7 +11,7 @@
 #define velZERO            0  // Valores para teste
 #define velMin             3 // Valores para teste
 #define velMax             5  // Valores para teste
-#define taxaAtualizacaoVel 200 // ms
+#define taxaAtualizacaoVel 120 // ms
 #define circunfRoda        0.37 // m
 #define pulsosPorVolta     1
 #define sampleSize         5    // Numero de amostras para calcular velocidade

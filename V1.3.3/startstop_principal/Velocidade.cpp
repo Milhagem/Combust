@@ -65,10 +65,10 @@ float Velocidade::calculaVelocidade (float &acelera) {
     //acelera = (velocidade - velocOld) / delta_tempo_horas;
     //ultimo funcional
     velocidade = 2*velocidade;
-    acelera = ((velocidade - velocOld) / MPS_to_KMPH_FACTOR) / delta_tempo_segundos;
+    acelera = (((velocidade - velocOld) / MPS_to_KMPH_FACTOR) / delta_tempo_segundos)*100;
     averagePulseIntervalOld = averagePulseInterval; 
     
-    //Velocidade::acelera = acelera;
+    Velocidade::acelera = acelera;
 
     //--------------------------------------------------------------
 

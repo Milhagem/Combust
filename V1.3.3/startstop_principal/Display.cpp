@@ -26,7 +26,7 @@ void Display:: iniciaDisplay () {
 void Display::mostraTensaoEVel(float velocidade, float aceleracao){
   //if ( (millis() - timeOld) >= timeInterval){
     this->lcd.setCursor(0,0);
-    this->lcd.print("RPM:");
+    this->lcd.print("ace:");
     this->lcd.setCursor(4,0);
     this->lcd.print(aceleracao);
     // Exibir velocidade

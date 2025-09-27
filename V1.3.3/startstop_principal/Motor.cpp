@@ -37,7 +37,7 @@ Motor::statesEngine Motor::ligaMotor(Display& display){
     posServo = posServoInicial;
     digitalWrite(pinLigaMotor, HIGH);
 
-    delay(1500);
+    //delay(1500);
 
     while(millis() - timerPartida <= tempoMaxPartida) {
       //display.mostraTensaoEVel(Velocidade::calculaVelocidade());
