@@ -2,7 +2,7 @@
 #include "Velocidade.hpp"
 #include "Display.hpp"
 #include "StartStop.hpp"
-#include <PinChangeInterrupt.h> // Incluindo a nova biblioteca
+//#include <PinChangeInterrupt.h> // Incluindo a nova biblioteca
 
 extern unsigned long timerIncrementoServo;
 extern volatile unsigned long pulseInterval;     // ms

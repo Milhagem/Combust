@@ -1,6 +1,6 @@
 #include "Velocidade.hpp"
 
-#include <PinChangeInterrupt.h> // Inclua a nova biblioteca aqui também
+//#include <PinChangeInterrupt.h> // Inclua a nova biblioteca aqui também
 
 volatile unsigned long pulseInterval;     // ms
 volatile unsigned long lastPulseInterval; // ms
