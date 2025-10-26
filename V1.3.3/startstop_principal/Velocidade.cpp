@@ -14,6 +14,7 @@ volatile unsigned long timeEstabilizaVel;
 unsigned long lastTimerTax;  // ms
 volatile  float velocOld;
 volatile unsigned long averagePulseIntervalOld;
+#define WHEEL_STOPPED_TIMEOUT 400
 
 float Velocidade::acelera = 0;
 
@@ -37,6 +38,16 @@ float Velocidade::calculaVelocidade (float &acelera) {
 
   if(millis() - lastTimerTax >= taxaAtualizacaoVel) {
     lastTimerTax = millis();
+
+    if (millis() - lastPulseInterval > WHEEL_STOPPED_TIMEOUT) {
+
+        detachInterrupt(digitalPinToInterrupt(pinSensorHall));
+        for (int i = 0; i < sampleSize; i++) {
+            pulseIntervals[i] = millis() - lastPulseInterval;
+        }
+        attachInterrupt(digitalPinToInterrupt (pinSensorHall), calc, RISING);
+
+    }
 
     detachInterrupt(digitalPinToInterrupt(pinSensorHall));
     unsigned long averagePulseInterval = 0;

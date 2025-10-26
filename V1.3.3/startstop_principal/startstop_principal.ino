@@ -52,7 +52,7 @@ void setup() {
     lastTimerCalcVel = 0;
     pulseInterval = 0;
     lastPulseInterval = 0;
-    for (int i = 0; i < sampleSize; i++) { pulseIntervals[i] = 200; }
+    for (int i = 0; i < sampleSize; i++) { pulseIntervals[i] = 1000000000; }
     pulseIndex = 0;
   
     attachInterrupt (digitalPinToInterrupt (pinSensorHall), Velocidade::calc, RISING);

@@ -1,4 +1,5 @@
- #include "StartStop.hpp"
+#include "StartStop.hpp"
+#include "Motor.hpp"
 
 int StartStop::tentativasLigar = 0;
 int StartStop::tentativasDesligar = 0;  
@@ -53,7 +54,7 @@ StartStop::StatesStartStop StartStop::manipulaBorboleta (Motor &motor, float &te
             motor.incrementaServo();
             tempoUltimoIncremento = millis();
         }
-        if (Velocidade::getAcelera() >= aceleraIdeal /*&& Velocidade::getVelocidade() <= velocidadeMax*/) {
+        if (Velocidade::getAcelera() >= aceleraIdeal && Velocidade::getVelocidade() <= velocidadeMax) {
             // Se a aceleração for maior que o ideal, decrementa o servo
             motor.decrementaServo();
             tempoUltimoIncremento = millis();
@@ -98,21 +99,21 @@ StartStop::StatesStartStop StartStop::start (Motor &motor, float &tempoIncrement
     if (motor.checaEstadoMotor() == Motor::engineOFF) { return stateLigaMotor; }
 
     // estrutura de incremento inicial para testes --------------------------------
-    if ( millis() - tempoIncrementoInicial >= 1) {
+    /*if ( millis() - tempoIncrementoInicial >= 15) {
         if(Velocidade::getVelocidade() >= 0){
             motor.incrementaServo();
             tempoIncrementoInicial = millis();
         }
         return stateStart;
-    }
+    }*/
     // Estrategia alternativa (Ajuste manual de acordo com a posição da peça do servo)
-    //motor.servoWrite(1190);
+    motor.servoWrite(990);
 
     return stateEstabilizaAcelera;
 }
 
 StartStop::StatesStartStop StartStop::stop (Motor &motor) {
-    //motor.servoWrite(800);
+    motor.servoWrite(990); // Zera a posição do servo (peça mecânica)
     if (digitalRead(switchSS) == HIGH) { return stateDesligaStartStop; }
 
     if (motor.checaEstadoMotor() == Motor::engineON) { return stateDesligaMotor; }
