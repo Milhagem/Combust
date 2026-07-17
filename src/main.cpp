@@ -23,20 +23,20 @@ Gerenciador_MQTT mqtt;
 // 2. VARIÁVEIS DE CONTROLE DO SISTEMA
 // ==========================================
 StartStop::StatesStartStop FSMstate = StartStop::stateSwitchOFF;
-unsigned long timerTelemetria = 0; // Para não floodar o MQTT/SD
+unsigned long timerTelemetria = 0; 
 
 void setup() {
-    Serial.begin(115200); // Melhor usar 115200 no ESP32 para debug rápido
+    Serial.begin(115200);
 
     // ==========================================
     // INICIALIZAÇÃO DE HARDWARE E SENSORES
     // ==========================================
-    motor.Parametros_setup_controle_motor();     // Assumindo que criamos esse método
-    sensores.Inicializar_setup_sensores_motor(); // Inicializa pinos de sensores
+    motor.Parametros_setup_controle_motor();   
+    sensores.Inicializar_setup_sensores_motor();
     
-    StartStop::Inicializar_sensores_startstop(); // Inicializa chave e freio (MÉTODOS ESTÁTICOS)
+    StartStop::Inicializar_sensores_startstop(); 
     Velocidade::Inicializar_setup_sensores_velocidade(); 
-    BSFC::Start_servo(); // Liga o atuador da borboleta
+    BSFC::Start_servo();
 
     // ==========================================
     // INICIALIZAÇÃO DE PERIFÉRICOS
@@ -45,31 +45,35 @@ void setup() {
     wifi.conectar_WiFi();
     mqtt.conectar_mqtt();
 
-    // Ativa o SD já passando o cabeçalho correto do CSV para o seu gráfico
     sd.AtivarSD("Tempo_ms,RPM,Velocidade,Aceleracao,Tensao,Estado_FSM");
     
-    /* 
-       IMPORTANTE SOBRE A INTERRUPÇÃO:
-       A função attachInterrupt deve estar DENTRO do método 
-       Velocidade::Inicializar_setup_sensores_velocidade(), pois PIN_SENSOR_HALL é privado!
-       Exemplo do que deve estar lá dentro: 
-       attachInterrupt(digitalPinToInterrupt(PIN_SENSOR_HALL), Velocidade::calc, FALLING);
-    */
 }
 
 void loop() {
-    // ==========================================
-    // 1. ATUALIZAÇÃO CONTÍNUA (BACKGROUND)
-    // ==========================================
-    mqtt.Gerenciar_MQTT(); // Mantém reconexão e recebe JSON de parâmetros
+
+
+    static unsigned long timerSensores = 0;
     
-    // Atualiza a dinâmica no painel
+    // ==========================================
+    // 1. ATUALIZAÇÃO DOS SENSORES
+    // ==========================================
+
+    sensores.analisaRPM();
+
+    if (millis() - timerSensores >= 20) {
+        timerSensores = millis();
+
+        sensores.analisa_sensores_motor();
+    }
+
+    mqtt.Gerenciar_MQTT(); // Mantém reconexão e recebe JSON de parâmetros
+
     display.atualizaDisplay(Velocidade::calculaVelocidade(), FSMstate, sensores);
 
     // ==========================================
-    // 2. TELEMETRIA (SD & MQTT) - A cada 200ms
+    // 2. TELEMETRIA (SD & MQTT)
     // ==========================================
-    if (millis() - timerTelemetria >= 200) {
+    if (millis() - timerTelemetria >= 500) {
         timerTelemetria = millis();
         // --- DEBUG SERIAL ---
         Serial.print("RPM: "); Serial.print(sensores.getRpm());
@@ -78,13 +82,16 @@ void loop() {
         Serial.print(" | Lambda: "); Serial.print(sensores.analisaLambda());
         Serial.print(" | Bat: "); Serial.println(sensores.analisaTensao());
         
-        // Exemplo prático de como empacotar os dados:
+        // Enpacotamento dos dados
         float dados_envio[] = {
             sensores.getRpm(), 
             Velocidade::getVelocidade(), 
             Velocidade::getAcelera(), 
             sensores.analisaTensao(),
-            (float)FSMstate // Convertendo o estado para float só para logar
+            (float)FSMstate, // Convertendo o estado para float só para logar
+        
+
+            
         };
         const char* nomes_dados[] = {"rpm", "vel", "acel", "bat", "fsm"};
         

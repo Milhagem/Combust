@@ -167,3 +167,13 @@ float Sensores_motor::analisaRPM(){
     }
     return rpm;
 }
+
+void Sensores_motor::analisa_sensores_motor(){
+
+    this->analisa_status_central();
+    this->analisa_status_motor();
+    this->analisaLambda();
+    this->analisaMap();
+    this->analisaPosBorbo();
+    this->analisaTensao();
+}

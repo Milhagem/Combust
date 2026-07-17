@@ -26,6 +26,7 @@ class Sensores_motor {
     float analisaTensao();
     void analisa_status_central();
     statesEngine analisa_status_motor();
+    void analisa_sensores_motor();
 
 
     
