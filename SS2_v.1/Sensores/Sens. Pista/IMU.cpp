@@ -6,7 +6,7 @@
 IMU::IMU(int sdaPin, int sclPin, TwoWire* wire, uint8_t address)
     : _sdaPin(sdaPin), _sclPin(sclPin), _wire(wire), _address(address),
       lastMicros(0), roll(0), pitch(0), yaw(0),
-      accelLongitudinal(0), gyroZ_filtered(0) 
+      accelLongitudinal(0), accelCentrifuga(0), gyroZ_filtered(0) 
 {
 }
 
@@ -151,6 +151,7 @@ void IMU::update() {
     float ax_real, ay_real, az_real;
     removeGravidade(ax, ay, az, roll, pitch, ax_real, ay_real, az_real);
     accelLongitudinal = ax_real;
+    accelCentrifuga = ay_real;
 }
 
 void IMU::removeGravidade(float ax, float ay, float az, float roll_rad, float pitch_rad, float &ax_real, float &ay_real, float &az_real) {

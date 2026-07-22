@@ -31,6 +31,7 @@ private:
     // Dados brutos e processados
     float roll, pitch, yaw;
     float accelLongitudinal;
+    float accelCentrifuga;
     float gyroZ_filtered;
 
     // Offset do Giroscópio
@@ -77,6 +78,7 @@ public:
     float getPitch()             const { return pitch; }             // [rad]
     float getYaw()               const { return yaw; }               // [rad]
     float getAccelLongitudinal() const { return accelLongitudinal; } // [m/s^2]
+    float getAccelCentrifuga()   const { return accelCentrifuga; }   // [m/s^2]
     float getGyroZ()             const { return gyroZ_filtered; }    // [rad/s]
 };
 
