@@ -1,5 +1,6 @@
 #include "Display.hpp"
 #include "Velocidade.hpp"
+#include "StartStop.hpp" // Adicionado para ler o enum de estados
 
 void Display::iniciaDisplay () {
   this->lcd.init();
@@ -12,7 +13,7 @@ void Display::iniciaDisplay () {
 }
 
 // CORREÇÃO 1: Alterado o parâmetro para Sensores_motor &sensores
-void Display::mostraTensaoEVel(float velocidade, Sensores_motor &sensores){
+void Display::mostraTensaoEVel(float velocidade, float tensao){
    if((millis() - timeOld) >= timeInterval){
     this->lcd.setCursor(0,0);
     this->lcd.print("ace:    ");
@@ -27,21 +28,21 @@ void Display::mostraTensaoEVel(float velocidade, Sensores_motor &sensores){
     this->lcd.setCursor(0,1);
     this->lcd.setCursor(12,1);
     // CORREÇÃO 2: Puxando a tensão da classe correta
-    this->lcd.print(sensores.analisaTensao()); 
+    this->lcd.print(tensao); 
 
     timeOld = millis();
   }
 }
 
 // CORREÇÃO 3: Alterado o parâmetro para Sensores_motor &sensores
-void Display::atualizaDisplay( float velocidade, int FSMState, Sensores_motor &sensores) {
+void Display::atualizaDisplay( float velocidade, int FSMState, float tensao) {
 
   String FSMState_str;
   
   if ((millis() - timeOld) >= timeInterval) {
 
   // CORREÇÃO 4: Passando o objeto sensores corretamente para a função auxiliar
-  mostraTensaoEVel(velocidade, sensores);
+  mostraTensaoEVel(velocidade, tensao);
 
   switch (FSMState)
   {

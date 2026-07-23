@@ -6,7 +6,7 @@
 FiltroExponencial::FiltroExponencial(float fator_alfa) {
     alfa = fator_alfa;
     estimativa_atual = 0.0;
-    primeira_leitura = true; // Resolve aquele seu 'if' de primeira leitura!
+    primeira_leitura = true; 
 }
 
 float FiltroExponencial::aplicar(float valor_bruto) {

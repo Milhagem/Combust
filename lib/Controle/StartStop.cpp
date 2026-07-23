@@ -1,5 +1,3 @@
-//parei em começar atualizar o startstop .cpp
-
 
 #include "StartStop.hpp"
 
@@ -8,7 +6,6 @@ int StartStop::tentativasDesligar = 0;
 bool StartStop::inicioVel = 0;
 float StartStop::tempoInicioVel = 0.0f;
 int StartStop::testeBorb = 0;
-int StartStop::modoControle = 0;
 unsigned long StartStop::timerTentativa = 0;
 
 void StartStop::Inicializar_sensores_startstop(){
@@ -32,59 +29,65 @@ StartStop::StatesStartStop StartStop::switchON () {
     } else { return stateStart; } 
 }
 
-StartStop::StatesStartStop StartStop::desligaStartStop (Motor& motor, Display &display, Sensores_motor &sensores) {
-    if (motor.desligaMotor(display, sensores) == Sensores_motor::engineOFF) {       
+StartStop::StatesStartStop StartStop::desligaStartStop (Motor& motor, Display &display) {
+    if (motor.desligaMotor(display) == Motor::engineOFF) {       
         return stateSwitchOFF;
     } else { return stateNotDesligou; }
 }
 
-StartStop::StatesStartStop StartStop::start (Motor &motor, Sensores_motor &sensores) {
+StartStop::StatesStartStop StartStop::start (Motor &motor) {
     if (digitalRead(switchSS) == HIGH) { return stateDesligaStartStop; }
 
     // if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
 
-    if (sensores.analisa_status_motor() == Sensores_motor::engineOFF) { return stateLigaMotor; }
+    if (motor.analisa_status_motor() == Motor::engineOFF) { return stateLigaMotor; }
 
     if (Velocidade::getVelocidade() < velocidadeMinima) {
         return stateStart;
     } else { return stateEstabilizaAcelera; }
 }
 
-StartStop::StatesStartStop StartStop::stop (Motor &motor, Sensores_motor &sensores) {
+StartStop::StatesStartStop StartStop::stop (Motor &motor) {
     if (digitalRead(switchSS) == HIGH) { return stateDesligaStartStop; }
 
-    if (sensores.analisa_status_motor() == Sensores_motor::engineON) { return stateDesligaMotor; }
+    if (motor.analisa_status_motor() == Motor::engineON) { return stateDesligaMotor; }
 
     if (Velocidade::getVelocidade() > (velocidadeMinima - velocidadeMinima*erroAceitavel)) {
         return stateStop;
     } else { return stateStart; }
 }
 
-StartStop::StatesStartStop StartStop::estabilizaAcelera (Motor &motor, Sensores_motor &sensores) {
+StartStop::StatesStartStop StartStop::estabilizaAcelera (Motor &motor) {
     if (digitalRead(switchSS) == HIGH) { return stateDesligaStartStop; }
 
     // if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
  
-    if (sensores.analisa_status_motor() == Sensores_motor::engineOFF) { return stateStart; }
+    if (motor.analisa_status_motor() == Motor::engineOFF) { return stateStart; }
 
     if (Velocidade::getVelocidade() >= velocidadeMax) {
         return stateStop;
     }
 
-     if(modoControle == 0){
-    BSFC::Controle_RPM(RPMideal, sensores.getRpm(), sensores.analisa_status_motor(), sensores.status_central);
-    } else if (modoControle == 1){
-    BSFC::Controle_TPS(PosBorboIdeal, sensores.getPosBorbo(), sensores.analisa_status_motor(), sensores.status_central);
-    } 
+   if (modoControle == 1) {
+    BSFC::Controle_RPM(RPMideal, Ckp::getRpm(), motor.analisa_status_motor(), Motor::getStatusCentral());
+} else if (modoControle == 0) {
+    BSFC::Controle_TPS(PosBorboIdeal, TPS::getPosBorbo(), motor.analisa_status_motor(), Motor::getStatusCentral());
+}
 
       return stateEstabilizaAcelera;  
 }
 
 
-StartStop::StatesStartStop StartStop::ligaMotorSS (Motor &motor, Display &display, Sensores_motor &sensores) {
+StartStop::StatesStartStop StartStop::ligaMotorSS (Motor &motor, Display &display) {
     if (digitalRead(switchSS) == HIGH) { return stateDesligaStartStop; }
 
-    if (motor.ligaMotor(display, sensores) == Sensores_motor::engineON ) {   
+    Motor::statesEngine status = motor.ligaMotor(display);
+
+    // VOLTA PARA ELA MESMA ENQUANTO PROCESSA
+    if (status == Motor::accelerating) { return stateLigaMotor; } 
+
+    // PROCESSAMENTO FINALIZADO
+    if (status == Motor::engineON ) {   
         tentativasLigar = 0;    
         return stateStart;
     } else { 
@@ -93,15 +96,22 @@ StartStop::StatesStartStop StartStop::ligaMotorSS (Motor &motor, Display &displa
     }
 }
 
-StartStop::StatesStartStop StartStop::desligaMotorSS (Motor &motor, Display &display, Sensores_motor &sensores) {
+StartStop::StatesStartStop StartStop::desligaMotorSS (Motor &motor, Display &display) {
     if (digitalRead(switchSS) == HIGH) { return stateDesligaStartStop; }
 
-    // if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
+    Motor::statesEngine status = motor.desligaMotor(display);
 
-    if (motor.desligaMotor(display,sensores) == Sensores_motor::engineOFF) { 
+    // VOLTA PARA ELA MESMA ENQUANTO PROCESSA
+    if (status == Motor::accelerating) { return stateDesligaMotor; } 
+
+    // PROCESSAMENTO FINALIZADO
+    if (status == Motor::engineOFF) { 
         tentativasDesligar = 0;      
         return stateStop;
-    } else { return stateNotDesligou; }
+    } else { 
+        timerTentativa = millis(); // Correção: inicia o timer para o delay de notDesligou
+        return stateNotDesligou; 
+    }
 }
 
 StartStop::StatesStartStop StartStop::notLigou (Display &display) {
@@ -111,7 +121,9 @@ StartStop::StatesStartStop StartStop::notLigou (Display &display) {
             return stateLigaMotor;
         }
         return stateNotLigou;
-    } else { return stateDesligaStartStop; }
+    } else { 
+        tentativasLigar = 0; // <-- ADICIONE ISTO AQUI
+        return stateDesligaStartStop; }
 }
 
 StartStop::StatesStartStop StartStop::notDesligou (Display &display) {
@@ -121,7 +133,9 @@ StartStop::StatesStartStop StartStop::notDesligou (Display &display) {
             return stateDesligaMotor;
         }
         return stateNotDesligou;
-    } else { return stateSwitchOFF; }
+    } else { 
+        tentativasDesligar = 0; // <-- ADICIONE ISTO AQUI
+        return stateSwitchOFF; }
 }
 
 StartStop::StatesStartStop StartStop::freando () {

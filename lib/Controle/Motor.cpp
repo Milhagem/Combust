@@ -1,75 +1,101 @@
 #include "Motor.hpp"
-#include "Display.hpp"
-#include "Velocidade.hpp"
+#include "Servo.hpp"
 
-
-void Motor::Parametros_setup_controle_motor(){
+void Motor::Parametros_setup_controle_e_sensores_motor(){
   pinMode(PIN_LIGA_MOTOR, OUTPUT);
   pinMode(PIN_DESLIGA_MOTOR, OUTPUT);
   digitalWrite(PIN_LIGA_MOTOR, LOW);
   digitalWrite(PIN_DESLIGA_MOTOR, LOW);
+  Ckp::Inicializar_setup_sensores_motor();
 }
 
-Sensores_motor::statesEngine Motor::ligaMotor(Display& display, Sensores_motor& sensores){
-  
-  if (sensores.analisa_status_motor() == Sensores_motor::engineOFF) {
-    const unsigned long tempoMaxPartida = 4000; // ms
-    unsigned long timerPartida = millis();      // ms
-
-    BSFC::Escreve_servo(POS_SERVO_PARTIDA);
+Motor::statesEngine Motor::ligaMotor(Display& display){
+  // Removido o 'static' daqui para usar as variáveis do seu Motor.hpp
+  if (!acionando) {
+    acionando = true;
+    timerPartida = millis();
+    ServoMotor::Escreve_servo(POS_SERVO_PARTIDA);
     posServoAtual = POS_SERVO_PARTIDA;
-    
     digitalWrite(PIN_LIGA_MOTOR, HIGH);
-
-    while(millis() - timerPartida <= tempoMaxPartida) {
-      display.mostraTensaoEVel(Velocidade::calculaVelocidade(), sensores); 
-      
-      float tensao = sensores.analisaTensao(); 
-      if (tensao > tensaoMotorON) {
-        digitalWrite(PIN_LIGA_MOTOR, LOW);
-        return Sensores_motor::engineON;
-      }
-    }
-
-    if (sensores.analisa_status_motor() == Sensores_motor::engineOFF) {
-      digitalWrite(PIN_LIGA_MOTOR, LOW);
-      return Sensores_motor::engineOFF;
-    } else {
-      digitalWrite(PIN_LIGA_MOTOR, LOW); 
-      return Sensores_motor::engineON;
-    }
   }
-  return Sensores_motor::engineON; 
+
+  display.mostraTensaoEVel(Velocidade::getVelocidade(), Tensao::getTensao()); 
+  
+  if (Tensao::analisaTensao() > tensaoMotorON) {
+    acionando = false;
+    digitalWrite(PIN_LIGA_MOTOR, LOW);
+    return Motor::engineON; 
+  }
+
+  if (millis() - timerPartida > 4000) {
+    acionando = false;
+    digitalWrite(PIN_LIGA_MOTOR, LOW);
+    return Motor::engineOFF; 
+  }
+
+  return Motor::accelerating; 
 }
 
-Sensores_motor::statesEngine Motor::desligaMotor(Display& display, Sensores_motor& sensores){
-  
-  BSFC::Escreve_servo(POS_SERVO_FECHADA);
-  posServoAtual = POS_SERVO_FECHADA;
-  
-  if (sensores.analisa_status_motor() == Sensores_motor::engineON) {
+Motor::statesEngine Motor::desligaMotor(Display& display){
+  static unsigned long timerInjecao = 0;
+  static bool desligando = false;
 
-    digitalWrite(PIN_DESLIGA_MOTOR, HIGH);    // Relé aberto
+  // TRAVA DE SEGURANÇA: Cancela a partida caso a FSM tenha abortado o ligaMotor no meio do processo
+  acionando = false;
+  digitalWrite(PIN_LIGA_MOTOR, LOW);
 
-    const unsigned long tempoInjecaoAberta = 4000;     // ms
-    unsigned long timerInjecaoAberta = millis();       // ms
-
-    while(millis() - timerInjecaoAberta <= tempoInjecaoAberta) {
-      display.mostraTensaoEVel(Velocidade::calculaVelocidade(), sensores);
-      
-      if (sensores.analisa_status_motor() == Sensores_motor::engineOFF && millis() - timerInjecaoAberta >= 1000) {
-        digitalWrite(PIN_DESLIGA_MOTOR, LOW);
-        return Sensores_motor::engineOFF;
-      }      
-    }
-
-    if (sensores.analisa_status_motor() == Sensores_motor::engineOFF ) {
-      digitalWrite(PIN_DESLIGA_MOTOR, LOW);
-      return Sensores_motor::engineOFF;
-    } else {
-      digitalWrite(PIN_DESLIGA_MOTOR, LOW); 
-      return Sensores_motor::engineON;
-    }    
+  if (!desligando) {
+    desligando = true;
+    timerInjecao = millis();
+    ServoMotor::Escreve_servo(POS_SERVO_FECHADA);
+    posServoAtual = POS_SERVO_FECHADA;
+    digitalWrite(PIN_DESLIGA_MOTOR, HIGH); 
   }
-  return Sensores_motor::engineOFF;
+
+  display.mostraTensaoEVel(Velocidade::getVelocidade(), Tensao::getTensao());
+
+  if (Motor::analisa_status_motor() == Motor::engineOFF && millis() - timerInjecao >= 1000) {
+    desligando = false;
+    digitalWrite(PIN_DESLIGA_MOTOR, LOW);
+    return Motor::engineOFF;
+  }
+
+  if (millis() - timerInjecao > 4000) {
+    desligando = false;
+    digitalWrite(PIN_DESLIGA_MOTOR, LOW);
+    return Motor::engineON; 
+  }
+
+  return Motor::accelerating; 
+}
+
+
+void Motor::analisa_status_central() {
+    if (Map::return_status_map() || TPS::return_status_tps()) {
+        status_central = true;
+        tempo_central_desligada = 0; 
+    } else {
+        if(tempo_central_desligada == 0) {
+            tempo_central_desligada = millis();
+        } else if (millis() - tempo_central_desligada > 2000) {
+            status_central = false; 
+        }
+    }
+}
+
+Motor::statesEngine Motor::analisa_status_motor() {
+    if (!Ckp::getRpm() == 0 || !Tensao::getTensao() < tensaoMotorON) {
+        return engineON;
+    } else {
+        return engineOFF;
+    }
+}
+
+void Motor::analisa_sensores_motor(){
+    Motor::analisa_status_central();
+    Motor::analisa_status_motor();
+    Lambda::analisaLambda();
+    Map::analisaMap();
+    TPS::analisaPosBorbo();
+    Tensao::analisaTensao();
 }

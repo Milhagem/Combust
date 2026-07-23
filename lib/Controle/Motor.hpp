@@ -1,22 +1,40 @@
 #pragma once 
 #include "Velocidade.hpp"
-#include "Sensores_motor.hpp" 
-#include "BSFC.hpp"
+#include "Ckp.hpp"
+#include "Lambda.hpp"
+#include "Map.hpp"
+#include "TPS.hpp"
+#include "TENSAO.hpp"
 #include <Arduino.h>
+#include "Display.hpp"
 
 class Display;
 
 class Motor {
 public:
-    static void Parametros_setup_controle_motor();
-    static Sensores_motor::statesEngine ligaMotor(Display& display, Sensores_motor& sensores);
-    static Sensores_motor::statesEngine desligaMotor(Display& display, Sensores_motor& sensores);
+    inline static unsigned long timerPartida = 0;
+    inline static bool acionando = false;
+    enum statesEngine { engineOFF, engineON, accelerating };
+
+    static void Parametros_setup_controle_e_sensores_motor();
+    
+    static statesEngine ligaMotor(Display& display);
+    static statesEngine desligaMotor(Display& display);
+
+    static void analisa_status_central();
+    static statesEngine analisa_status_motor();
+    static void analisa_sensores_motor();
+    static bool getStatusCentral() { return status_central; }
+    inline static int POS_SERVO_PARTIDA = 1000;
+    inline static int POS_SERVO_FECHADA = 500;
 
 private:
-    static constexpr uint8_t PIN_LIGA_MOTOR = 10;
-    static constexpr uint8_t PIN_DESLIGA_MOTOR = 11;
-    static constexpr int POS_SERVO_PARTIDA = 1000;
-    static constexpr int POS_SERVO_FECHADA = 500;
+    static constexpr uint8_t PIN_LIGA_MOTOR = 4;
+    static constexpr uint8_t PIN_DESLIGA_MOTOR = 5;
+
     
     inline static int posServoAtual = POS_SERVO_FECHADA;
+
+    inline static bool status_central = false;
+    inline static unsigned long tempo_central_desligada = 0;   
 };

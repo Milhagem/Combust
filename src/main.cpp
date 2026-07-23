@@ -1,110 +1,130 @@
 #include <Arduino.h>
 #include "Motor.hpp" 
+#include "Ckp.hpp"
+#include "Lambda.hpp"
+#include "Map.hpp"
+#include "TPS.hpp"
+#include "TENSAO.hpp" 
 #include "Display.hpp"
 #include "Velocidade.hpp"
 #include "StartStop.hpp"
 #include "BSFC.hpp"
-#include "Sensores_motor.hpp"
+#include "Servo.hpp"
 #include "Gerenciador_wifi.hpp" 
 #include "Gerenciador_SD.hpp"
 #include "Gerenciador_MQTT.hpp"
+#include "Callback.hpp"
 
-// ==========================================
-// 1. INSTANCIAÇÃO GLOBAL DOS OBJETOS
-// ==========================================
+
+
 Motor motor;
-Sensores_motor sensores;
 Display display;
 Gerencia_wifi wifi;
 Gerencia_SD sd;
 Gerenciador_MQTT mqtt;
 
-// ==========================================
-// 2. VARIÁVEIS DE CONTROLE DO SISTEMA
-// ==========================================
+
+
 StartStop::StatesStartStop FSMstate = StartStop::stateSwitchOFF;
 unsigned long timerTelemetria = 0; 
 
 void setup() {
     Serial.begin(115200);
+    delay(2000); // Dá tempo para abrir o monitor serial com calma
 
-    // ==========================================
-    // INICIALIZAÇÃO DE HARDWARE E SENSORES
-    // ==========================================
-    motor.Parametros_setup_controle_motor();   
-    sensores.Inicializar_setup_sensores_motor();
+    Serial.println(">>> 1. INICIANDO SETUP...");
+    Callback::carregarParametrosIniciais(); 
     
+    Serial.println(">>> 2. CARREGOU MEMORIA NVS.");
+    Motor::Parametros_setup_controle_e_sensores_motor(); 
+    
+    // Se o log travar aqui, o culpado é o pino da interrupção (ruído ou conflito de hardware)
+    Serial.println(">>> 3. MOTOR/CKP INICIALIZADO.");
     StartStop::Inicializar_sensores_startstop(); 
-    Velocidade::Inicializar_setup_sensores_velocidade(); 
-    BSFC::Start_servo();
-
-    // ==========================================
-    // INICIALIZAÇÃO DE PERIFÉRICOS
-    // ==========================================
-    display.iniciaDisplay();
-    wifi.conectar_WiFi();
-    mqtt.conectar_mqtt();
-
-    sd.AtivarSD("Tempo_ms,RPM,Velocidade,Aceleracao,Tensao,Estado_FSM");
     
+    // Se o log travar aqui, o culpado está dentro do StartStop
+    Serial.println(">>> 4. START-STOP INICIALIZADO.");
+    Velocidade::Inicializar_setup_sensores_velocidade();
+    
+    Serial.println(">>> 5. VELOCIDADE INICIALIZADA.");
+    ServoMotor::Start_servo(); 
+    
+    Serial.println(">>> 6. SERVO INICIALIZADO.");
+    display.iniciaDisplay();
+    
+    // Se o log travar aqui, é o LCD I2C travando o barramento
+    Serial.println(">>> 7. DISPLAY INICIALIZADO.");
+    wifi.conectar_WiFi();
+    
+    Serial.println(">>> 8. WIFI CONECTADO.");
+    mqtt.conectar_mqtt();
+    
+    Serial.println(">>> 9. MQTT CONECTADO.");
+    mqtt.iniciarTaskMQTT();
+    
+    Serial.println(">>> SETUP COMPLETO COM SUCESSO! <<<");
 }
 
 void loop() {
 
-
     static unsigned long timerSensores = 0;
-    
-    // ==========================================
-    // 1. ATUALIZAÇÃO DOS SENSORES
-    // ==========================================
+    static unsigned long timerDisplay = 0;
+    static unsigned long timerFSM = 0;
 
-    sensores.analisaRPM();
+    
+
+    Ckp::analisaRPM(); 
 
     if (millis() - timerSensores >= 20) {
         timerSensores = millis();
-
-        sensores.analisa_sensores_motor();
+        Motor::analisa_sensores_motor(); 
     }
 
-    mqtt.Gerenciar_MQTT(); // Mantém reconexão e recebe JSON de parâmetros
 
-    display.atualizaDisplay(Velocidade::calculaVelocidade(), FSMstate, sensores);
+     if (millis() - timerDisplay >= 500) {
+       display.atualizaDisplay(Velocidade::calculaVelocidade(), FSMstate, Tensao::getTensao());
+    }
 
     // ==========================================
     // 2. TELEMETRIA (SD & MQTT)
     // ==========================================
     if (millis() - timerTelemetria >= 500) {
         timerTelemetria = millis();
+        
         // --- DEBUG SERIAL ---
-        Serial.print("RPM: "); Serial.print(sensores.getRpm());
-        Serial.print(" | TPS: "); Serial.print(sensores.getPosBorbo());
-        Serial.print(" | MAP: "); Serial.print(sensores.getMap());
-        Serial.print(" | Lambda: "); Serial.print(sensores.analisaLambda());
-        Serial.print(" | Bat: "); Serial.println(sensores.analisaTensao());
+        Serial.print("RPM: "); Serial.print(Ckp::getRpm());
+        Serial.print(" | TPS: "); Serial.print(TPS::getPosBorbo());
+        Serial.print(" | MAP: "); Serial.print(Map::getMap());
+        Serial.print(" | Lambda: "); Serial.print(Lambda::analisaLambda());
+        Serial.print(" | Tensão ckp: "); Serial.println(Tensao::analisaTensao());
+        Serial.print(" | RPM: "); Serial.println(Velocidade::getRPM());
         
-        // Enpacotamento dos dados
+        // Enpacotamento dos dados, Os primeiros são gravado no sd
         float dados_envio[] = {
-            sensores.getRpm(), 
+            Ckp::getRpm(), 
             Velocidade::getVelocidade(), 
-            Velocidade::getAcelera(), 
-            sensores.analisaTensao(),
-            (float)FSMstate, // Convertendo o estado para float só para logar
-        
-
-            
+            Velocidade::getAcelera(),
+            Map::getMap(),
+            TPS::getPosBorbo(),
+            Lambda::getLambda(),
+            ServoMotor::getPulsoAtual(),
+            (float)FSMstate 
         };
-        const char* nomes_dados[] = {"rpm", "vel", "acel", "bat", "fsm"};
+        const char* nomes_dados[] = {"rpm", "vel", "acel", "map", "tps", "lambda","servo_atual","fsm"};
         
         // Salva no SD (Lote de 20 linhas gerenciado pela classe)
-        sd.salvarTelemetriaNoSD(dados_envio, 5);
+        sd.salvarTelemetriaNoSD(dados_envio, 6);
         
         // Manda pro MQTT
-        mqtt.publicar_telemetria(dados_envio, nomes_dados, 5, "ricardofonsecaj123@gmail.com/telemetria");
+        mqtt.publicar_telemetria(dados_envio, nomes_dados, 8, "ricardofonsecaj123@gmail.com/telemetria");
     }
 
     // ==========================================
-    // 3. MÁQUINA DE ESTADOS PRINCIPAL
+    // 3. MÁQUINA DE ESTADOS PRINCIPAL a 100hz
     // ==========================================
+    
+    if (millis() - timerFSM >= 10) { // Garante o dt fixo de 10ms
+        timerFSM = millis();
     switch (FSMstate) {
         case StartStop::stateSwitchOFF:
             FSMstate = StartStop::switchOFF();
@@ -115,23 +135,23 @@ void loop() {
             break;
             
         case StartStop::stateLigaMotor:
-            FSMstate = StartStop::ligaMotorSS(motor, display, sensores);
+            FSMstate = StartStop::ligaMotorSS(motor, display);
             break;
             
         case StartStop::stateDesligaMotor:
-            FSMstate = StartStop::desligaMotorSS(motor, display, sensores);
+            FSMstate = StartStop::desligaMotorSS(motor, display);
             break;
             
         case StartStop::stateEstabilizaAcelera:
-            FSMstate = StartStop::estabilizaAcelera(motor, sensores);
+            FSMstate = StartStop::estabilizaAcelera(motor); // CORRIGIDO: Removidos parâmetros excedentes
             break;
             
         case StartStop::stateStart:
-            FSMstate = StartStop::start(motor, sensores);
+            FSMstate = StartStop::start(motor);
             break;
             
         case StartStop::stateStop:
-            FSMstate = StartStop::stop(motor, sensores);
+            FSMstate = StartStop::stop(motor);
             break;
             
         case StartStop::stateFreando:
@@ -139,7 +159,7 @@ void loop() {
             break;
             
         case StartStop::stateDesligaStartStop:
-            FSMstate = StartStop::desligaStartStop(motor, display, sensores);
+            FSMstate = StartStop::desligaStartStop(motor, display);
             break;
             
         case StartStop::stateNotLigou:
@@ -153,5 +173,7 @@ void loop() {
         default:
             FSMstate = StartStop::stateDesligaStartStop;
             break;
-    }  
+    }
+      
+}
 }

@@ -9,7 +9,8 @@ FiltroKalman::FiltroKalman(float k_mea, float k_est, float k_q) {
     erro_medida = k_mea;
     erro_estimativa = k_est;
     q = k_q;
-    estimativa_atual = 0.0; 
+    estimativa_atual = 0.0;
+    primeira_leitura = true;
 }
 
 float FiltroKalman::aplicar(float valor_medido) {
