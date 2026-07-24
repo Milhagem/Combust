@@ -1,4 +1,4 @@
-#include "Gerenciador_MQTT.hpp"
+#include "MQTT.hpp"
 #include "Callback.hpp" // Incluímos a classe que vai fazer o trabalho pesado
 
 Gerenciador_MQTT* Gerenciador_MQTT::instancia = nullptr;

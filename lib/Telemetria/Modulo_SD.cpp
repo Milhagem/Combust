@@ -1,4 +1,4 @@
-#include "Gerenciador_SD.hpp"
+#include "Modulo_SD.hpp"
 
 
 void Gerencia_SD::AtivarSD(const char* cabecalho) {

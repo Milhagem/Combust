@@ -10,9 +10,9 @@
 #include "StartStop.hpp"
 #include "BSFC.hpp"
 #include "Servo.hpp"
-#include "Gerenciador_wifi.hpp" 
-#include "Gerenciador_SD.hpp"
-#include "Gerenciador_MQTT.hpp"
+#include "wifi.hpp" 
+#include "Modulo_SD.hpp"
+#include "MQTT.hpp"
 #include "Callback.hpp"
 
 
