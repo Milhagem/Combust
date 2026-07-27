@@ -41,10 +41,8 @@ StartStop::StatesStartStop StartStop::start (Motor &motor) {
     // if (digitalRead(pinFreio) == PRESSIONADO) { return stateFreando; }
 
     if (motor.analisa_status_motor() == Motor::engineOFF) { return stateLigaMotor; }
-
-    if (Velocidade::getVelocidade() < velocidadeMinima) {
-        return stateStart;
-    } else { return stateEstabilizaAcelera; }
+    
+    else { return stateEstabilizaAcelera; }
 }
 
 StartStop::StatesStartStop StartStop::stop (Motor &motor) {

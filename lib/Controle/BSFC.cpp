@@ -1,7 +1,12 @@
 #include "BSFC.hpp"
 
     void BSFC::Controle_RPM(float rpmAlvo, float rpmAtual, Motor::statesEngine estadoMotor, bool status_central) {
-    static float erroAnterior = 0.0f;
+        static unsigned long lastControleTime = 0;
+        if (millis() - lastControleTime < 100) return; 
+        lastControleTime = millis();
+    
+    
+        static float erroAnterior = 0.0f;
 
     if (estadoMotor != Motor::engineOFF && status_central) {
         float erro = (rpmAlvo - rpmAtual) * 0.02f; 
@@ -23,7 +28,12 @@
 }
 
     void BSFC::Controle_TPS(float tpsAlvo, float tpsAtual, Motor::statesEngine estadoMotor, bool status_central) {
-    static float erroAnterior = 0.0f; 
+        static unsigned long lastControleTimetps = 0;
+        if (millis() - lastControleTimetps < 100) return;
+        lastControleTimetps = millis();
+    
+    
+        static float erroAnterior = 0.0f; 
 
     // Alteração mínima: mudamos de 'bool status_motor' para verificação do enum
     if (estadoMotor != Motor::engineOFF && status_central) {

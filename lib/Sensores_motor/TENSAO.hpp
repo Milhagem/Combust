@@ -3,7 +3,7 @@
 #include "Filtro_Exponencial.hpp"
 #include <Arduino.h>
 
-#define LM2907          10
+#define LM2907          5
 #define tensaoMotorON   0.67
 
 class Tensao {

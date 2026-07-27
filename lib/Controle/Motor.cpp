@@ -84,7 +84,7 @@ void Motor::analisa_status_central() {
 }
 
 Motor::statesEngine Motor::analisa_status_motor() {
-    if (!Ckp::getRpm() == 0 || !Tensao::getTensao() < tensaoMotorON) {
+    if (Tensao::getTensao() > tensaoMotorON) {
         return engineON;
     } else {
         return engineOFF;

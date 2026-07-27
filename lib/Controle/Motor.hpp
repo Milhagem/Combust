@@ -29,8 +29,8 @@ public:
     inline static int POS_SERVO_FECHADA = 500;
 
 private:
-    static constexpr uint8_t PIN_LIGA_MOTOR = 4;
-    static constexpr uint8_t PIN_DESLIGA_MOTOR = 5;
+    static constexpr uint8_t PIN_LIGA_MOTOR =10;
+    static constexpr uint8_t PIN_DESLIGA_MOTOR = 11;
 
     
     inline static int posServoAtual = POS_SERVO_FECHADA;

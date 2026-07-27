@@ -12,7 +12,7 @@ class TPS {
     static bool return_status_tps(){return status_tps;}
 
  private:
-    inline static FiltroExponencial filtroExponencialPosBorbo = FiltroExponencial(0.05f);
+    inline static FiltroExponencial filtroExponencialPosBorbo = FiltroExponencial(0.3f);
     inline static float posborbo = 0;
     inline static bool status_tps = false; // Essa e a proxima variavel me informa o status da chave de ignição
 };
