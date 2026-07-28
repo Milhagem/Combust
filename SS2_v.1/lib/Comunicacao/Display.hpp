@@ -1,6 +1,9 @@
 #ifndef DISPLAY_HPP
 #define DISPLAY_HPP
 
+#include "Hall.hpp"
+#include "StartStop.hpp"
+
 #include <Arduino.h>
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>

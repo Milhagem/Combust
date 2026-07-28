@@ -5,7 +5,7 @@
 
 #define pinMAP          3
 
-class Map {
+class MAP {
  public:
     static float analisaMap();
     static float getMap() { return map; }

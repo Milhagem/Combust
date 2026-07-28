@@ -1,6 +1,6 @@
 #include "MAP.hpp" 
 
-float Map::analisaMap(){
+float MAP::analisaMap(){
   const float valorMin = 100.0f;
   const float valorMax = 4095.0f;
 

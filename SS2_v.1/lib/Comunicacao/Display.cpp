@@ -1,6 +1,6 @@
 #include "Display.hpp"
-#include "StartStop.hpp"
-// #include "Velocidade.hpp"
+
+Hall hall;
 
 void Display::iniciaDisplay () {
   this->lcd.init();
@@ -17,7 +17,7 @@ void Display::mostraTensaoEVel(float velocidade, float tensao){
     this->lcd.setCursor(0,0);
     this->lcd.print("Acc:   ");
     this->lcd.setCursor(5,0);
-    this->lcd.print(Velocidade::getAcelera()); // Assumindo que este método exista
+    this->lcd.print(hall.getAceleracao()); // Assumindo que este método exista
 
     this->lcd.setCursor(0,1);
     this->lcd.print("Vel:   ");
@@ -62,9 +62,9 @@ void Display::atualizaDisplay(float velocidade, int FSMState, float tensao) {
       FSMState_str = "estabA";
       break;
 
-    case StartStop::stateManipulaBorboleta:
-      FSMState_str = "manipB";
-      break;
+    // case StartStop::stateManipulaBorboleta:
+    //   FSMState_str = "manipB";
+    //   break;
 
     case StartStop::stateStart:
       FSMState_str = "iniciou";

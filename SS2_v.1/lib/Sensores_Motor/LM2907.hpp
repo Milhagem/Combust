@@ -5,7 +5,7 @@
 
 #include <Arduino.h>
 
-#define pinLM2907       10
+#define pinLM2907       5
 #define tensaoMotorON   0.67
 
 class LM2907 {

@@ -10,7 +10,7 @@ void Callback::carregarParametrosIniciais() {
     StartStop::PosBorboIdeal    = pref.getFloat("tps_alvo", 4000.0f);
     StartStop::modoControle     = pref.getInt("modo_ctrl", 0);
     
-    ServoMotor::posInicialServo = pref.getInt("pos_ini", 1056);
+    Servo::posInicialServo = pref.getInt("pos_ini", 1056);
     
     Motor::POS_SERVO_PARTIDA    = pref.getInt("pos_partida", 1000);
     Motor::POS_SERVO_FECHADA    = pref.getInt("pos_fechada", 500);
@@ -59,7 +59,7 @@ void Callback::processarMensagem(byte* payload, unsigned int length, PubSubClien
     // ==========================================
     if (doc["pos_ini"].is<int>()) { 
         int v = doc["pos_ini"].as<int>(); 
-        if (v != ServoMotor::posInicialServo) { ServoMotor::posInicialServo = v; pref.putInt("pos_ini", v); alterou = true; } 
+        if (v != Servo::posInicialServo) { Servo::posInicialServo = v; pref.putInt("pos_ini", v); alterou = true; } 
     }
 
     // ==========================================
@@ -91,7 +91,7 @@ void Callback::processarMensagem(byte* payload, unsigned int length, PubSubClien
              StartStop::RPMideal, 
              StartStop::PosBorboIdeal, 
              StartStop::modoControle,
-             ServoMotor::posInicialServo,
+             Servo::posInicialServo,
              Motor::POS_SERVO_PARTIDA,
              Motor::POS_SERVO_FECHADA);
 

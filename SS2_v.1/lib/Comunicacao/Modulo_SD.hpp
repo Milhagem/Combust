@@ -7,7 +7,7 @@
 #define SD_MISO 11
 #define SD_MOSI 18
 #define SD_SCK  13
-#define SD_CS   4
+#define SD_CS   14
 
 class Modulo_SD {
 private:
