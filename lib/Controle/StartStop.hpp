@@ -32,6 +32,7 @@ public:
     inline static float RPMideal = 3500.0f;
     inline static float PosBorboIdeal = 4000.0f;
     inline static int modoControle = 0;
+    inline static int modoControle2 = 1;
 
    enum StatesStartStop {
         stateSwitchOFF            = 0,

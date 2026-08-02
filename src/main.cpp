@@ -67,6 +67,8 @@ void setup() {
 
 void loop() {
 
+    Velocidade::calculaVelocidade();
+
     static unsigned long timerSensores = 0;
     static unsigned long timerDisplay = 0;
     static unsigned long timerFSM = 0;

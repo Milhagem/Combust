@@ -2,7 +2,7 @@
 
     void BSFC::Controle_RPM(float rpmAlvo, float rpmAtual, Motor::statesEngine estadoMotor, bool status_central) {
         static unsigned long lastControleTime = 0;
-        if (millis() - lastControleTime < 100) return; 
+        if (millis() - lastControleTime < 300) return; 
         lastControleTime = millis();
     
     

@@ -13,7 +13,7 @@ class BSFC{
   
     inline static float kpTun = 0.0f;       
     inline static float kiTun = 4.5f;       
-    inline static int passoMaxTun = 31;
+    inline static int passoMaxTun = 30;
    
     inline static const float histerese = 0.6f;
     

@@ -1,11 +1,8 @@
 #include "Velocidade.hpp"
 
-
-
-
 void Velocidade:: Inicializar_setup_sensores_velocidade(){
-pinMode(PIN_SENSOR_HALL, INPUT_PULLUP);
- attachInterrupt(digitalPinToInterrupt(PIN_SENSOR_HALL), Velocidade::calc, FALLING);
+  pinMode(PIN_SENSOR_HALL, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(PIN_SENSOR_HALL), Velocidade::calc, FALLING);
 }
 
 // =================================================================
@@ -38,10 +35,17 @@ void IRAM_ATTR Velocidade::calc() {
     // Debounce de 10.000 microssegundos (10ms)
     if (intervaloTemp > 10000) { 
         portENTER_CRITICAL_ISR(&mux);
-        pulseInterval = intervaloTemp;
         lastPulseInterval = tempoAtual;
-        pulseIntervals[pulseIndex] = pulseInterval;
-        pulseIndex = (pulseIndex + 1) % SAMPLE_SIZE; 
+
+        // MUDANÇA AQUI: Se o intervalo for <= 1.5s, é movimento real.
+        // Se for maior, o carro estava parado. Ignoramos esse pulso porque
+        // ele mede o "tempo parado" e não a velocidade da roda.
+        if (intervaloTemp <= 1500000) {
+            pulseInterval = intervaloTemp;
+            pulseIntervals[pulseIndex] = pulseInterval;
+            pulseIndex = (pulseIndex + 1) % SAMPLE_SIZE; 
+        }
+        
         portEXIT_CRITICAL_ISR(&mux);
     }
 }
@@ -54,11 +58,13 @@ float Velocidade::calculaVelocidade() {
     if(millis() - lastTimerTax >= TAXA_ATUALIZACAO_VEL) {
         lastTimerTax = millis();
 
+        // 1. VERIFICAÇÃO DE PARADA
         if (esp_timer_get_time() - lastPulseInterval > 1500000) { 
             portENTER_CRITICAL(&mux);
             for(int i = 0; i < SAMPLE_SIZE; i++) {
-                pulseIntervals[i] = 1500000; 
+                pulseIntervals[i] = 0; // MUDANÇA: Limpamos com 0 para não sujar a média
             }
+            pulseIndex = 0;
             portEXIT_CRITICAL(&mux);
 
             RPM = 0.0f;
@@ -67,23 +73,30 @@ float Velocidade::calculaVelocidade() {
             return velocidade;
         }
 
-       uint64_t copiaPulseIntervals[SAMPLE_SIZE];
+        // 2. CÓPIA SEGURA DA INTERRUPÇÃO
+        uint64_t copiaPulseIntervals[SAMPLE_SIZE];
         portENTER_CRITICAL(&mux); 
         for (int i = 0; i < SAMPLE_SIZE; i++) {
             copiaPulseIntervals[i] = pulseIntervals[i];
         }
         portEXIT_CRITICAL(&mux);
 
-        // 3. MÉDIA MÓVEL
         uint64_t averagePulseIntervalUs = 0;
+        int amostrasValidas = 0;
+
+        // 3. MÉDIA MÓVEL (Agora ela ignora os zeros da parada)
         for (int i = 0; i < SAMPLE_SIZE; i++) {
-            averagePulseIntervalUs += copiaPulseIntervals[i];
+            if (copiaPulseIntervals[i] > 0) { // Só faz média do que tem velocidade!
+                averagePulseIntervalUs += copiaPulseIntervals[i];
+                amostrasValidas++;
+            }
         }
-        averagePulseIntervalUs /= SAMPLE_SIZE;
 
-        if (averagePulseIntervalUs == 0) { return velocidade; } 
+        // Se não tem amostra válida, mantém a velocidade atual
+        if (amostrasValidas == 0) { return velocidade; } 
+        averagePulseIntervalUs /= amostrasValidas;
 
-        // 4. MATEMÁTICA E KALMAN
+        // 4. MATEMÁTICA E KALMAN (Mantido exatamente como o seu!)
         velocOld = velocidade;
         
         RPM = 60000000.0f / (PULSOS_POR_VOLTA * averagePulseIntervalUs);

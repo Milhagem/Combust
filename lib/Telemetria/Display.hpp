@@ -4,14 +4,20 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <Arduino.h>
-#include "TENSAO.hpp" // Certifique-se de que o arquivo físico está em MAIÚSCULO, senão mude para "Tensao.hpp"
+#include "TENSAO.hpp"
 
 #define timeInterval 200 // ms
 
 class Display {
     private:
     LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27,16,2); 
-    unsigned int timeOld;
+    unsigned int timeOld = 0;
+    
+    // Variável para saber se a tela está respondendo
+    bool displayConectado = false; 
+    
+    // Função mágica que concerta o mau contato
+    void autoReparo(); 
 
     public:
     void iniciaDisplay();
