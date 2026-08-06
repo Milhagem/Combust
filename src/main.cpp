@@ -83,7 +83,7 @@ void loop() {
     }
 
 
-     if (millis() - timerDisplay >= 500) {
+     if (millis() - timerDisplay >= 513) {
        display.atualizaDisplay(Velocidade::calculaVelocidade(), FSMstate, Tensao::getTensao());
     }
 

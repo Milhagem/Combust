@@ -2,7 +2,7 @@
 
     void BSFC::Controle_RPM(float rpmAlvo, float rpmAtual, Motor::statesEngine estadoMotor, bool status_central) {
         static unsigned long lastControleTime = 0;
-        if (millis() - lastControleTime < 300) return; 
+        if (millis() - lastControleTime < 100) return; 
         lastControleTime = millis();
     
     
@@ -15,8 +15,8 @@
             float termoP = kpTun * (erro - erroAnterior);
             float termoI = kiTun * erro;                
             int compensacao = (int)(termoP + termoI);
-            if (compensacao > passoMaxTun) compensacao = passoMaxTun;
-            if (compensacao < -passoMaxTun) compensacao = -passoMaxTun;
+            if (compensacao > passoMaxTun) { compensacao = passoMaxTun; }
+            if (compensacao < -passoMaxTun) { compensacao = -passoMaxTun; }
 
             int novoPulso = ServoMotor::getPulsoAtual() + compensacao;
             ServoMotor::Escreve_servo(novoPulso);}

@@ -66,9 +66,9 @@ StartStop::StatesStartStop StartStop::estabilizaAcelera (Motor &motor) {
         return stateStop;
     }
 
-   if (modoControle2 == 1) {
+   if (modoControle == 1) {
     BSFC::Controle_RPM(RPMideal, Ckp::getRpm(), motor.analisa_status_motor(), Motor::getStatusCentral());
-} else if (modoControle2 == 0) {
+} else if (modoControle == 0) {
     BSFC::Controle_TPS(PosBorboIdeal, TPS::getPosBorbo(), motor.analisa_status_motor(), Motor::getStatusCentral());
 }
 

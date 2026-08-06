@@ -13,7 +13,7 @@ class Ckp {
     static bool getStatusMotor() { return status_motor; } 
 
  private:
-    inline static FiltroKalman filtroKalmanRPM = FiltroKalman(35.0f, 10.0f, 0.02f);
+    inline static FiltroKalman filtroKalmanRPM = FiltroKalman(20.0f, 20.0f, 0.25f);
     inline static float rpm = 0;
 
     inline static volatile bool status_motor = false;
