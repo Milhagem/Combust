@@ -46,6 +46,6 @@ private:
     inline static unsigned long lastTimerTax = 0;  
     inline static float velocOld = 0.0f;
 
-    inline static FiltroKalman filtro_Kalman_Vel{10.0f, 5.0f, 0.05f}; // Note as chaves {}
+    inline static FiltroKalman filtro_Kalman_Vel{10.0f, 5.0f, 0.05f};
     inline static portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
 };

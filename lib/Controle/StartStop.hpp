@@ -6,6 +6,7 @@
 #include "Arduino.h"
 #include "BSFC.hpp"
 #include "Velocidade.hpp"
+#include "Servo.hpp"
 
 #define erroAceitavel 0.1
 
@@ -70,14 +71,9 @@ private:
 
     static int tentativasLigar;
     static int tentativasDesligar;
-    static bool inicioVel;
-    static float tempoInicioVel;
     
    // Mudar isso aqui abaixo não sei pq
     static unsigned long timerTentativa;
-
-
-    static int testeBorb;
 };
 
 #endif

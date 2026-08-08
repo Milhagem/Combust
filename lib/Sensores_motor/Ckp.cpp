@@ -15,9 +15,8 @@ void Ckp::Inicializar_setup_sensores_motor() {
 // INTERRUPÇÃO DE HARDWARE (HIGH-RESOLUTION TIMER 64-BIT)
 // =========================================================
 void IRAM_ATTR Ckp::lerCKP() {
-    // Puxa o relógio absoluto do silício (imune a atrasos de software)
-    unsigned long tempoAtualUs = esp_timer_get_time();
-    unsigned long deltaT = tempoAtualUs - tempoAnterior;
+    uint64_t tempoAtualUs = esp_timer_get_time();
+    uint64_t deltaT = tempoAtualUs - tempoAnterior;
 
     // Timeout: se passar de 1 segundo sem sinal, motor está parado
     if (deltaT > 1000000) { 
@@ -55,8 +54,14 @@ void IRAM_ATTR Ckp::lerCKP() {
 float Ckp::analisaRPM(){                   
     static unsigned long tempoUltimoFiltro = 0;
 
+    // essas 4 linhas são para evitar que a leitura do rpm seja feita enquanto a interrupção está atualizando o tempoAnterior
+    uint64_t copiaTempoAnterior;
+    portENTER_CRITICAL(&mux);
+    copiaTempoAnterior = tempoAnterior;
+    portEXIT_CRITICAL(&mux);
+
     // Usa o relógio absoluto também para o timeout suave de parada
-    if (esp_timer_get_time() - tempoAnterior > 1000000) {
+   if (esp_timer_get_time() - copiaTempoAnterior > 1000000) {
         rpm_calculado = 0;
         if (millis() - tempoUltimoFiltro >= 20) {
             // Alterado de updateEstimate para aplicar

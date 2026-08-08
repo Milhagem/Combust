@@ -3,9 +3,6 @@
 
 int StartStop::tentativasLigar = 0;
 int StartStop::tentativasDesligar = 0;  
-bool StartStop::inicioVel = 0;
-float StartStop::tempoInicioVel = 0.0f;
-int StartStop::testeBorb = 0;
 unsigned long StartStop::timerTentativa = 0;
 
 void StartStop::Inicializar_sensores_startstop(){
@@ -14,7 +11,7 @@ void StartStop::Inicializar_sensores_startstop(){
 }
 
 StartStop::StatesStartStop StartStop::switchOFF () {
-    testeBorb = 0;
+    ServoMotor::Escreve_servo(ServoMotor::getPosInicial());
 
     if (digitalRead(switchSS) == LOW) {
         return stateSwitchON;
@@ -30,9 +27,16 @@ StartStop::StatesStartStop StartStop::switchON () {
 }
 
 StartStop::StatesStartStop StartStop::desligaStartStop (Motor& motor, Display &display) {
-    if (motor.desligaMotor(display) == Motor::engineOFF) {       
+    Motor::statesEngine status = motor.desligaMotor(display);
+
+    if (status == Motor::accelerating) { return stateDesligaStartStop; } // Segura a FSM aqui até terminar
+    
+    if (status == Motor::engineOFF) {       
         return stateSwitchOFF;
-    } else { return stateNotDesligou; }
+    } else { 
+        timerTentativa = millis();
+        return stateNotDesligou; 
+    }
 }
 
 StartStop::StatesStartStop StartStop::start (Motor &motor) {
@@ -143,3 +147,4 @@ StartStop::StatesStartStop StartStop::freando () {
 
   return stateStop;
 }
+
