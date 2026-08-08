@@ -8,7 +8,7 @@
 #include "Velocidade.hpp"
 #include "Servo.hpp"
 
-#define erroAceitavel 0.1
+#define erroAceitavel 0.0
 
 #define velZERO 0
 #define PRESSIONADO 1
