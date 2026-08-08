@@ -24,8 +24,8 @@ private:
     static constexpr uint8_t PIN_SENSOR_HALL = 1; // Corrigido: Trazido para dentro da classe
     
     static constexpr uint16_t TAXA_ATUALIZACAO_VEL = 200; // ms
-    static constexpr uint8_t PULSOS_POR_VOLTA = 4;
-    static constexpr uint8_t SAMPLE_SIZE = 5;
+    static constexpr uint8_t PULSOS_POR_VOLTA = 5;
+    static constexpr uint8_t SAMPLE_SIZE = 2;
 
     static constexpr float CIRCUNF_RODA = 1.81f;        // m
     static constexpr float MPS_TO_KMPH_FACTOR = 3.6f;
@@ -46,6 +46,6 @@ private:
     inline static unsigned long lastTimerTax = 0;  
     inline static float velocOld = 0.0f;
 
-    inline static FiltroKalman filtro_Kalman_Vel{10.0f, 5.0f, 0.05f};
+    inline static FiltroKalman filtro_Kalman_Vel{10.0f, 5.0f, 0.5f};
     inline static portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
 };
