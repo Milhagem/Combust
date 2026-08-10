@@ -1,25 +1,33 @@
 #include "GPS.hpp"
 
-// ==========================================
-// Construtor
-// ==========================================
-GPS::GPS(int rxPin, int txPin, uint32_t baudRate, uint8_t serialPort)
-    : gpsSerial(serialPort), _rxPin(rxPin), _txPin(txPin), _baudRate(baudRate),
-      currentLat(0.0f), currentLon(0.0f), currentAltitude(0.0f), currentSpeed(0.0f)
-{
+// =================================================================
+// SETTERS (Configuração)
+// =================================================================
+void GPS::setConfig(int rxPin, int txPin, uint32_t baudRate) {
+    _rxPin = rxPin;
+    _txPin = txPin;
+    _baudRate = baudRate;
 }
 
-// ==========================================
-// Inicialização
-// ==========================================
+// =================================================================
+// GETTERS
+// =================================================================
+float GPS::getLatitude()  { return currentLat; }
+float GPS::getLongitude() { return currentLon; }
+float GPS::getAltitude()  { return currentAltitude; }
+float GPS::getSpeed()     { return currentSpeed; }
+
+// =================================================================
+// INICIALIZAÇÃO
+// =================================================================
 void GPS::begin() {
     // Inicializa a HardwareSerial com as configurações definidas
     gpsSerial.begin(_baudRate, SERIAL_8N1, _rxPin, _txPin);
 }
 
-// ==========================================
-// Atualização (Processamento NMEA)
-// ==========================================
+// =================================================================
+// ATUALIZAÇÃO (PROCESSAMENTO NMEA)
+// =================================================================
 void GPS::update() {
     // Lê todos os bytes disponíveis no buffer da Serial e repassa para o TinyGPS++
     while (gpsSerial.available()) {

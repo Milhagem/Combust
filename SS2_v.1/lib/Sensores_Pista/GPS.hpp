@@ -1,41 +1,38 @@
-#ifndef GPS_HPP
-#define GPS_HPP
+#pragma once
 
 #include <Arduino.h>
 #include <TinyGPS++.h>
 
 class GPS {
 private:
-    HardwareSerial gpsSerial;
-    TinyGPSPlus gps;
+    // Inicializa a HardwareSerial na porta 2 (Padrão ESP32)
+    inline static HardwareSerial gpsSerial{2}; 
+    inline static TinyGPSPlus gps;
 
-    // Configurações de conexão
-    int _rxPin;
-    int _txPin;
-    uint32_t _baudRate;
+    // Configurações de conexão (Valores padrão)
+    inline static int _rxPin = 17;
+    inline static int _txPin = 18;
+    inline static uint32_t _baudRate = 9600;
 
     // Variáveis de estado
-    float currentLat;
-    float currentLon;
-    float currentAltitude;
-    float currentSpeed;
+    inline static float currentLat = 0.0f;
+    inline static float currentLon = 0.0f;
+    inline static float currentAltitude = 0.0f;
+    inline static float currentSpeed = 0.0f;
 
 public:
-    // Construtor com valores padrão baseados no seu Sensor.hpp original
-    // Usa a Serial 2 (padrão do ESP32) por default
-    GPS(int rxPin = 17, int txPin = 18, uint32_t baudRate = 9600, uint8_t serialPort = 2);
+    // Configuração (Substitui o Construtor)
+    static void setConfig(int rxPin, int txPin, uint32_t baudRate);
 
     // Inicializa a comunicação Serial com o módulo GPS
-    void begin();
+    static void begin();
 
     // Lê os dados da Serial e atualiza as variáveis internas (chamar no loop)
-    void update();
+    static void update();
 
-    // Getters públicos (retornam os últimos valores válidos)
-    float getLatitude()  const { return currentLat; }
-    float getLongitude() const { return currentLon; }
-    float getAltitude()  const { return currentAltitude; } // Em metros
-    float getSpeed()     const { return currentSpeed; }    // Em m/s
+    // Getters públicos (As implementações foram movidas para o .cpp)
+    static float getLatitude();
+    static float getLongitude();
+    static float getAltitude(); // Em metros
+    static float getSpeed();    // Em m/s
 };
-
-#endif

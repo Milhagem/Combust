@@ -1,4 +1,4 @@
-#ifndef IMU_HPP
+#pragma once
 #define IMU_HPP
 
 #include <Arduino.h>
@@ -18,28 +18,31 @@
 
 class IMU {
 private:
-    TwoWire* _wire;
-    uint8_t  _address;
+    inline static TwoWire* _wire = &Wire;
+    inline static uint8_t  _address = ASM330LHHX_ADDR;
     
     // Pinos I2C
-    int _sdaPin;
-    int _sclPin;
+    inline static int _sdaPin = 8;
+    inline static int _sclPin = 9;
 
     // Tempos
-    unsigned long lastMicros;
+    inline static unsigned long lastMicros = 0;
 
     // Dados brutos e processados
-    float roll, pitch, yaw;
-    float accelLongitudinal;
-    float accelCentrifuga;
-    float gyroZ_filtered;
+    inline static float roll = 0.0f;
+    inline static float pitch = 0.0f;
+    inline static float yaw = 0.0f;
+    inline static float accelLongitudinal = 0.0f;
+    inline static float accelCentrifuga = 0.0f;
+    inline static float gyroZ_filtered = 0.0f;
 
     // Offset do Giroscópio
     struct GyroOffset {
         float gx = 0.0f;
         float gy = 0.0f;
         float gz = 0.0f;
-    } gyroOffset;
+    };
+    inline static GyroOffset gyroOffset;
 
     // Filtros Passa-Baixo (para reduzir vibração do motor nas leituras brutas)
     struct LowPassFilter {
@@ -51,35 +54,33 @@ private:
         }
     };
 
-    LowPassFilter lpAccX, lpAccY, lpAccZ;
-    LowPassFilter lpGyrX, lpGyrY, lpGyrZ;
+    inline static LowPassFilter lpAccX, lpAccY, lpAccZ;
+    inline static LowPassFilter lpGyrX, lpGyrY, lpGyrZ;
 
     // Funções internas I2C
-    void writeRegister(uint8_t reg, uint8_t value);
-    void readRegisters(uint8_t reg, uint8_t* buffer, uint8_t len);
+    static void writeRegister(uint8_t reg, uint8_t value);
+    static void readRegisters(uint8_t reg, uint8_t* buffer, uint8_t len);
 
     // Funções matemáticas internas
-    void removeGravidade(float ax, float ay, float az, float roll_rad, float pitch_rad, float &ax_real, float &ay_real, float &az_real);
+    static void removeGravidade(float ax, float ay, float az, float roll_rad, float pitch_rad, float &ax_real, float &ay_real, float &az_real);
 
 public:
-    // Construtor
-    IMU(int sdaPin = 8, int sclPin = 9, TwoWire* wire = &Wire, uint8_t address = ASM330LHHX_ADDR);
+    // Configuração Opcional (Substitui o Construtor)
+    static void setPins(int sda, int scl);
 
     // Inicialização e Calibração
-    bool begin(uint32_t frequency = 400000);
-    void calibrarGiroscopio(uint16_t amostras = 500);
+    static bool begin(uint32_t frequency = 400000);
+    static void calibrarGiroscopio(uint16_t amostras = 500);
 
     // Leitura e Processamento (chamar no loop)
-    void update();
-    void readRawData(float &ax, float &ay, float &az, float &gx, float &gy, float &gz);
+    static void update();
+    static void readRawData(float &ax, float &ay, float &az, float &gx, float &gy, float &gz);
 
     // Getters
-    float getRoll()              const { return roll; }              // [rad]
-    float getPitch()             const { return pitch; }             // [rad]
-    float getYaw()               const { return yaw; }               // [rad]
-    float getAccelLongitudinal() const { return accelLongitudinal; } // [m/s^2]
-    float getAccelCentrifuga()   const { return accelCentrifuga; }   // [m/s^2]
-    float getGyroZ()             const { return gyroZ_filtered; }    // [rad/s]
+    static float getRoll();              // [rad]
+    static float getPitch();             // [rad]
+    static float getYaw();               // [rad]
+    static float getAccelLongitudinal(); // [m/s^2]
+    static float getAccelCentrifuga();   // [m/s^2]
+    static float getGyroZ();             // [rad/s]
 };
-
-#endif

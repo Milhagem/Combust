@@ -1,56 +1,120 @@
 #include "Hall.hpp"
 
-// Inicializa o ponteiro estático fora da classe
-Hall* Hall::instancia = nullptr;
+void Hall::Inicializa_Hall(){
+    pinMode(PIN_SENSOR_HALL, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(PIN_SENSOR_HALL), Hall::calc, FALLING);
+}
 
-// ==========================================
-// Construtor
-// ==========================================
-Hall::Hall(uint8_t pin, float circunfRoda, int imas, unsigned long taxaAtualizacao)
-    : _pin(pin), _circunfRoda(circunfRoda), _pulsosPorVolta(imas), _taxaAtualizacao(taxaAtualizacao),
-      velocidade(0.0f), aceleracao(0.0f), RPM(0.0f), velocOld(0.0f), lastTimerTax(0),
-      pulseIndex(0), lastPulseTime(0)
-{
-    // Grava o endereço deste objeto no ponteiro estático para a ISR conseguir enxergá-lo
-    instancia = this; 
-    
-    for (int i = 0; i < SAMPLE_SIZE; i++) {
-        pulseIntervals[i] = 0;
+// =================================================================
+// GETTERS E SETTERS
+// =================================================================
+void Hall::setVelocidade(float &vel) { velocidade = vel; }
+float Hall::getVelocidade() { return velocidade; }
+
+void Hall::setAceleracao(float &acel) { aceleracao = acel; }
+float Hall::getAceleracao() { return aceleracao; }
+
+float Hall::getRPM() { return RPM; }
+void Hall::incrementaPulsos() { pulsos++; }
+
+// =================================================================
+// FILTRO ANTI-SALTO MECÂNICO
+// =================================================================
+float Hall::filtroVelocVariacoesGrandes(float velocidadeOld, float velocidadeNew) {
+    if (fabs(velocidadeNew - velocidadeOld) > 20.0f) {
+        return velocidadeOld;
+    }
+    return velocidadeNew;
+}
+
+// =================================================================
+// INTERRUPÇÃO DO SENSOR HALL (ALTA PRIORIDADE NA RAM)
+// =================================================================
+void IRAM_ATTR Hall::calc() {   
+    uint64_t tempoAtual = esp_timer_get_time();
+    uint64_t intervaloTemp = tempoAtual - lastPulseInterval;
+  
+    // Debounce de 10.000 microssegundos (10ms)
+    if (intervaloTemp > 10000) { 
+        portENTER_CRITICAL_ISR(&mux);
+        lastPulseInterval = tempoAtual;
+
+        // Se o intervalo for <= 1.5s, é movimento real.
+        // Se for maior, o carro estava parado. Ignoramos esse pulso porque
+        // ele mede o "tempo parado" e não a velocidade da roda.
+        if (intervaloTemp <= 1500000) {
+            pulseInterval = intervaloTemp;
+            pulseIntervals[pulseIndex] = pulseInterval;
+            pulseIndex = (pulseIndex + 1) % SAMPLE_SIZE; 
+        }
+        
+        portEXIT_CRITICAL_ISR(&mux);
     }
 }
 
-// ==========================================
-// Inicialização
-// ==========================================
-void Hall::begin() {
-    pinMode(_pin, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(_pin), isrStatic, FALLING);
+// =================================================================
+// CÁLCULO DA DINÂMICA DO VEÍCULO (NO LOOP)
+// =================================================================
+float Hall::update() {
+    if(millis() - lastTimerTax >= TAXA_ATUALIZACAO_VEL) {
+        lastTimerTax = millis();
+
+        // 1. VERIFICAÇÃO DE PARADA
+        if (esp_timer_get_time() - lastPulseInterval > 1500000) { 
+            portENTER_CRITICAL(&mux);
+            for(int i = 0; i < SAMPLE_SIZE; i++) {
+                pulseIntervals[i] = 0; // Limpamos com 0 para não sujar a média
+            }
+            pulseIndex = 0;
+            portEXIT_CRITICAL(&mux);
+
+            RPM = 0.0f;
+            velocidade = 0.0f;
+            aceleracao = 0.0f;
+            return velocidade;
+        }
+
+        // 2. CÓPIA SEGURA DA INTERRUPÇÃO
+        uint64_t copiaPulseIntervals[SAMPLE_SIZE];
+        portENTER_CRITICAL(&mux); 
+        for (int i = 0; i < SAMPLE_SIZE; i++) {
+            copiaPulseIntervals[i] = pulseIntervals[i];
+        }
+        portEXIT_CRITICAL(&mux);
+
+        uint64_t averagePulseIntervalUs = 0;
+        int amostrasValidas = 0;
+
+        // 3. MÉDIA MÓVEL (Agora ela ignora os zeros da parada)
+        for (int i = 0; i < SAMPLE_SIZE; i++) {
+            if (copiaPulseIntervals[i] > 0) { // Só faz média do que tem velocidade!
+                averagePulseIntervalUs += copiaPulseIntervals[i];
+                amostrasValidas++;
+            }
+        }
+
+        // Se não tem amostra válida, mantém a velocidade atual
+        if (amostrasValidas == 0) { return velocidade; } 
+        averagePulseIntervalUs /= amostrasValidas;
+
+        // 4. MATEMÁTICA E KALMAN
+        velocOld = velocidade;
+        
+        RPM = 60000000.0f / (PULSOS_POR_VOLTA * averagePulseIntervalUs);
+        float velocidadeBruta = RPM * CIRCUNF_RODA * 0.06f; 
+        
+        velocidade = filtro_Kalman_Vel.aplicar(velocidadeBruta);
+        velocidade = filtroVelocVariacoesGrandes(velocOld, velocidade);
+
+        float delta_tempo_segundos = TAXA_ATUALIZACAO_VEL / 1000.0f;
+        aceleracao = (((velocidade - velocOld) / MPS_TO_KMPH_FACTOR) / delta_tempo_segundos);
+        
+        return velocidade;
+    } 
+    return velocidade; 
 }
 
-// ==========================================
-// Interrupção (ISR)
-// ==========================================
-void IRAM_ATTR Hall::isrStatic() {
-    if (instancia != nullptr) {
-        instancia->handleInterrupt();
-    }
-}
-
-void IRAM_ATTR Hall::handleInterrupt() {
-    unsigned long tempoAtual = millis();
-    unsigned long intervaloTemp = tempoAtual - lastPulseTime;
-    
-    // Debounce: só aceita o pulso se passou mais de 10ms desde o último
-    if (intervaloTemp > 10) { 
-        pulseIntervals[pulseIndex] = intervaloTemp;
-        pulseIndex = (pulseIndex + 1) % SAMPLE_SIZE; 
-        lastPulseTime = tempoAtual;
-    }
-}
-
-// ==========================================
-// Cálculo Matemático (Chamar no Loop)
-// ==========================================
+/*
 void Hall::update() {
     unsigned long tempoAtual = millis();
 
@@ -96,4 +160,4 @@ void Hall::update() {
         velocidade = RPM * _circunfRoda * 0.06f; // Em km/h
         aceleracao = (((velocidade - velocOld) / 3.6f) / delta_tempo_segundos); // Em m/s²
     }
-}
+}*/

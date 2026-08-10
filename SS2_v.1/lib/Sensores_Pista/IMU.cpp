@@ -1,15 +1,26 @@
 #include "IMU.hpp"
 
-// ==========================================
-// Implementação da Classe IMU
-// ==========================================
-IMU::IMU(int sdaPin, int sclPin, TwoWire* wire, uint8_t address)
-    : _sdaPin(sdaPin), _sclPin(sclPin), _wire(wire), _address(address),
-      lastMicros(0), roll(0), pitch(0), yaw(0),
-      accelLongitudinal(0), accelCentrifuga(0), gyroZ_filtered(0) 
-{
+// =================================================================
+// GETTERS
+// =================================================================
+float IMU::getRoll()              { return roll; }
+float IMU::getPitch()             { return pitch; }
+float IMU::getYaw()               { return yaw; }
+float IMU::getAccelLongitudinal() { return accelLongitudinal; }
+float IMU::getAccelCentrifuga()   { return accelCentrifuga; }
+float IMU::getGyroZ()             { return gyroZ_filtered; }
+
+// =================================================================
+// SETTERS (Configuração)
+// =================================================================
+void IMU::setPins(int sda, int scl) {
+    _sdaPin = sda;
+    _sclPin = scl;
 }
 
+// =================================================================
+// COMUNICAÇÃO I2C (FUNÇÕES INTERNAS)
+// =================================================================
 void IMU::writeRegister(uint8_t reg, uint8_t value) {
     _wire->beginTransmission(_address);
     _wire->write(reg);
@@ -27,6 +38,9 @@ void IMU::readRegisters(uint8_t reg, uint8_t* buffer, uint8_t len) {
     }
 }
 
+// =================================================================
+// INICIALIZAÇÃO E CALIBRAÇÃO
+// =================================================================
 bool IMU::begin(uint32_t frequency) {
     _wire->begin(_sdaPin, _sclPin);
     _wire->setClock(frequency);
@@ -74,6 +88,9 @@ void IMU::calibrarGiroscopio(uint16_t amostras) {
                   gyroOffset.gx, gyroOffset.gy, gyroOffset.gz);
 }
 
+// =================================================================
+// CÁLCULO E ATUALIZAÇÃO (NO LOOP)
+// =================================================================
 void IMU::readRawData(float &ax, float &ay, float &az, float &gx, float &gy, float &gz) {
     uint8_t buffer[6];
     
@@ -154,6 +171,9 @@ void IMU::update() {
     accelCentrifuga = ay_real;
 }
 
+// =================================================================
+// FUNÇÕES MATEMÁTICAS INTERNAS
+// =================================================================
 void IMU::removeGravidade(float ax, float ay, float az, float roll_rad, float pitch_rad, float &ax_real, float &ay_real, float &az_real) {
     // Projeta o vetor gravidade (9.81) no frame do sensor
     float gx_grav = sinf(pitch_rad) * 9.81f;
