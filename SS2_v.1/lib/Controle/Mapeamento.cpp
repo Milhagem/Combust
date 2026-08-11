@@ -1,299 +1,277 @@
-#include "Telemetria.hpp"
+#include "Mapeamento.hpp"
+#include <math.h>
+#include <float.h>
 
-constexpr float Telemetria::magOffset[3];
-constexpr float Telemetria::magSoftIron[3][3];
+namespace {
+    constexpr double DEG2RAD = 0.017453292519943295769;
+    constexpr double RAIO_TERRA_M = 6371000.0;
 
-// ================= CONSTRUTOR ===================
-Telemetria::Telemetria()
-    : imu(ICM_ADDR),
-      kalRoll(0.001f, 0.03f),
-      kalPitch(0.001f, 0.03f), //(q, r) quanto maior o q, maior a confiança no giroscópio, quanto maior o r menor a confiança no acelerômetro/magnetômetro
-      kalYaw(0.01f, 1.0f),
-      lastMicros(0),
-      roll(0.0f),
-      pitch(0.0f),
-      yaw(0.0f),
-      accelLongitudinal(0.0f),
-      ssid("Diogo's Galaxy M62"),
-      password("awur7323"),      
-      mqtt_server("broker.hivemq.com"),
-      espClient(),  
-      client(espClient),     
-      lastMsg(0)
-{
+    struct PontoPista {
+        double lat;
+        double lon;
+        float distAcum;
+    };
+
+    struct SegmentoPista {
+        int id;
+        const char* nome;
+        const char* tipo;
+        float distInicio;
+    };
+
+    // Pontos da pista_fae_controle_editado.csv.
+    // distAcum do último ponto não inclui o trecho de fechamento até o ponto 0.
+    const PontoPista PONTOS[] = {
+        {-19.8690724, -43.9595478,   0.00f},
+        {-19.8690030, -43.9595398,   7.77f},
+        {-19.8689463, -43.9595425,  14.09f},
+        {-19.8689243, -43.9595456,  16.56f},
+        {-19.8688575, -43.9595349,  24.08f},
+        {-19.8688033, -43.9595155,  30.45f},
+        {-19.8687616, -43.9594893,  35.84f},
+        {-19.8687255, -43.9594586,  40.98f},
+        {-19.8686915, -43.9594271,  46.00f},
+        {-19.8686814, -43.9593835,  50.70f},
+        {-19.8687047, -43.9593526,  54.85f},
+        {-19.8687343, -43.9593386,  58.46f},
+        {-19.8687596, -43.9593339,  61.32f},
+        {-19.8687930, -43.9593339,  65.03f},
+        {-19.8688239, -43.9593406,  68.55f},
+        {-19.8688627, -43.9593404,  72.86f},
+        {-19.8688999, -43.9593437,  77.02f},
+        {-19.8689302, -43.9593457,  80.40f},
+        {-19.8689535, -43.9593484,  83.01f},
+        {-19.8689958, -43.9593511,  87.73f},
+        {-19.8690611, -43.9593695,  95.25f},
+        {-19.8691229, -43.9594124, 103.46f},
+        {-19.8691695, -43.9594566, 110.41f},
+        {-19.8691948, -43.9594902, 114.92f},
+        {-19.8691292, -43.9595210, 122.90f}
+    };
+
+    // Segmentos da pista_fae_controle_segmentos_editado.csv.
+    // A troca de segmento é feita pela distância de início do próximo segmento.
+    const SegmentoPista SEGMENTOS[] = {
+        {0, "Reta 1",  "RETA",   0.00f},
+        {1, "Curva 1", "CURVA", 40.98f},
+        {2, "Reta 2",  "RETA",  61.32f},
+        {3, "Curva 2", "CURVA", 95.25f}
+    };
+
+    float clamp01(float v) {
+        if (v < 0.0f) return 0.0f;
+        if (v > 1.0f) return 1.0f;
+        return v;
+    }
 }
 
-// ================= CALIBRAÇÃO MAGNETÔMETRO ===================
-void Telemetria::applyMagCalibration(float &mx, float &my, float &mz) {
-    float x = mx - magOffset[0];
-    float y = my - magOffset[1];
-    float z = mz - magOffset[2];
-
-    mx = magSoftIron[0][0]*x + magSoftIron[0][1]*y + magSoftIron[0][2]*z;
-    my = magSoftIron[1][0]*x + magSoftIron[1][1]*y + magSoftIron[1][2]*z;
-    mz = magSoftIron[2][0]*x + magSoftIron[2][1]*y + magSoftIron[2][2]*z;
+// =================================================================
+// INICIALIZAÇÃO
+// =================================================================
+void Mapeamento::begin() {
+    limparDadosInvalidos();
+    calcularGeometria();
 }
 
-// ================= INICIALIZAÇÃO DO ICM ===================
-void Telemetria::inicializaICM() {
-    if (!imu.init()) {
-        Serial.println("ICM20948 nao encontrado!");
-        while (1);
+// =================================================================
+// ATUALIZAÇÃO DE ESTADO
+// =================================================================
+bool Mapeamento::atualizarGPS(double latitude, double longitude, bool gpsValido) {
+    if (!gpsValido || (latitude == 0.0 && longitude == 0.0) ||
+        !isfinite(latitude) || !isfinite(longitude)) {
+        limparDadosInvalidos(latitude, longitude);
+        return false;
     }
 
-    imu.enableAcc(true);
-    imu.enableGyr(true);
-    imu.initMagnetometer();
+    float x_m = 0.0f;
+    float y_m = 0.0f;
+    latLonParaXY(latitude, longitude, x_m, y_m);
 
-    imu.setAccRange(ICM20948_ACC_RANGE_4G);
-    imu.setGyrRange(ICM20948_GYRO_RANGE_500);
-
-    imu.setAccDLPF(ICM20948_DLPF_6);
-    imu.setGyrDLPF(ICM20948_DLPF_6);
-
-    imu.autoOffsets();
-
-    lastMicros = micros();
+    return atualizarInterno(x_m, y_m, latitude, longitude, true);
 }
 
-// ================= LEITURA DOS SENSORES ===================
-void Telemetria::atualizaSensores() {
-    // Lê os sensores
-    xyzFloat acc, gyr, mag;
-    
-    imu.readSensor();
-    acc = imu.getAccRawValues();
-    gyr = imu.getGyrValues();
-    mag = imu.getMagValues();
+bool Mapeamento::atualizarXY(float x_m, float y_m) {
+    if (!isfinite(x_m) || !isfinite(y_m)) {
+        limparDadosInvalidos();
+        return false;
+    }
 
-    // Converte aceleração de LSB para g
-    constexpr float ACC_LSB_PER_G = 8192.0f;
-    float ax = acc.x / ACC_LSB_PER_G;
-    float ay = acc.y / ACC_LSB_PER_G;
-    float az = acc.z / ACC_LSB_PER_G;
-
-    // Aplica calibração do magnetômetro
-    applyMagCalibration(mag.x, mag.y, mag.z);
-
-    // Calcula dt
-    float dt = (micros() - lastMicros) * 1e-6f;
-    lastMicros = micros();
-
-    if (dt <= 0.0f) dt = 0.001f;  // Proteção contra dt inválido
-
-    // Processa Kalman
-    processaKalman(ax, ay, az, gyr.x, gyr.y, gyr.z, mag.x, mag.y, mag.z, dt);
-
-    // Remove gravidade e calcula aceleração longitudinal
-    float ax_real, ay_real, az_real;
-    removeGravidade(ax, ay, az, roll, pitch, ax_real, ay_real, az_real);
-    accelLongitudinal = ax_real;
+    return atualizarInterno(x_m, y_m, 0.0, 0.0, false);
 }
 
-// ================= PROCESSAMENTO KALMAN ===================
-void Telemetria::processaKalman(float ax, float ay, float az, 
-                                 float gx, float gy, float gz, 
-                                 float mx, float my, float mz, 
-                                 float dt) {
-    
-    // ===== PREVISÃO (GIROSCÓPIO) =====
-    kalRoll.predict(gx * DEG2RAD, dt);
-    kalPitch.predict(gy * DEG2RAD, dt);
-    kalYaw.predict(gz * DEG2RAD, dt);
-
-    // ===== MEDIÇÕES (ACELERÔMETRO + MAGNETÔMETRO) =====
-    float roll_m  = atan2(ay, az);
-    float pitch_m = atan2(-ax, sqrt(ay*ay + az*az));
-    
-    // Cálculo do yaw a partir do magnetômetro
-    // Rotaciona a medição de magnetômetro para frame do corpo
-    float cr = cos(roll);
-    float sr = sin(roll);
-    float cp = cos(pitch);
-    float sp = sin(pitch);
-    
-    float mx_body = mx * cp + my * sr * sp + mz * cr * sp;
-    float my_body = my * cr - mz * sr;
-    
-    float yaw_m = atan2(-my_body, mx_body);
-
-    // ===== CORREÇÃO (KALMAN UPDATE) =====
-    roll  = kalRoll.update(roll_m);
-    pitch = kalPitch.update(pitch_m);
-    yaw   = kalYaw.update(yaw_m);
+// =================================================================
+// GETTERS E DEBUG
+// =================================================================
+const Mapeamento::Dados& Mapeamento::getDados() {
+    return ultimo;
 }
 
-// ================= REMOÇÃO DA GRAVIDADE ===================
-void Telemetria::removeGravidade(float ax, float ay, float az, 
-                                  float roll, float pitch, 
-                                  float &ax_real, float &ay_real, float &az_real) {
-    
-    float cr = cos(roll);
-    float sr = sin(roll);
-    float cp = cos(pitch);
-    float sp = sin(pitch);
-
-    // Componentes de gravidade no frame do acelerômetro
-    float gx = -sp;
-    float gy = sr * cp;
-    float gz = cr * cp;
-
-    // Remove gravidade
-    ax_real = ax - gx;
-    ay_real = ay - gy;
-    az_real = az - gz;
+void Mapeamento::printSerial() {
+    Serial.print("Segmento atual: ");
+    Serial.print(ultimo.segmento_atual_nome);
+    Serial.print(" [");
+    Serial.print(ultimo.tipo_segmento_atual);
+    Serial.print("] | Proximo: ");
+    Serial.print(ultimo.proximo_segmento_nome);
+    Serial.print(" | Distancia: ");
+    Serial.print(ultimo.distancia_proximo_segmento_m, 2);
+    Serial.print(" m | Erro lateral: ");
+    Serial.print(ultimo.erro_lateral_m, 2);
+    Serial.println(" m");
 }
 
-// ================= CONEXÂO WI-FI ===================
-void Telemetria::setup_wifi() {
-  delay(10);
-  Serial.println();
-  Serial.print("Conectando a ");
-  Serial.println(ssid);
+// =================================================================
+// MÉTODOS PRIVADOS DE GEOMETRIA
+// =================================================================
+void Mapeamento::calcularGeometria() {
+    for (uint8_t i = 0; i < N_PONTOS; i++) {
+        latLonParaXY(PONTOS[i].lat, PONTOS[i].lon, pontoX[i], pontoY[i]);
+    }
 
-  WiFi.begin(ssid, password);
+    for (uint8_t i = 0; i < N_PONTOS; i++) {
+        uint8_t j = (i + 1) % N_PONTOS;
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
+        float ds = 0.0f;
+        if (i < N_PONTOS - 1) {
+            ds = PONTOS[j].distAcum - PONTOS[i].distAcum;
+        } else {
+            ds = COMPRIMENTO_PISTA_M - PONTOS[i].distAcum;
+        }
 
-  Serial.println("");
-  Serial.println("WiFi conectado!");
-  Serial.print("Endereço IP: ");
-  Serial.println(WiFi.localIP());
-  client.setServer(mqtt_server, 1883);
+        // Proteção para algum dado corrompido
+        if (ds <= 0.01f) {
+            float dx = pontoX[j] - pontoX[i];
+            float dy = pontoY[j] - pontoY[i];
+            ds = sqrtf(dx * dx + dy * dy);
+        }
+
+        trechoComprimentoS[i] = ds;
+    }
 }
 
-// ======== FUNÇÃO DE RECONEXÃO MQTT ========
-void Telemetria::reconnect() {
-    if (!client.connected()) {
-        unsigned long now = millis();
+void Mapeamento::latLonParaXY(double latitude, double longitude, float& x_m, float& y_m) {
+    const double lat0 = PONTOS[0].lat * DEG2RAD;
+    const double lon0 = PONTOS[0].lon * DEG2RAD;
 
-        // Tenta reconectar apenas a cada 5 segundos para não poluir o log
-        if (now - lastMsg > 5000) {
-            lastMsg = now;
-            Serial.print("Tentando conexão MQTT...");
-            String clientId = "Milhagem-Device-" + String(random(0xffff), HEX);
+    const double lat = latitude * DEG2RAD;
+    const double lon = longitude * DEG2RAD;
 
-            if (client.connect(clientId.c_str())) {
-                Serial.println("Conectado ao broker!");
-            } else {
-                Serial.print("falhou, rc=");
-                Serial.print(client.state());
-                Serial.println(" - tentando novamente no próximo ciclo");
-            }
+    x_m = static_cast<float>((lon - lon0) * cos(lat0) * RAIO_TERRA_M); // Este
+    y_m = static_cast<float>((lat - lat0) * RAIO_TERRA_M);             // Norte
+}
+
+bool Mapeamento::atualizarInterno(float x_m, float y_m, double latitude, double longitude, bool gpsValido) {
+    float melhorD2 = FLT_MAX;
+    float melhorS = 0.0f;
+    int melhorTrecho = -1;
+
+    for (uint8_t i = 0; i < N_PONTOS; i++) {
+        uint8_t j = (i + 1) % N_PONTOS;
+
+        float ax = pontoX[i];
+        float ay = pontoY[i];
+        float bx = pontoX[j];
+        float by = pontoY[j];
+
+        float vx = bx - ax;
+        float vy = by - ay;
+        float wx = x_m - ax;
+        float wy = y_m - ay;
+
+        float len2 = vx * vx + vy * vy;
+        if (len2 <= 0.0001f) continue;
+
+        float t = clamp01((wx * vx + wy * vy) / len2);
+
+        float projX = ax + t * vx;
+        float projY = ay + t * vy;
+
+        float dx = x_m - projX;
+        float dy = y_m - projY;
+        float d2 = dx * dx + dy * dy;
+
+        if (d2 < melhorD2) {
+            melhorD2 = d2;
+            melhorTrecho = i;
+            melhorS = PONTOS[i].distAcum + t * trechoComprimentoS[i];
         }
     }
-}
 
-// ======== FAZ O ENVIO DOS DADOS POR MEIO DO WIFI ========
-void Telemetria::EnviodadosWifi() {
-    reconnect();
-    if (client.connected()) {
-        client.loop();
-        
-        snprintf(payload, sizeof(payload),
-            "{\"Acelera\":%.2f,\"Inclinacao\":%.2f,\"Rotacao\":%.2f,\"Lat\":%.6f,\"Long\":%.6f}",
-            accelLongitudinal, pitch, yaw, 0.0, 0.0);
-
-        Serial.print("Publicando: ");
-        Serial.println(payload);
-        client.publish("sensor/esp32S3", payload);
+    if (melhorTrecho < 0) {
+        limparDadosInvalidos(latitude, longitude);
+        return false;
     }
+
+    melhorS = normalizarDistancia(melhorS);
+
+    int idxAtual = acharSegmento(melhorS);
+    int idxProximo = (idxAtual + 1) % N_SEGMENTOS;
+
+    float distProx = SEGMENTOS[idxProximo].distInicio - melhorS;
+    if (distProx < 0.0f) distProx += COMPRIMENTO_PISTA_M;
+
+    ultimo.valido = true;
+    ultimo.gpsValido = gpsValido;
+    ultimo.latitude = latitude;
+    ultimo.longitude = longitude;
+    ultimo.x_m = x_m;
+    ultimo.y_m = y_m;
+    ultimo.dist_acum_m = melhorS;
+    ultimo.erro_lateral_m = sqrtf(melhorD2);
+
+    ultimo.segmento_atual_id = SEGMENTOS[idxAtual].id;
+    ultimo.segmento_atual_nome = SEGMENTOS[idxAtual].nome;
+    ultimo.tipo_segmento_atual = SEGMENTOS[idxAtual].tipo;
+
+    ultimo.proximo_segmento_id = SEGMENTOS[idxProximo].id;
+    ultimo.proximo_segmento_nome = SEGMENTOS[idxProximo].nome;
+    ultimo.tipo_proximo_segmento = SEGMENTOS[idxProximo].tipo;
+
+    ultimo.distancia_proximo_segmento_m = distProx;
+    ultimo.indice_trecho_mais_proximo = melhorTrecho;
+
+    return true;
 }
 
+int Mapeamento::acharSegmento(float dist_acum_m) {
+    float s = normalizarDistancia(dist_acum_m);
 
-//------------------------VELOCIDADE.CPP ANTERIOR-----------------------------
-#include "Velocidade.hpp"
-
-#define nIMAS 2.0
-#define CircunferenciaRoda 1.81 
-#define G_ACEL 9.81  // Aceleração da gravidade em m/s²
-#define MS2_TO_KMHS 3.6  // Fator de conversão de m/s para km/h
-
-#include <cmath>
-
-Velocidade::Velocidade(uint8_t pino_sensor)
-    : pino(pino_sensor),
-      periodo(0),
-      ultimoTempo(0),
-      ultimoDebounce(0),
-      rpmAtual(0),
-      rpmAntigo(0),
-      ultimaVelocidade(0),
-      ultimoTempoAcc(micros()),
-      velocidadeIntegrada(0.0),
-      kalman(0.0005, 25.0)
-{
-}
-
-void Velocidade::calc() {
-    unsigned long tempoAtual = micros();
-
-    if (tempoAtual - this->ultimoDebounce > 2000) { 
-        this->rpmAntigo = this->rpmAtual;
-        this->periodo = tempoAtual - this->ultimoTempo;
-        this->ultimoTempo = tempoAtual;
-        this->ultimoDebounce = tempoAtual;
-
-        if (this->periodo > 0) {
-            double rpmCalculado = (60000000.0 / (double)this->periodo) / nIMAS;
-            if (fabs(rpmCalculado - this->rpmAntigo) > 750.0 && this->rpmAntigo != 0) {
-                this->rpmAtual = this->rpmAntigo;
-            } else {
-                this->rpmAtual = rpmCalculado;
-            }
+    int idx = 0;
+    for (uint8_t i = 0; i < N_SEGMENTOS; i++) {
+        if (s + 0.001f >= SEGMENTOS[i].distInicio) {
+            idx = i;
         }
     }
+
+    return idx;
 }
 
-double Velocidade::getVelocidadeHALL() {
-    unsigned long agora = micros();
-    double rpmRetorno;
-    unsigned long uTempo;
-
-    noInterrupts();
-    uTempo = ultimoTempo;
-    rpmRetorno = rpmAtual;
-    interrupts();
-
-    // Timeout de 5 segundos
-    if (agora - uTempo > 5000000 && rpmRetorno < 300.0) {
-        noInterrupts();
-        rpmAtual = 0;
-        periodo = 0;
-        interrupts();
-        rpmRetorno = 0;
-    }
-    
-    return (rpmRetorno * CircunferenciaRoda * 0.06);
+float Mapeamento::normalizarDistancia(float dist_m) {
+    while (dist_m < 0.0f) dist_m += COMPRIMENTO_PISTA_M;
+    while (dist_m >= COMPRIMENTO_PISTA_M) dist_m -= COMPRIMENTO_PISTA_M;
+    return dist_m;
 }
 
-void Velocidade::atualizaComMultiplasMedidas(double aceleracao_icm, double dt) {
-    // Converte aceleração de g para m/s²
-    double aceleracao_ms2 = aceleracao_icm * G_ACEL;
-    
-    // Integra aceleração para obter velocidade
-    velocidadeIntegrada += aceleracao_ms2 * dt;
-    
-    // Obtém velocidade do RPM
-    double velocidade_rpm = getVelocidadeHALL();
-    
-    // Predição: usa aceleração do ICM + aceleração derivada
-    kalman.predict(aceleracao_ms2, dt);
-    
-    // Atualização: funde velocidade RPM + velocidade integrada + aceleração ICM
-    kalman.updateComMultiplasMedidas(velocidade_rpm, velocidadeIntegrada, aceleracao_ms2);
-}
+void Mapeamento::limparDadosInvalidos(double latitude, double longitude) {
+    ultimo.valido = false;
+    ultimo.gpsValido = false;
 
-double Velocidade::getVelocidadeKmh() const {
-    // Obtém a velocidade em m/s do Kalman e converte para km/h
-    double velo_ms = kalman.getVelocidade();
-    return velo_ms * MS2_TO_KMHS;
-}
+    ultimo.latitude = latitude;
+    ultimo.longitude = longitude;
 
-double Velocidade::getAceleracaoMs2() const {
-    // Retorna a aceleração estimada em m/s²
-    return kalman.getAceleracao();
+    ultimo.x_m = 0.0f;
+    ultimo.y_m = 0.0f;
+    ultimo.dist_acum_m = -1.0f;
+    ultimo.erro_lateral_m = -1.0f;
+
+    ultimo.segmento_atual_id = -1;
+    ultimo.segmento_atual_nome = "INVALIDO";
+    ultimo.tipo_segmento_atual = "INVALIDO";
+
+    ultimo.proximo_segmento_id = -1;
+    ultimo.proximo_segmento_nome = "INVALIDO";
+    ultimo.tipo_proximo_segmento = "INVALIDO";
+
+    ultimo.distancia_proximo_segmento_m = -1.0f;
+    ultimo.indice_trecho_mais_proximo = -1;
 }
