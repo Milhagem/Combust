@@ -60,8 +60,6 @@ void Gerenciador_MQTT::Gerenciar_MQTT() {
 }
 
 void Gerenciador_MQTT::publicar_telemetria(float* dados, const char** Nome_dados, size_t quantidade_dados, const char* topico) {
-    // esse if é um teste completamtne
-    // Tenta pegar a chave (espera no máximo 20 ticks para não atrapalhar a FSM se estiver ocupado)
     if (mqttMutex != NULL && xSemaphoreTake(mqttMutex, (TickType_t)20) == pdTRUE) {
         
         if (clientMQTT.connected()) {
@@ -74,11 +72,36 @@ void Gerenciador_MQTT::publicar_telemetria(float* dados, const char** Nome_dados
             clientMQTT.publish(topico, payloadMQTT);
         }
         
-        // Devolve a chave
         xSemaphoreGive(mqttMutex);
     }
 }
 
+void Gerenciador_MQTT::publicar_posicao(const Mapeamento::Dados& dados, const FiltroKalmanExtendido::Estado& estado, const char* topico) {
+    if (mqttMutex != NULL && xSemaphoreTake(mqttMutex, (TickType_t)20) == pdTRUE) {
+        if (clientMQTT.connected()) {
+            JsonDocument doc;
+            doc["posicao_valida"] = dados.valido;
+            doc["gps_valido"] = dados.gpsValido;
+            doc["segmento_atual"] = dados.segmento_atual_nome ? dados.segmento_atual_nome : "";
+            doc["tipo_segmento_atual"] = dados.tipo_segmento_atual ? dados.tipo_segmento_atual : "";
+            doc["proximo_segmento"] = dados.proximo_segmento_nome ? dados.proximo_segmento_nome : "";
+            doc["tipo_proximo_segmento"] = dados.tipo_proximo_segmento ? dados.tipo_proximo_segmento : "";
+            doc["distancia_proximo_segmento_m"] = dados.distancia_proximo_segmento_m;
+            doc["dist_acum_m"] = dados.dist_acum_m;
+            doc["erro_lateral_m"] = dados.erro_lateral_m;
+            doc["ekf_x_m"] = estado.X;
+            doc["ekf_y_m"] = estado.Y;
+            doc["ekf_v_m_s"] = estado.v;
+            doc["ekf_theta_rad"] = estado.theta;
+
+            char payloadMQTT[1024];
+            serializeJson(doc, payloadMQTT);
+            clientMQTT.publish(topico, payloadMQTT);
+        }
+
+        xSemaphoreGive(mqttMutex);
+    }
+}
 
 // testes
 

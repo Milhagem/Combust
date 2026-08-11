@@ -2,6 +2,8 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
+#include "Mapeamento.hpp"
+#include "Filtro_Kalman_Extendido.hpp"
 
 //teste 
 #include <freertos/FreeRTOS.h>
@@ -44,4 +46,5 @@ class Gerenciador_MQTT {
     void conectar_mqtt();
     void iniciarTaskMQTT();// teste
     void publicar_telemetria(float* dados,const char** Nome_dados,size_t quantidade_dados, const char* topico);
+    void publicar_posicao(const Mapeamento::Dados& dados, const FiltroKalmanExtendido::Estado& estado, const char* topico);
     };       
