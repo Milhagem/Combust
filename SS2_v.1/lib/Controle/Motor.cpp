@@ -1,13 +1,12 @@
 #include "Motor.hpp"
-
-Hall hall;
+#include "Servo.hpp"
 
 void Motor::Parametros_setup_controle_e_sensores_motor(){
   pinMode(PIN_LIGA_MOTOR, OUTPUT);
   pinMode(PIN_DESLIGA_MOTOR, OUTPUT);
   digitalWrite(PIN_LIGA_MOTOR, LOW);
   digitalWrite(PIN_DESLIGA_MOTOR, LOW);
-  CKP::Inicializar_setup_sensores_motor();
+  Ckp::Inicializar_setup_sensores_motor();
 }
 
 Motor::statesEngine Motor::ligaMotor(Display& display){
@@ -15,14 +14,14 @@ Motor::statesEngine Motor::ligaMotor(Display& display){
   if (!acionando) {
     acionando = true;
     timerPartida = millis();
-    Servo::Escreve_servo(POS_SERVO_PARTIDA);
+    ServoMotor::Escreve_servo(POS_SERVO_PARTIDA);
     posServoAtual = POS_SERVO_PARTIDA;
     digitalWrite(PIN_LIGA_MOTOR, HIGH);
   }
 
-  display.mostraTensaoEVel(hall.getVelocidade(), LM2907::getTensao()); 
+  display.mostraTensaoEVel(Velocidade::getVelocidade(), Tensao::getTensao()); 
   
-  if (LM2907::analisaTensao() > tensaoMotorON) {
+  if (Tensao::analisaTensao() > tensaoMotorON) {
     acionando = false;
     digitalWrite(PIN_LIGA_MOTOR, LOW);
     return Motor::engineON; 
@@ -48,12 +47,12 @@ Motor::statesEngine Motor::desligaMotor(Display& display){
   if (!desligando) {
     desligando = true;
     timerInjecao = millis();
-    Servo::Escreve_servo(POS_SERVO_FECHADA);
+    ServoMotor::Escreve_servo(POS_SERVO_FECHADA);
     posServoAtual = POS_SERVO_FECHADA;
     digitalWrite(PIN_DESLIGA_MOTOR, HIGH); 
   }
 
-  display.mostraTensaoEVel(hall.getVelocidade(), LM2907::getTensao());
+  display.mostraTensaoEVel(Velocidade::getVelocidade(), Tensao::getTensao());
 
   if (Motor::analisa_status_motor() == Motor::engineOFF && millis() - timerInjecao >= 1000) {
     desligando = false;
@@ -70,8 +69,9 @@ Motor::statesEngine Motor::desligaMotor(Display& display){
   return Motor::accelerating; 
 }
 
+
 void Motor::analisa_status_central() {
-    if (MAP::return_status_map() || TPS::return_status_tps()) {
+    if (Map::return_status_map() || TPS::return_status_tps()) {
         status_central = true;
         tempo_central_desligada = 0; 
     } else {
@@ -84,7 +84,7 @@ void Motor::analisa_status_central() {
 }
 
 Motor::statesEngine Motor::analisa_status_motor() {
-    if (LM2907::getTensao() > tensaoMotorON) {
+    if (Tensao::getTensao() > tensaoMotorON) {
         return engineON;
     } else {
         return engineOFF;
@@ -95,7 +95,7 @@ void Motor::analisa_sensores_motor(){
     Motor::analisa_status_central();
     Motor::analisa_status_motor();
     Lambda::analisaLambda();
-    MAP::analisaMap();
+    Map::analisaMap();
     TPS::analisaPosBorbo();
-    LM2907::analisaTensao();
+    Tensao::analisaTensao();
 }

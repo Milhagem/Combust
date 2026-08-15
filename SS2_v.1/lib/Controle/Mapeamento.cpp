@@ -1,4 +1,5 @@
 #include "Mapeamento.hpp"
+
 #include <math.h>
 #include <float.h>
 
@@ -19,8 +20,7 @@ namespace {
         float distInicio;
     };
 
-    // Pontos da pista_fae_controle_editado.csv.
-    // distAcum do último ponto não inclui o trecho de fechamento até o ponto 0.
+    //Essa é a pista da FAE
     const PontoPista PONTOS[] = {
         {-19.8690724, -43.9595478,   0.00f},
         {-19.8690030, -43.9595398,   7.77f},
@@ -49,8 +49,6 @@ namespace {
         {-19.8691292, -43.9595210, 122.90f}
     };
 
-    // Segmentos da pista_fae_controle_segmentos_editado.csv.
-    // A troca de segmento é feita pela distância de início do próximo segmento.
     const SegmentoPista SEGMENTOS[] = {
         {0, "Reta 1",  "RETA",   0.00f},
         {1, "Curva 1", "CURVA", 40.98f},
@@ -65,17 +63,11 @@ namespace {
     }
 }
 
-// =================================================================
-// INICIALIZAÇÃO
-// =================================================================
-void Mapeamento::begin() {
+Mapeamento::Mapeamento() {
     limparDadosInvalidos();
     calcularGeometria();
 }
 
-// =================================================================
-// ATUALIZAÇÃO DE ESTADO
-// =================================================================
 bool Mapeamento::atualizarGPS(double latitude, double longitude, bool gpsValido) {
     if (!gpsValido || (latitude == 0.0 && longitude == 0.0) ||
         !isfinite(latitude) || !isfinite(longitude)) {
@@ -99,14 +91,22 @@ bool Mapeamento::atualizarXY(float x_m, float y_m) {
     return atualizarInterno(x_m, y_m, 0.0, 0.0, false);
 }
 
-// =================================================================
-// GETTERS E DEBUG
-// =================================================================
-const Mapeamento::Dados& Mapeamento::getDados() {
+bool Mapeamento::atualizarComEKF(const FiltroKalmanExtendido& ekf) {
+    const FiltroKalmanExtendido::DadosGPS gps = ekf.getUltimaPosicaoGPS();
+    if (!gps.valido) {
+        limparDadosInvalidos();
+        return false;
+    }
+
+    const FiltroKalmanExtendido::Estado estado = ekf.getEstado();
+    return atualizarInterno(estado.X, estado.Y, gps.latitude, gps.longitude, true);
+}
+
+const Mapeamento::Dados& Mapeamento::getDados() const {
     return ultimo;
 }
 
-void Mapeamento::printSerial() {
+void Mapeamento::printSerial() const {
     Serial.print("Segmento atual: ");
     Serial.print(ultimo.segmento_atual_nome);
     Serial.print(" [");
@@ -120,9 +120,6 @@ void Mapeamento::printSerial() {
     Serial.println(" m");
 }
 
-// =================================================================
-// MÉTODOS PRIVADOS DE GEOMETRIA
-// =================================================================
 void Mapeamento::calcularGeometria() {
     for (uint8_t i = 0; i < N_PONTOS; i++) {
         latLonParaXY(PONTOS[i].lat, PONTOS[i].lon, pontoX[i], pontoY[i]);
@@ -138,29 +135,28 @@ void Mapeamento::calcularGeometria() {
             ds = COMPRIMENTO_PISTA_M - PONTOS[i].distAcum;
         }
 
-        // Proteção para algum dado corrompido
         if (ds <= 0.01f) {
-            float dx = pontoX[j] - pontoX[i];
-            float dy = pontoY[j] - pontoY[i];
-            ds = sqrtf(dx * dx + dy * dy);
+            ds = 0.01f;
         }
 
         trechoComprimentoS[i] = ds;
     }
 }
 
-void Mapeamento::latLonParaXY(double latitude, double longitude, float& x_m, float& y_m) {
+void Mapeamento::latLonParaXY(double latitude, double longitude, float& x_m, float& y_m) const {
     const double lat0 = PONTOS[0].lat * DEG2RAD;
     const double lon0 = PONTOS[0].lon * DEG2RAD;
 
     const double lat = latitude * DEG2RAD;
     const double lon = longitude * DEG2RAD;
 
-    x_m = static_cast<float>((lon - lon0) * cos(lat0) * RAIO_TERRA_M); // Este
-    y_m = static_cast<float>((lat - lat0) * RAIO_TERRA_M);             // Norte
+    x_m = static_cast<float>((lon - lon0) * cos(lat0) * RAIO_TERRA_M);
+    y_m = static_cast<float>((lat - lat0) * RAIO_TERRA_M);
 }
 
-bool Mapeamento::atualizarInterno(float x_m, float y_m, double latitude, double longitude, bool gpsValido) {
+bool Mapeamento::atualizarInterno(float x_m, float y_m,
+                                  double latitude, double longitude,
+                                  bool gpsValido) {
     float melhorD2 = FLT_MAX;
     float melhorS = 0.0f;
     int melhorTrecho = -1;
@@ -192,8 +188,8 @@ bool Mapeamento::atualizarInterno(float x_m, float y_m, double latitude, double 
 
         if (d2 < melhorD2) {
             melhorD2 = d2;
-            melhorTrecho = i;
             melhorS = PONTOS[i].distAcum + t * trechoComprimentoS[i];
+            melhorTrecho = i;
         }
     }
 
@@ -233,7 +229,7 @@ bool Mapeamento::atualizarInterno(float x_m, float y_m, double latitude, double 
     return true;
 }
 
-int Mapeamento::acharSegmento(float dist_acum_m) {
+int Mapeamento::acharSegmento(float dist_acum_m) const {
     float s = normalizarDistancia(dist_acum_m);
 
     int idx = 0;
@@ -246,7 +242,7 @@ int Mapeamento::acharSegmento(float dist_acum_m) {
     return idx;
 }
 
-float Mapeamento::normalizarDistancia(float dist_m) {
+float Mapeamento::normalizarDistancia(float dist_m) const {
     while (dist_m < 0.0f) dist_m += COMPRIMENTO_PISTA_M;
     while (dist_m >= COMPRIMENTO_PISTA_M) dist_m -= COMPRIMENTO_PISTA_M;
     return dist_m;
@@ -275,3 +271,4 @@ void Mapeamento::limparDadosInvalidos(double latitude, double longitude) {
     ultimo.distancia_proximo_segmento_m = -1.0f;
     ultimo.indice_trecho_mais_proximo = -1;
 }
+

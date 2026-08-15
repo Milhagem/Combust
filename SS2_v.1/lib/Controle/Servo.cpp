@@ -3,7 +3,7 @@
 // Criamos uma constante para o canal para não ter confusão
 const int CANAL_PWM = 0; 
 
-void Servo::Start_servo() {
+void ServoMotor::Start_servo() {
     // 1. Configura o gerador de PWM no Canal 0 (50Hz, 14 bits)
     ledcSetup(CANAL_PWM, 50, 14); 
     
@@ -14,7 +14,7 @@ void Servo::Start_servo() {
     Escreve_servo(pulsoServo);
 }
 
-void Servo::Escreve_servo(int microssegundos) {
+void ServoMotor::Escreve_servo(int microssegundos) {
    
     if(microssegundos < pulsoMin) microssegundos = pulsoMin;
     if(microssegundos > pulsoMax) microssegundos = pulsoMax; 

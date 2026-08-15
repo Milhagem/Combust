@@ -1,16 +1,12 @@
 #ifndef DISPLAY_HPP
 #define DISPLAY_HPP
 
-#include "Hall.hpp"
-#include "StartStop.hpp"
-
-#include <Arduino.h>
-#include <LiquidCrystal_I2C.h>
 #include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <Arduino.h>
+#include "TENSAO.hpp" // Certifique-se de que o arquivo físico está em MAIÚSCULO, senão mude para "Tensao.hpp"
 
-#include "LM2907.hpp"
-
-#define timeInterval 200
+#define timeInterval 200 // ms
 
 class Display {
     private:

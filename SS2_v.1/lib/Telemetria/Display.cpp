@@ -1,6 +1,6 @@
 #include "Display.hpp"
-
-Hall hall;
+#include "Velocidade.hpp"
+#include "StartStop.hpp" // Adicionado para ler o enum de estados
 
 void Display::iniciaDisplay () {
   this->lcd.init();
@@ -12,32 +12,36 @@ void Display::iniciaDisplay () {
   Wire.setClock(100000);  // Reduz a velocidade do I2C
 }
 
+// CORREÇÃO 1: Alterado o parâmetro para Sensores_motor &sensores
 void Display::mostraTensaoEVel(float velocidade, float tensao){
    if((millis() - timeOld) >= timeInterval){
     this->lcd.setCursor(0,0);
-    this->lcd.print("Acc:   ");
+    this->lcd.print("ace:    ");
     this->lcd.setCursor(5,0);
-    this->lcd.print(hall.getAceleracao()); // Assumindo que este método exista
+    this->lcd.print(Velocidade::getAcelera()); // Assumindo que este método exista
 
     this->lcd.setCursor(0,1);
-    this->lcd.print("Vel:   ");
+    this->lcd.print("Vel:            ");
     this->lcd.setCursor(6,1);
     this->lcd.print(velocidade);
 
     this->lcd.setCursor(0,1);
     this->lcd.setCursor(12,1);
+    // CORREÇÃO 2: Puxando a tensão da classe correta
     this->lcd.print(tensao); 
 
     timeOld = millis();
   }
 }
 
-void Display::atualizaDisplay(float velocidade, int FSMState, float tensao) {
+// CORREÇÃO 3: Alterado o parâmetro para Sensores_motor &sensores
+void Display::atualizaDisplay( float velocidade, int FSMState, float tensao) {
 
   String FSMState_str;
   
   if ((millis() - timeOld) >= timeInterval) {
 
+  // CORREÇÃO 4: Passando o objeto sensores corretamente para a função auxiliar
   mostraTensaoEVel(velocidade, tensao);
 
   switch (FSMState)
@@ -62,9 +66,6 @@ void Display::atualizaDisplay(float velocidade, int FSMState, float tensao) {
       FSMState_str = "estabA";
       break;
 
-    // case StartStop::stateManipulaBorboleta:
-    //   FSMState_str = "manipB";
-    //   break;
 
     case StartStop::stateStart:
       FSMState_str = "iniciou";

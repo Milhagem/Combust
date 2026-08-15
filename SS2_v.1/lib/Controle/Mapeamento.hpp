@@ -1,20 +1,22 @@
-#pragma once
+#ifndef MAPEAMENTO_HPP
+#define MAPEAMENTO_HPP
 
 #include <Arduino.h>
+#include "Filtro_Kalman_Extendido.hpp"
 
 class Mapeamento {
 public:
     struct Dados {
-        bool valido;            // true se a associação com a pista foi calculada
-        bool gpsValido;         // true se latitude/longitude vieram de GPS válido
+        bool valido;
+        bool gpsValido;
 
-        double latitude;        // [graus]
-        double longitude;       // [graus]
+        double latitude;
+        double longitude;
 
-        float x_m;              // posição local Este  [m], referência = ponto 0 da pista
-        float y_m;              // posição local Norte [m], referência = ponto 0 da pista
-        float dist_acum_m;      // distância projetada ao longo da pista [m]
-        float erro_lateral_m;   // distância lateral até a linha central da pista [m]
+        float x_m;
+        float y_m;
+        float dist_acum_m;
+        float erro_lateral_m;
 
         int segmento_atual_id;
         const char* segmento_atual_nome;
@@ -28,39 +30,39 @@ public:
         int indice_trecho_mais_proximo;
     };
 
-    // ── Inicialização ──
-    static void begin();
+    Mapeamento();
 
-    // ── Atualização de Posição ──
-    // Atualiza a posição usando GPS bruto.
-    static bool atualizarGPS(double latitude, double longitude, bool gpsValido = true);
+    bool atualizarGPS(double latitude, double longitude, bool gpsValido = true);
+    bool atualizarXY(float x_m, float y_m);
+    bool atualizarComEKF(const FiltroKalmanExtendido& ekf);
 
-    // Atualiza usando coordenadas locais em metros (X = Este, Y = Norte)
-    static bool atualizarXY(float x_m, float y_m);
+    const Dados& getDados() const;
 
-    // ── Leitura de Dados ──
-    static const Dados& getDados();
-
-    // Debug via Serial
-    static void printSerial();
+    void printSerial() const;
 
 private:
     static constexpr uint8_t N_PONTOS = 25;
     static constexpr uint8_t N_SEGMENTOS = 4;
     static constexpr float COMPRIMENTO_PISTA_M = 129.82f;
 
-    // ── Variáveis Estáticas Globais ──
-    inline static float pontoX[N_PONTOS] = {0};
-    inline static float pontoY[N_PONTOS] = {0};
-    inline static float trechoComprimentoS[N_PONTOS] = {0};
+    float pontoX[N_PONTOS];
+    float pontoY[N_PONTOS];
+    float trechoComprimentoS[N_PONTOS];
 
-    inline static Dados ultimo = {};
+    Dados ultimo;
 
-    // ── Métodos Internos de Cálculo ──
-    static void calcularGeometria();
-    static void latLonParaXY(double latitude, double longitude, float& x_m, float& y_m);
-    static bool atualizarInterno(float x_m, float y_m, double latitude, double longitude, bool gpsValido);
-    static int acharSegmento(float dist_acum_m);
-    static float normalizarDistancia(float dist_m);
-    static void limparDadosInvalidos(double latitude = 0.0, double longitude = 0.0);
+    void calcularGeometria();
+    void latLonParaXY(double latitude, double longitude, float& x_m, float& y_m) const;
+
+    bool atualizarInterno(float x_m, float y_m,
+                          double latitude, double longitude,
+                          bool gpsValido);
+
+    int acharSegmento(float dist_acum_m) const;
+    float normalizarDistancia(float dist_m) const;
+    void limparDadosInvalidos(double latitude = 0.0, double longitude = 0.0);
 };
+
+using Posicao = Mapeamento;
+
+#endif

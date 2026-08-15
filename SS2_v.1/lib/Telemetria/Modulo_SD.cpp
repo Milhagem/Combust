@@ -1,6 +1,7 @@
 #include "Modulo_SD.hpp"
 
-void Modulo_SD::AtivarSD(const char* cabecalho) {
+
+void Gerencia_SD::AtivarSD(const char* cabecalho) {
     pinMode(SD_CS, OUTPUT);
     digitalWrite(SD_CS, HIGH);
     
@@ -11,12 +12,14 @@ void Modulo_SD::AtivarSD(const char* cabecalho) {
         return; 
     }
 
+    
     while (true) {
         snprintf(currentFileName, sizeof(currentFileName), "/log%d.csv", fileNumber);
         if (!SD.exists(currentFileName)) break;
         fileNumber++; 
         yield(); 
     }
+    
     
     File file = SD.open(currentFileName, FILE_WRITE);
     if (file) { 
@@ -29,7 +32,7 @@ void Modulo_SD::AtivarSD(const char* cabecalho) {
     }
 }
 
-void Modulo_SD::salvarTelemetriaNoSD(float* dados, size_t quantidade_dados) {
+void Gerencia_SD::salvarTelemetriaNoSD(float* dados, size_t quantidade_dados) {
     if (!sdOnline) return;
     
     char linha[128] = "";
@@ -69,6 +72,9 @@ void Modulo_SD::salvarTelemetriaNoSD(float* dados, size_t quantidade_dados) {
     }
 }
 
-bool Modulo_SD::getStatus_SD() {
+bool Gerencia_SD::getStatus_sd() {
     return SD.begin(SD_CS);
 }
+
+
+

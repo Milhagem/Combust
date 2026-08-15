@@ -1,15 +1,12 @@
-#include "StartStop.hpp"
 
-Hall hall;
+#include "StartStop.hpp"
 
 int StartStop::tentativasLigar = 0;
 int StartStop::tentativasDesligar = 0;  
 bool StartStop::inicioVel = 0;
 float StartStop::tempoInicioVel = 0.0f;
-
-unsigned long StartStop::timerTentativa = 0;
-
 int StartStop::testeBorb = 0;
+unsigned long StartStop::timerTentativa = 0;
 
 void StartStop::Inicializar_sensores_startstop(){
     pinMode(pinFreio, INPUT_PULLUP);
@@ -27,7 +24,7 @@ StartStop::StatesStartStop StartStop::switchOFF () {
 StartStop::StatesStartStop StartStop::switchON () {
     if (digitalRead(switchSS) == HIGH) { return stateDesligaStartStop; }
 
-    if (hall.getVelocidade() >= velocidadeMinima) {
+    if (Velocidade::getVelocidade() >= velocidadeMinima) {
         return stateStop;
     } else { return stateStart; } 
 }
@@ -53,7 +50,7 @@ StartStop::StatesStartStop StartStop::stop (Motor &motor) {
 
     if (motor.analisa_status_motor() == Motor::engineON) { return stateDesligaMotor; }
 
-    if (hall.getVelocidade() > (velocidadeMinima - velocidadeMinima*erroAceitavel)) {
+    if (Velocidade::getVelocidade() > (velocidadeMinima - velocidadeMinima*erroAceitavel)) {
         return stateStop;
     } else { return stateStart; }
 }
@@ -65,12 +62,12 @@ StartStop::StatesStartStop StartStop::estabilizaAcelera (Motor &motor) {
  
     if (motor.analisa_status_motor() == Motor::engineOFF) { return stateStart; }
 
-    if (hall.getVelocidade() >= velocidadeMax) {
+    if (Velocidade::getVelocidade() >= velocidadeMax) {
         return stateStop;
     }
 
    if (modoControle == 1) {
-    BSFC::Controle_RPM(RPMideal, CKP::getRpm(), motor.analisa_status_motor(), Motor::getStatusCentral());
+    BSFC::Controle_RPM(RPMideal, Ckp::getRpm(), motor.analisa_status_motor(), Motor::getStatusCentral());
 } else if (modoControle == 0) {
     BSFC::Controle_TPS(PosBorboIdeal, TPS::getPosBorbo(), motor.analisa_status_motor(), Motor::getStatusCentral());
 }

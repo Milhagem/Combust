@@ -1,8 +1,7 @@
 #pragma once
-
 #include <Arduino.h>
 
-class Servo {
+class ServoMotor {
 private:
     static constexpr uint8_t PIN_SERVO = 47; 
     inline static int pulsoMin = 500;
@@ -10,7 +9,7 @@ private:
     inline static int pulsoServo = 1056;
 
 public:
-    // Variável manipulada remotamente
+    //Variavel manipulada remotamente
     inline static int posInicialServo = 1056;
 
     static void Start_servo();

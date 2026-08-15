@@ -1,58 +1,75 @@
-#pragma once
+#ifndef FILTRO_KALMAN_EXTENDIDO_HPP
+#define FILTRO_KALMAN_EXTENDIDO_HPP
+
 #include <Arduino.h>
 #include <math.h>
+#include <string.h>
 
-#define EKF_N 5  // Dimensão do vetor de estado: [X, Y, v, theta, omega_bias]
+#define EKF_N 5
 
-class Filtro_Kalman_Extendido {
-private:
-    // ── Estado e Covariância ───────────────────────────────
-    inline static float x[EKF_N] = {0};         // Vetor de estado
-    inline static float P[EKF_N * EKF_N] = {0}; // Matriz de covariância
-    inline static float Q_diag[EKF_N] = {0};    // Ruído de processo (Q)
-    
-    // ── Ruídos de Medição (R) ──────────────────────────────
-    inline static float R_gps_pos = 4.0f;       // GPS [m²]
-    inline static float R_hall = 0.04f;         // Sensor Hall [(m/s)²]
-    inline static float R_gps_heading = 0.1f;   // Heading via GPS (quando em movimento)
-    
-    // ── Variáveis de Controle e Referência ─────────────────
-    inline static bool gps_ref_set = false;
-    inline static double ref_lat = 0.0;
-    inline static double ref_lon = 0.0;
-    inline static unsigned long last_us = 0;
-    
-    inline static float last_ax = 0.0f;
-    inline static bool veiculo_parado = false;  // Flag Start-Stop
-
-    // ── Funções Matemáticas Internas ───────────────────────
-    static float wrapAngle(float a);
-    static void updateScalar(const float H[EKF_N], float innov, float R);
-    static void gpsToLocal(double lat, double lon, float &X, float &Y);
-
+class FiltroKalmanExtendido {
 public:
-    // ── Inicialização ──────────────────────────────────────
-    static void begin();
+    struct Estado {
+        float X;
+        float Y;
+        float v;
+        float theta;
+        float omega_bias;
+        float ax;
+    };
 
-    // ── Ciclo Principal (Predição + Sensores Rápidos) ──────
-    static void predict(float ax, float omega_z, float dt);
-    static void updateHall(float speed_hall);
-    
-    // ── Atualização Lenta (GPS) ────────────────────────────
-    static void updateGPS(double lat, double lon, float gps_speed, float gps_course);
+    struct DadosGPS {
+        bool valido;
+        double latitude;
+        double longitude;
+        float x_m;
+        float y_m;
+    };
 
-    // ── Start-Stop Lógica ──────────────────────────────────
-    static void setVeiculoParado(bool parado);
+    FiltroKalmanExtendido();
 
-    // ── Getters ────────────────────────────────────────────
-    static float getX() { return x[0]; }
-    static float getY() { return x[1]; }
-    static float getV() { return x[2]; }
-    static float getTheta() { return x[3]; }
-    static float getOmegaBias() { return x[4]; }
+    void init();
 
-    // ── Sintonia em Tempo de Execução (Telemetria) ─────────
-    static void setQ(int idx, float val);
-    static void setR(const char* sensor, float val);
+    void atualizarIMU(float theta_mag, float omega_z, float ax, float speed_hall);
+    void atualizarGPS(double lat, double lon);
+
+    Estado getEstado() const;
+    DadosGPS getUltimaPosicaoGPS() const;
+    void printSerial() const;
+
+    void setQ(int idx, float val);
+    void setR(const char *sensor, float val);
+
+private:
+    float x[EKF_N];
+    float P[EKF_N * EKF_N];
+    float Q_diag[EKF_N];
+
+    float R_mag;
+    float R_gps_pos;
+    float R_hall;
+
+    bool gps_ref_set;
+    double ref_lat;
+    double ref_lon;
+    unsigned long last_us;
+
+    bool gps_valid;
+    double last_latitude;
+    double last_longitude;
+    float last_gps_x_m;
+    float last_gps_y_m;
+    float last_ax;
+
+    void prever(float ax, float omega_z, float dt);
+    void atualizarHeading(float theta_mag);
+    void atualizarVelocidadeRoda(float speed_hall);
+    void atualizarPosicaoGPS(float gX, float gY);
+    void updateScalar(const float H[EKF_N], float innov, float R);
+    void gpsToLocal(double lat, double lon, float &X, float &Y) const;
+    static float wrapAngle(float a);
 };
 
+using VehicleEKF = FiltroKalmanExtendido;
+
+#endif

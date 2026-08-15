@@ -1,12 +1,11 @@
 #ifndef STARTSTOP_HPP
 #define STARTSTOP_HPP
 
-#include "BSFC.hpp"
+#include "Motor.hpp" 
 #include "Display.hpp"
-#include "Hall.hpp"
-#include "Motor.hpp"
-
 #include "Arduino.h"
+#include "BSFC.hpp"
+#include "Velocidade.hpp"
 
 #define erroAceitavel 0.1
 
@@ -22,9 +21,12 @@
 #define tempoIncrementoIdealMin 300
 #define tempoIncrementoIdeal 400
 
+
+
 class StartStop {
 public:
-    // Variáveis manipuláveis
+
+    //Variaveis manipulaveis
     inline static float velocidadeMinima = 8.0f;      // Km/h
     inline static float velocidadeMax = 20.0f;      // Km/h
     inline static float RPMideal = 3500.0f;
@@ -42,12 +44,14 @@ public:
         stateFreando              = 7,
         stateDesligaStartStop     = 8,
         stateNotLigou             = 9,
-        stateNotDesligou          = 10,  
+        stateNotDesligou          = 10,
+         
     };
 
     static StatesStartStop switchOFF ();
 
     static StatesStartStop switchON (); 
+
 
     static StatesStartStop ligaMotorSS (Motor &motor, Display &display);
     static StatesStartStop desligaMotorSS (Motor &motor, Display &display);
@@ -59,16 +63,19 @@ public:
     static StatesStartStop notDesligou (Display &display);
     static StatesStartStop desligaStartStop (Motor &motor, Display &display);
 
-    static void Inicializar_sensores_startstop();
+
+static void Inicializar_sensores_startstop();
 
 private:
+
     static int tentativasLigar;
     static int tentativasDesligar;
     static bool inicioVel;
     static float tempoInicioVel;
     
-    // Mudar isso aqui abaixo não sei pq
+   // Mudar isso aqui abaixo não sei pq
     static unsigned long timerTentativa;
+
 
     static int testeBorb;
 };

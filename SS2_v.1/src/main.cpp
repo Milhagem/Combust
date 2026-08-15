@@ -1,29 +1,27 @@
-#include "BSFC.hpp"
-#include "Callback.hpp"
-#include "CKP.hpp"
-#include "Display.hpp"
-#include "Gerenciador_WiFi.hpp" 
-#include "Hall.hpp"
-#include "Lambda.hpp"
-#include "LM2907.hpp" 
-#include "MAP.hpp"
-#include "Modulo_SD.hpp"
-#include "Motor.hpp"
-#include "MQTT.hpp"
-#include "Servo.hpp"
-#include "StartStop.hpp"
-#include "TPS.hpp"
-
 #include <Arduino.h>
+#include "Motor.hpp" 
+#include "Ckp.hpp"
+#include "Lambda.hpp"
+#include "Map.hpp"
+#include "TPS.hpp"
+#include "TENSAO.hpp" 
+#include "Display.hpp"
+#include "Velocidade.hpp"
+#include "StartStop.hpp"
+#include "BSFC.hpp"
+#include "Servo.hpp"
+#include "wifi.hpp" 
+#include "Modulo_SD.hpp"
+#include "MQTT.hpp"
+#include "Callback.hpp"
 
 
 
-Display display;
-Gerenciador_WiFi wifi;
-Hall hall;
-Modulo_SD sd;
 Motor motor;
-MQTT mqtt;
+Display display;
+Gerencia_wifi wifi;
+Gerencia_SD sd;
+Gerenciador_MQTT mqtt;
 
 
 
@@ -33,33 +31,34 @@ unsigned long timerTelemetria = 0;
 void setup() {
     Serial.begin(115200);
     delay(2000); // Dá tempo para abrir o monitor serial com calma
+
     Serial.println(">>> 1. INICIANDO SETUP...");
-    
     Callback::carregarParametrosIniciais(); 
-    Serial.println(">>> 2. CARREGOU MEMORIA NVS.");
     
+    Serial.println(">>> 2. CARREGOU MEMORIA NVS.");
     Motor::Parametros_setup_controle_e_sensores_motor(); 
+    
     // Se o log travar aqui, o culpado é o pino da interrupção (ruído ou conflito de hardware)
     Serial.println(">>> 3. MOTOR/CKP INICIALIZADO.");
-    
     StartStop::Inicializar_sensores_startstop(); 
+    
     // Se o log travar aqui, o culpado está dentro do StartStop
     Serial.println(">>> 4. START-STOP INICIALIZADO.");
+    Velocidade::Inicializar_setup_sensores_velocidade();
     
-    // Velocidade::Inicializar_setup_sensores_velocidade();
     Serial.println(">>> 5. VELOCIDADE INICIALIZADA.");
+    ServoMotor::Start_servo(); 
     
-    Servo::Start_servo(); 
     Serial.println(">>> 6. SERVO INICIALIZADO.");
-    
     display.iniciaDisplay();
+    
     // Se o log travar aqui, é o LCD I2C travando o barramento
     Serial.println(">>> 7. DISPLAY INICIALIZADO.");
-    
     wifi.conectar_WiFi();
-    Serial.println(">>> 8. WIFI CONECTADO.");
     
+    Serial.println(">>> 8. WIFI CONECTADO.");
     mqtt.conectar_mqtt();
+    
     Serial.println(">>> 9. MQTT CONECTADO.");
     mqtt.iniciarTaskMQTT();
     
@@ -74,16 +73,16 @@ void loop() {
 
     
 
-    CKP::analisaRPM(); 
+    Ckp::analisaRPM(); 
 
     if (millis() - timerSensores >= 20) {
         timerSensores = millis();
         Motor::analisa_sensores_motor(); 
     }
 
+
      if (millis() - timerDisplay >= 500) {
-      hall.update();
-      display.atualizaDisplay(hall.getVelocidade(), FSMstate, LM2907::getTensao());
+       display.atualizaDisplay(Velocidade::calculaVelocidade(), FSMstate, Tensao::getTensao());
     }
 
     // ==========================================
@@ -93,22 +92,22 @@ void loop() {
         timerTelemetria = millis();
         
         // --- DEBUG SERIAL ---
-        Serial.print("RPM: "); Serial.print(CKP::getRpm());
+        Serial.print("RPM: "); Serial.print(Ckp::getRpm());
         Serial.print(" | TPS: "); Serial.print(TPS::getPosBorbo());
-        Serial.print(" | MAP: "); Serial.print(MAP::getMap());
+        Serial.print(" | MAP: "); Serial.print(Map::getMap());
         Serial.print(" | Lambda: "); Serial.print(Lambda::analisaLambda());
-        Serial.print(" | Tensão ckp: "); Serial.println(LM2907::analisaTensao());
-        Serial.print(" | RPM: "); Serial.println(hall.getRPM());
+        Serial.print(" | Tensão ckp: "); Serial.println(Tensao::analisaTensao());
+        Serial.print(" | RPM: "); Serial.println(Velocidade::getRPM());
         
         // Enpacotamento dos dados, Os primeiros são gravado no sd
         float dados_envio[] = {
-            CKP::getRpm(), 
-            hall.getVelocidade(), 
-            hall.getAceleracao(),
-            MAP::getMap(),
+            Ckp::getRpm(), 
+            Velocidade::getVelocidade(), 
+            Velocidade::getAcelera(),
+            Map::getMap(),
             TPS::getPosBorbo(),
             Lambda::getLambda(),
-            Servo::getPulsoAtual(),
+            ServoMotor::getPulsoAtual(),
             (float)FSMstate 
         };
         const char* nomes_dados[] = {"rpm", "vel", "acel", "map", "tps", "lambda","servo_atual","fsm"};

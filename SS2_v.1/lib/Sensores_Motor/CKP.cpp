@@ -1,12 +1,12 @@
-#include "CKP.hpp" 
+#include "Ckp.hpp" 
 
 // =========================================================
 // INICIALIZAÇÃO DO SENSOR
 // =========================================================
-void CKP::Inicializar_setup_sensores_motor() {
-    pinMode(pinCKP, INPUT_PULLUP); 
+void Ckp::Inicializar_setup_sensores_motor() {
+    pinMode(SensorCKP, INPUT_PULLUP); 
     
-    attachInterrupt(digitalPinToInterrupt(pinCKP), lerCKP, FALLING);
+    attachInterrupt(digitalPinToInterrupt(SensorCKP), lerCKP, FALLING);
     
     Serial.println("✅ Sensor CKP Iniciado (Hardware HR-Timer 64-bit - 11 Dentes)");
 }
@@ -14,7 +14,7 @@ void CKP::Inicializar_setup_sensores_motor() {
 // =========================================================
 // INTERRUPÇÃO DE HARDWARE (HIGH-RESOLUTION TIMER 64-BIT)
 // =========================================================
-void IRAM_ATTR CKP::lerCKP() {
+void IRAM_ATTR Ckp::lerCKP() {
     // Puxa o relógio absoluto do silício (imune a atrasos de software)
     unsigned long tempoAtualUs = esp_timer_get_time();
     unsigned long deltaT = tempoAtualUs - tempoAnterior;
@@ -52,7 +52,7 @@ void IRAM_ATTR CKP::lerCKP() {
 // =========================================================
 // LEITURA DOS SENSORES (COM FILTRO KALMAN A 50HZ)
 // =========================================================
-float CKP::analisaRPM() {                   
+float Ckp::analisaRPM(){                   
     static unsigned long tempoUltimoFiltro = 0;
 
     // Usa o relógio absoluto também para o timeout suave de parada

@@ -1,15 +1,12 @@
 #pragma once 
-
-#include "CKP.hpp"
-#include "Display.hpp"
-#include "Hall.hpp"
+#include "Velocidade.hpp"
+#include "Ckp.hpp"
 #include "Lambda.hpp"
-#include "LM2907.hpp"
-#include "MAP.hpp"
-#include "Servo.hpp"
+#include "Map.hpp"
 #include "TPS.hpp"
-
+#include "TENSAO.hpp"
 #include <Arduino.h>
+#include "Display.hpp"
 
 class Display;
 
@@ -32,9 +29,10 @@ public:
     inline static int POS_SERVO_FECHADA = 500;
 
 private:
-    static constexpr uint8_t PIN_LIGA_MOTOR = 10;
+    static constexpr uint8_t PIN_LIGA_MOTOR =10;
     static constexpr uint8_t PIN_DESLIGA_MOTOR = 11;
 
+    
     inline static int posServoAtual = POS_SERVO_FECHADA;
 
     inline static bool status_central = false;

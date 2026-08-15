@@ -1,8 +1,7 @@
 #pragma once
-
 #include <Arduino.h>
 
-class Filtro_Kalman {
+class FiltroKalman {
 private:
     float erro_medida;
     float erro_estimativa;
@@ -11,7 +10,7 @@ private:
     bool primeira_leitura;
 
 public:
-    Filtro_Kalman(float k_mea, float k_est, float k_q);
-    void atualizarParametros(float k_mea, float k_est, float k_q);
+    FiltroKalman(float k_mea, float k_est, float k_q);
     float aplicar(float valor_medido);
+    void atualizarParametros(float k_mea, float k_est, float k_q);
 };
