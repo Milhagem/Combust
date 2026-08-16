@@ -6,7 +6,6 @@
 #include "TPS.hpp"
 #include "TENSAO.hpp" 
 #include "Display.hpp"
-#include "Velocidade.hpp"
 #include "StartStop.hpp"
 #include "BSFC.hpp"
 #include "Servo.hpp"
@@ -15,7 +14,12 @@
 #include "MQTT.hpp"
 #include "Callback.hpp"
 
-
+// Sensores de Pista, Navegação e Filtros
+#include "IMU.hpp"
+#include "GPS.hpp"
+#include "Hall.hpp"
+#include "Filtro_Kalman_Extendido.hpp"
+#include "Mapeamento.hpp"
 
 Motor motor;
 Display display;
@@ -23,7 +27,9 @@ Gerencia_wifi wifi;
 Gerencia_SD sd;
 Gerenciador_MQTT mqtt;
 
-
+// Instâncias para Estimação de Estado e Pista
+FiltroKalmanExtendido ekf;
+Mapeamento mapeamento;
 
 StartStop::StatesStartStop FSMstate = StartStop::stateSwitchOFF;
 unsigned long timerTelemetria = 0; 
@@ -44,9 +50,9 @@ void setup() {
     
     // Se o log travar aqui, o culpado está dentro do StartStop
     Serial.println(">>> 4. START-STOP INICIALIZADO.");
-    Velocidade::Inicializar_setup_sensores_velocidade();
+    Hall::Inicializa_Hall();
     
-    Serial.println(">>> 5. VELOCIDADE INICIALIZADA.");
+    Serial.println(">>> 5. SENSOR HALL INICIALIZADO.");
     ServoMotor::Start_servo(); 
     
     Serial.println(">>> 6. SERVO INICIALIZADO.");
@@ -62,6 +68,15 @@ void setup() {
     Serial.println(">>> 9. MQTT CONECTADO.");
     mqtt.iniciarTaskMQTT();
     
+    Serial.println(">>> 10. INICIALIZANDO SENSORES DE PISTA E EKF...");
+    IMU::begin();
+    IMU::calibrarGiroscopio();
+    GPS::begin();
+    ekf.init();
+
+    // Inicialização do SD com cabeçalho completo
+    sd.AtivarSD("Timestamp,RPM,Vel,Acel,MAP,TPS,Lambda,Servo,FSM,EKF_X,EKF_Y,EKF_V,Lat,Lon,ErroLat");
+    
     Serial.println(">>> SETUP COMPLETO COM SUCESSO! <<<");
 }
 
@@ -70,19 +85,41 @@ void loop() {
     static unsigned long timerSensores = 0;
     static unsigned long timerDisplay = 0;
     static unsigned long timerFSM = 0;
+    static unsigned long timerEKF = 0;
 
-    
-
+    // Leitura contínua em tempo real
     Ckp::analisaRPM(); 
+    IMU::update();
+    GPS::update();
+    Hall::update();
 
+    // ==========================================
+    // 0. FUSÃO SENSORIAL E MAPEAMENTO DE PISTA (50Hz - 20ms)
+    // ==========================================
+    if (millis() - timerEKF >= 20) {
+        timerEKF = millis();
+
+        float vel_mps = Hall::getVelocidade() / 3.6f;
+        ekf.atualizarIMU(IMU::getYaw(), IMU::getGyroZ(), IMU::getAccelLongitudinal(), vel_mps);
+
+        if (GPS::getLatitude() != 0.0f && GPS::getLongitude() != 0.0f) {
+            ekf.atualizarGPS(GPS::getLatitude(), GPS::getLongitude());
+        }
+
+        mapeamento.atualizarComEKF(ekf);
+    }
+
+    // ==========================================
+    // 1. SENSORES DO MOTOR (20ms)
+    // ==========================================
     if (millis() - timerSensores >= 20) {
         timerSensores = millis();
         Motor::analisa_sensores_motor(); 
     }
 
-
-     if (millis() - timerDisplay >= 500) {
-       display.atualizaDisplay(Velocidade::calculaVelocidade(), FSMstate, Tensao::getTensao());
+    if (millis() - timerDisplay >= 500) {
+        timerDisplay = millis();
+        display.atualizaDisplay(Hall::getVelocidade(), FSMstate, Tensao::getTensao());
     }
 
     // ==========================================
@@ -95,85 +132,103 @@ void loop() {
         Serial.print("RPM: "); Serial.print(Ckp::getRpm());
         Serial.print(" | TPS: "); Serial.print(TPS::getPosBorbo());
         Serial.print(" | MAP: "); Serial.print(Map::getMap());
-        Serial.print(" | Lambda: "); Serial.print(Lambda::analisaLambda());
-        Serial.print(" | Tensão ckp: "); Serial.println(Tensao::analisaTensao());
-        Serial.print(" | RPM: "); Serial.println(Velocidade::getRPM());
+        Serial.print(" | Lambda: "); Serial.print(Lambda::getLambda());
+        Serial.print(" | Tensão: "); Serial.println(Tensao::getTensao());
+        Serial.print(" | RPM Hall: "); Serial.println(Hall::getRPM());
         
-        // Enpacotamento dos dados, Os primeiros são gravado no sd
+        // Captura o estado atual do EKF e do Mapeamento
+        FiltroKalmanExtendido::Estado estadoEKF = ekf.getEstado();
+        Mapeamento::Dados dadosMapeamento = mapeamento.getDados();
+
+        // Empacotamento completo dos dados numéricos
         float dados_envio[] = {
             Ckp::getRpm(), 
-            Velocidade::getVelocidade(), 
-            Velocidade::getAcelera(),
+            Hall::getVelocidade(), 
+            Hall::getAceleracao(),
             Map::getMap(),
             TPS::getPosBorbo(),
             Lambda::getLambda(),
-            ServoMotor::getPulsoAtual(),
-            (float)FSMstate 
+            (float)ServoMotor::getPulsoAtual(),
+            (float)FSMstate,
+            estadoEKF.X,
+            estadoEKF.Y,
+            estadoEKF.v,
+            GPS::getLatitude(),
+            GPS::getLongitude(),
+            dadosMapeamento.erro_lateral_m
         };
-        const char* nomes_dados[] = {"rpm", "vel", "acel", "map", "tps", "lambda","servo_atual","fsm"};
         
-        // Salva no SD (Lote de 20 linhas gerenciado pela classe)
-        sd.salvarTelemetriaNoSD(dados_envio, 6);
+        const char* nomes_dados[] = {
+            "rpm", "vel", "acel", "map", "tps", "lambda",
+            "servo_atual", "fsm", "ekf_x", "ekf_y", "ekf_v",
+            "lat", "lon", "erro_lat"
+        };
         
-        // Manda pro MQTT
-        mqtt.publicar_telemetria(dados_envio, nomes_dados, 8, "ricardofonsecaj123@gmail.com/telemetria");
+        size_t total_dados = sizeof(dados_envio) / sizeof(dados_envio[0]);
+        
+        // Salva TODOS os dados numéricos no SD
+        sd.salvarTelemetriaNoSD(dados_envio, total_dados);
+        
+        // Publica os dados numéricos de telemetria
+        mqtt.publicar_telemetria(dados_envio, nomes_dados, total_dados, "ricardofonsecaj123@gmail.com/telemetria");
+
+        // Publica os dados detalhados de posição e mapeamento (incluindo strings de segmentos)
+        mqtt.publicar_posicao(dadosMapeamento, estadoEKF, "ricardofonsecaj123@gmail.com/posicao");
     }
 
     // ==========================================
     // 3. MÁQUINA DE ESTADOS PRINCIPAL a 100hz
     // ==========================================
-    
     if (millis() - timerFSM >= 10) { // Garante o dt fixo de 10ms
         timerFSM = millis();
-    switch (FSMstate) {
-        case StartStop::stateSwitchOFF:
-            FSMstate = StartStop::switchOFF();
-            break;
-            
-        case StartStop::stateSwitchON:
-            FSMstate = StartStop::switchON();
-            break;
-            
-        case StartStop::stateLigaMotor:
-            FSMstate = StartStop::ligaMotorSS(motor, display);
-            break;
-            
-        case StartStop::stateDesligaMotor:
-            FSMstate = StartStop::desligaMotorSS(motor, display);
-            break;
-            
-        case StartStop::stateEstabilizaAcelera:
-            FSMstate = StartStop::estabilizaAcelera(motor); // CORRIGIDO: Removidos parâmetros excedentes
-            break;
-            
-        case StartStop::stateStart:
-            FSMstate = StartStop::start(motor);
-            break;
-            
-        case StartStop::stateStop:
-            FSMstate = StartStop::stop(motor);
-            break;
-            
-        case StartStop::stateFreando:
-            FSMstate = StartStop::freando();
-            break;
-            
-        case StartStop::stateDesligaStartStop:
-            FSMstate = StartStop::desligaStartStop(motor, display);
-            break;
-            
-        case StartStop::stateNotLigou:
-            FSMstate = StartStop::notLigou(display);
-            break;
-            
-        case StartStop::stateNotDesligou:    
-            FSMstate = StartStop::notDesligou(display);
-            break;
-            
-        default:
-            FSMstate = StartStop::stateDesligaStartStop;
-            break;
+        switch (FSMstate) {
+            case StartStop::stateSwitchOFF:
+                FSMstate = StartStop::switchOFF();
+                break;
+                
+            case StartStop::stateSwitchON:
+                FSMstate = StartStop::switchON();
+                break;
+                
+            case StartStop::stateLigaMotor:
+                FSMstate = StartStop::ligaMotorSS(motor, display);
+                break;
+                
+            case StartStop::stateDesligaMotor:
+                FSMstate = StartStop::desligaMotorSS(motor, display);
+                break;
+                
+            case StartStop::stateEstabilizaAcelera:
+                FSMstate = StartStop::estabilizaAcelera(motor);
+                break;
+                
+            case StartStop::stateStart:
+                FSMstate = StartStop::start(motor);
+                break;
+                
+            case StartStop::stateStop:
+                FSMstate = StartStop::stop(motor);
+                break;
+                
+            case StartStop::stateFreando:
+                FSMstate = StartStop::freando();
+                break;
+                
+            case StartStop::stateDesligaStartStop:
+                FSMstate = StartStop::desligaStartStop(motor, display);
+                break;
+                
+            case StartStop::stateNotLigou:
+                FSMstate = StartStop::notLigou(display);
+                break;
+                
+            case StartStop::stateNotDesligou:    
+                FSMstate = StartStop::notDesligou(display);
+                break;
+                
+            default:
+                FSMstate = StartStop::stateDesligaStartStop;
+                break;
+        }
     }
-      
-}
 }
