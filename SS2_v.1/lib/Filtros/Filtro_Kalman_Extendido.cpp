@@ -63,7 +63,7 @@ void FiltroKalmanExtendido::setR(const char *sensor, float val) {
     }
 }
 
-void FiltroKalmanExtendido::atualizarIMU(float theta_mag, float omega_z, float ax, float speed_hall) {
+void FiltroKalmanExtendido::atualizarIMU(float omega_z, float ax, float speed_hall) {
     unsigned long now = micros();
     float dt = (now - last_us) * 1e-6f;
     last_us = now;
@@ -73,7 +73,6 @@ void FiltroKalmanExtendido::atualizarIMU(float theta_mag, float omega_z, float a
     last_ax = ax;
 
     prever(ax, omega_z, dt);
-    atualizarHeading(theta_mag);
     atualizarVelocidadeRoda(speed_hall);
 }
 

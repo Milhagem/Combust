@@ -30,7 +30,7 @@ public:
 
     void init();
 
-    void atualizarIMU(float theta_mag, float omega_z, float ax, float speed_hall);
+    void atualizarIMU(float omega_z, float ax, float speed_hall);
     void atualizarGPS(double lat, double lon);
 
     Estado getEstado() const;

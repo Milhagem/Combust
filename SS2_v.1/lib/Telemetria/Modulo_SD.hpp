@@ -3,10 +3,10 @@
 #include <SPI.h>
 #include <FS.h>
 
-#define SD_MISO 11
-#define SD_MOSI 18
-#define SD_SCK  13
-#define SD_CS   14
+#define SD_MISO 12
+#define SD_MOSI 13
+#define SD_SCK  14
+#define SD_CS   4
 
 class Gerencia_SD {
     private:

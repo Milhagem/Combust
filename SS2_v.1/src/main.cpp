@@ -100,7 +100,8 @@ void loop() {
         timerEKF = millis();
 
         float vel_mps = Hall::getVelocidade() / 3.6f;
-        ekf.atualizarIMU(IMU::getYaw(), IMU::getGyroZ(), IMU::getAccelLongitudinal(), vel_mps);
+        
+        ekf.atualizarIMU(IMU::getGyroZ(), IMU::getAccelLongitudinal(), vel_mps);
 
         if (GPS::getLatitude() != 0.0f && GPS::getLongitude() != 0.0f) {
             ekf.atualizarGPS(GPS::getLatitude(), GPS::getLongitude());

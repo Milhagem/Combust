@@ -1,6 +1,5 @@
 #include "Modulo_SD.hpp"
 
-
 void Gerencia_SD::AtivarSD(const char* cabecalho) {
     pinMode(SD_CS, OUTPUT);
     digitalWrite(SD_CS, HIGH);
@@ -11,20 +10,26 @@ void Gerencia_SD::AtivarSD(const char* cabecalho) {
         sdOnline = false; 
         return; 
     }
-
     
     while (true) {
         snprintf(currentFileName, sizeof(currentFileName), "/log%d.csv", fileNumber);
         if (!SD.exists(currentFileName)) break;
+        
         fileNumber++; 
+        
+        // CORREÇÃO: Limite de segurança para evitar loop infinito e travamento do ESP32
+        if (fileNumber > 1000) {
+            Serial.println("⚠️ ERRO: Limite de 1000 arquivos atingido ou SD corrompido!");
+            sdOnline = false;
+            return;
+        }
+        
         yield(); 
     }
     
-    
     File file = SD.open(currentFileName, FILE_WRITE);
     if (file) { 
-
-        file.println(cabecalho); //Para plotar o grafico de forma altomático deve preencher esse cabecalho com os nomes das variaveis que serão gravadas no SD, separados por vírgula.
+        file.println(cabecalho); 
         file.close(); 
         sdOnline = true; 
     } else { 
@@ -75,6 +80,3 @@ void Gerencia_SD::salvarTelemetriaNoSD(float* dados, size_t quantidade_dados) {
 bool Gerencia_SD::getStatus_sd() {
     return SD.begin(SD_CS);
 }
-
-
-
