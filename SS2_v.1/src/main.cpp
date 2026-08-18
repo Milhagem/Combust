@@ -151,18 +151,14 @@ void loop() {
             Lambda::getLambda(),                    // 6. lambda
             (float)ServoMotor::getPulsoAtual(),     // 7. servo_atual
             (float)FSMstate,                        // 8. fsm
-            estadoEKF.X,                            // 9. ekf_x
-            estadoEKF.Y,                            // 10. ekf_y
-            estadoEKF.v,                            // 11. ekf_v
             GPS::getLatitude(),                     // 12. lat
             GPS::getLongitude(),                    // 13. lon
-            dadosMapeamento.erro_lateral_m          // 14. erro_lat
+
         };
         
         const char* nomes_dados[] = {
             "rpm", "vel", "acel", "map", "tps", "lambda",
-            "servo_atual", "fsm", "ekf_x", "ekf_y", "ekf_v",
-            "lat", "lon", "erro_lat"
+            "servo_atual", "fsm", "lat", "lon"
         };
         
         size_t total_dados = sizeof(dados_envio) / sizeof(dados_envio[0]);
