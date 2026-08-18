@@ -47,4 +47,5 @@ class Gerenciador_MQTT {
     void iniciarTaskMQTT();// teste
     void publicar_telemetria(float* dados,const char** Nome_dados,size_t quantidade_dados, const char* topico);
     void publicar_posicao(const Mapeamento::Dados& dados, const FiltroKalmanExtendido::Estado& estado, const char* topico);
+    void publicar_estado_ekf(const FiltroKalmanExtendido::Estado& estado, double latRaw, double lonRaw, bool gpsValido, const char* topico = "milhagem/ekf/state");
     };       

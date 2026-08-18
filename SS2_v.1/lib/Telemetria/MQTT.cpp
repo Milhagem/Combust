@@ -89,10 +89,7 @@ void Gerenciador_MQTT::publicar_posicao(const Mapeamento::Dados& dados, const Fi
             doc["distancia_proximo_segmento_m"] = dados.distancia_proximo_segmento_m;
             doc["dist_acum_m"] = dados.dist_acum_m;
             doc["erro_lateral_m"] = dados.erro_lateral_m;
-            doc["ekf_x_m"] = estado.X;
-            doc["ekf_y_m"] = estado.Y;
-            doc["ekf_v_m_s"] = estado.v;
-            doc["ekf_theta_rad"] = estado.theta;
+            
 
             char payloadMQTT[1024];
             serializeJson(doc, payloadMQTT);
@@ -103,6 +100,38 @@ void Gerenciador_MQTT::publicar_posicao(const Mapeamento::Dados& dados, const Fi
     }
 }
 
+void Gerenciador_MQTT::publicar_estado_ekf(const FiltroKalmanExtendido::Estado& estado, double latRaw, double lonRaw, bool gpsValido, const char* topico) {
+
+    // Tenta assumir o controle do Mutex para não conflitar com a thread do Core 0
+    if (mqttMutex != NULL && xSemaphoreTake(mqttMutex, (TickType_t)20) == pdTRUE) {
+        if (clientMQTT.connected()) {
+            JsonDocument doc;
+            
+            // Variáveis diretas do EKF
+            doc["X"] = estado.X;
+            doc["Y"] = estado.Y;
+            doc["v"] = estado.v;
+            doc["theta"] = estado.theta;
+            doc["theta_deg"] = estado.theta * 57.2957f; // Converte Rad para Graus
+            doc["omega_bias"] = estado.omega_bias;
+            doc["ax"] = estado.ax;
+            
+            // Variáveis do GPS
+            doc["gps_valid"] = gpsValido;
+            // Se o GPS for válido envia os dados brutos, senão envia 0.0
+            doc["lat_raw"] = gpsValido ? latRaw : 0.0;
+            doc["lon_raw"] = gpsValido ? lonRaw : 0.0;
+
+            // Serializa e envia
+            char payloadMQTT[512];
+            serializeJson(doc, payloadMQTT);
+            clientMQTT.publish(topico, payloadMQTT);
+        }
+
+        // Libera o Mutex para o restante do sistema
+        xSemaphoreGive(mqttMutex);
+    }
+}
 // testes
 
 

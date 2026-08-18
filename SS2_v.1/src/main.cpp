@@ -141,22 +141,22 @@ void loop() {
         FiltroKalmanExtendido::Estado estadoEKF = ekf.getEstado();
         Mapeamento::Dados dadosMapeamento = mapeamento.getDados();
 
-        // Empacotamento completo dos dados numéricos
+        // Empacotamento completo dos dados numéricos (Corrigido para 14 itens)
         float dados_envio[] = {
-            Ckp::getRpm(), 
-            Hall::getVelocidade(), 
-            Hall::getAceleracao(),
-            Map::getMap(),
-            TPS::getPosBorbo(),
-            Lambda::getLambda(),
-            (float)ServoMotor::getPulsoAtual(),
-            (float)FSMstate,
-            estadoEKF.X,
-            estadoEKF.Y,
-            estadoEKF.v,
-            GPS::getLatitude(),
-            GPS::getLongitude(),
-            dadosMapeamento.erro_lateral_m
+            Ckp::getRpm(),                           // 1. rpm
+            Hall::getVelocidade(),                  // 2. vel
+            Hall::getAceleracao(),                  // 3. acel
+            Map::getMap(),                          // 4. map
+            TPS::getPosBorbo(),                     // 5. tps
+            Lambda::getLambda(),                    // 6. lambda
+            (float)ServoMotor::getPulsoAtual(),     // 7. servo_atual
+            (float)FSMstate,                        // 8. fsm
+            estadoEKF.X,                            // 9. ekf_x
+            estadoEKF.Y,                            // 10. ekf_y
+            estadoEKF.v,                            // 11. ekf_v
+            GPS::getLatitude(),                     // 12. lat
+            GPS::getLongitude(),                    // 13. lon
+            dadosMapeamento.erro_lateral_m          // 14. erro_lat
         };
         
         const char* nomes_dados[] = {
@@ -175,6 +175,10 @@ void loop() {
 
         // Publica os dados detalhados de posição e mapeamento (incluindo strings de segmentos)
         mqtt.publicar_posicao(dadosMapeamento, estadoEKF, "ricardofonsecaj123@gmail.com/posicao");
+
+        // Publica o estado bruto do EKF (tópico: "milhagem/ekf/state")
+        bool gpsValido = (GPS::getLatitude() != 0.0f && GPS::getLongitude() != 0.0f);
+        mqtt.publicar_estado_ekf(estadoEKF, GPS::getLatitude(), GPS::getLongitude(), gpsValido);
     }
 
     // ==========================================
