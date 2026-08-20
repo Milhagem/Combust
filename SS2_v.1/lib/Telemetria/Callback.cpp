@@ -1,4 +1,8 @@
 #include "Callback.hpp"
+#include "Filtro_Kalman_Extendido.hpp" // Header oficial do Filtro de Kalman Estendido
+
+// Instância global do Filtro de Kalman Estendido declarada no código principal (main/setup)
+extern FiltroKalmanExtendido ekf;
 
 void Callback::carregarParametrosIniciais() {
     Preferences pref;
@@ -26,13 +30,13 @@ void Callback::processarMensagem(byte* payload, unsigned int length, PubSubClien
         return; 
     }
 
+    // ==========================================
+    // 3. PARÂMETROS DO MOTOR E START-STOP (Lógica Original)
+    // ==========================================
     Preferences pref;
     pref.begin("configMotor", false);
     bool alterou = false;
 
-    // ==========================================
-    // 1. PARÂMETROS DO START-STOP (Usando .is<T>() da v7)
-    // ==========================================
     if (doc["vel_min"].is<float>()) { 
         float v = doc["vel_min"].as<float>(); 
         if (v != StartStop::velocidadeMinima) { StartStop::velocidadeMinima = v; pref.putFloat("vel_min", v); alterou = true; } 
@@ -54,17 +58,11 @@ void Callback::processarMensagem(byte* payload, unsigned int length, PubSubClien
         if (v != StartStop::modoControle) { StartStop::modoControle = v; pref.putInt("modo_ctrl", v); alterou = true; } 
     }
 
-    // ==========================================
-    // 2. PARÂMETRO DO SERVO
-    // ==========================================
     if (doc["pos_ini"].is<int>()) { 
         int v = doc["pos_ini"].as<int>(); 
         if (v != ServoMotor::posInicialServo) { ServoMotor::posInicialServo = v; pref.putInt("pos_ini", v); alterou = true; } 
     }
 
-    // ==========================================
-    // 3. PARÂMETROS DO MOTOR
-    // ==========================================
     if (doc["pos_partida"].is<int>()) { 
         int v = doc["pos_partida"].as<int>(); 
         if (v != Motor::POS_SERVO_PARTIDA) { Motor::POS_SERVO_PARTIDA = v; pref.putInt("pos_partida", v); alterou = true; } 
@@ -77,7 +75,7 @@ void Callback::processarMensagem(byte* payload, unsigned int length, PubSubClien
     pref.end();
 
     // ==========================================
-    // 4. CONSTRUÇÃO DO FEEDBACK
+    // 4. CONSTRUÇÃO DO FEEDBACK DO MOTOR
     // ==========================================
     const char* statusStr = alterou ? "OK_ATUALIZADO" : "SEM_ALTERACOES";
     

@@ -170,7 +170,7 @@ void loop() {
         mqtt.publicar_telemetria(dados_envio, nomes_dados, total_dados, "ricardofonsecaj123@gmail.com/telemetria");
 
         // Publica os dados detalhados de posição e mapeamento (incluindo strings de segmentos)
-        mqtt.publicar_posicao(dadosMapeamento, estadoEKF, "ricardofonsecaj123@gmail.com/posicao");
+        mqtt.publicar_posicao(dadosMapeamento, estadoEKF, "ricardofonsecaj123@gmail.com/telemetria");
 
         // Publica o estado bruto do EKF (tópico: "milhagem/ekf/state")
         bool gpsValido = (GPS::getLatitude() != 0.0f && GPS::getLongitude() != 0.0f);
