@@ -40,12 +40,18 @@ public:
     void setQ(int idx, float val);
     void setR(const char *sensor, float val);
 
+    // ===================================
+    // GETTERS PARA O CALLBACK MQTT
+    // ===================================
+    float getQ(int idx) const;
+    float getR(const char *sensor) const;
+
 private:
     float x[EKF_N];
     float P[EKF_N * EKF_N];
     float Q_diag[EKF_N];
 
-    float R_mag;
+    // R_mag removido
     float R_gps_pos;
     float R_hall;
 
@@ -62,7 +68,7 @@ private:
     float last_ax;
 
     void prever(float ax, float omega_z, float dt);
-    void atualizarHeading(float theta_mag);
+    // atualizarHeading removido
     void atualizarVelocidadeRoda(float speed_hall);
     void atualizarPosicaoGPS(float gX, float gY);
     void updateScalar(const float H[EKF_N], float innov, float R);

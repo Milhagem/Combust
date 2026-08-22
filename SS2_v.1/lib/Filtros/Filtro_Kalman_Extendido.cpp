@@ -33,7 +33,7 @@ void FiltroKalmanExtendido::init() {
     };
     memcpy(Q_diag, Qd, sizeof(Qd));
 
-    R_mag = 0.05f;
+    // Removido R_mag
     R_gps_pos = 4.0f;
     R_hall = 0.04f;
 
@@ -54,13 +54,30 @@ void FiltroKalmanExtendido::setQ(int idx, float val) {
 }
 
 void FiltroKalmanExtendido::setR(const char *sensor, float val) {
-    if (strcmp(sensor, "mag") == 0) {
-        R_mag = val;
-    } else if (strcmp(sensor, "gps_pos") == 0) {
+    if (strcmp(sensor, "gps_pos") == 0) {
         R_gps_pos = val;
     } else if (strcmp(sensor, "hall") == 0) {
         R_hall = val;
     }
+}
+
+// =========================================================
+// NOVOS GETTERS PARA O CALLBACK MQTT
+// =========================================================
+float FiltroKalmanExtendido::getQ(int idx) const {
+    if (idx >= 0 && idx < EKF_N) {
+        return Q_diag[idx];
+    }
+    return -1.0f; // Valor inválido
+}
+
+float FiltroKalmanExtendido::getR(const char *sensor) const {
+    if (strcmp(sensor, "gps_pos") == 0) {
+        return R_gps_pos;
+    } else if (strcmp(sensor, "hall") == 0) {
+        return R_hall;
+    }
+    return -1.0f; // Valor inválido
 }
 
 void FiltroKalmanExtendido::atualizarIMU(float omega_z, float ax, float speed_hall) {
@@ -196,11 +213,7 @@ void FiltroKalmanExtendido::updateScalar(const float H[EKF_N], float innov, floa
     }
 }
 
-void FiltroKalmanExtendido::atualizarHeading(float theta_mag) {
-    float H[EKF_N] = {0, 0, 0, 1, 0};
-    float innov = wrapAngle(theta_mag - x[3]);
-    updateScalar(H, innov, R_mag);
-}
+// Removida a função atualizarHeading() que utilizava theta_mag
 
 void FiltroKalmanExtendido::atualizarVelocidadeRoda(float speed_hall) {
     if (speed_hall < 0.0f) return;

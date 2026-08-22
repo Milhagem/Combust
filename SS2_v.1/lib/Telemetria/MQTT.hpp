@@ -2,50 +2,42 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
-#include "Mapeamento.hpp"
-#include "Filtro_Kalman_Extendido.hpp"
 
-//teste 
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 
-
 class Gerenciador_MQTT {
   private:
-  const char* mqtt_server = "maqiatto.com";
-  const int mqtt_port = 1883;
-  const char* mqtt_user = "ricardofonsecaj123@gmail.com";
-  const char* mqtt_password = "12345678";
+    const char* mqtt_server = "maqiatto.com";
+    const int mqtt_port = 1883;
+    const char* mqtt_user = "ricardofonsecaj123@gmail.com";
+    const char* mqtt_password = "12345678";
   
+    WiFiClient espClient;
+    PubSubClient clientMQTT;
 
-  WiFiClient espClient;
-  PubSubClient clientMQTT;
+    unsigned long lastReconnectAttempt = 0;
+    bool reconectar(); 
 
-  unsigned long lastReconnectAttempt = 0;
-  bool reconectar(); 
-
-  static Gerenciador_MQTT* instancia;
-  static void callbackRouter(char* topic, byte* payload, unsigned int length);
-  // teste core 2
-  TaskHandle_t mqttTaskHandle;
-  static void taskMQTT(void *pvParameters);
-  SemaphoreHandle_t mqttMutex;
-
+    static Gerenciador_MQTT* instancia;
+    static void callbackRouter(char* topic, byte* payload, unsigned int length);
+    
+    // Threads
+    TaskHandle_t mqttTaskHandle;
+    static void taskMQTT(void *pvParameters);
+    SemaphoreHandle_t mqttMutex;
 
   public:
-
-  const char* topico_telemetria = "ricardofonsecaj123@gmail.com/telemetria";
-  const char* topico_config = "ricardofonsecaj123@gmail.com/config";
-  const char* topico_feedback = "ricardofonsecaj123@gmail.com/feedback"; 
-
+    const char* topico_telemetria = "ricardofonsecaj123@gmail.com/telemetria";
+    const char* topico_config = "ricardofonsecaj123@gmail.com/config";
+    const char* topico_feedback = "ricardofonsecaj123@gmail.com/feedback"; 
 
     bool mqttConnected = false;
     
-
     void Gerenciar_MQTT();
     void conectar_mqtt();
-    void iniciarTaskMQTT();// teste
-    void publicar_telemetria(float* dados,const char** Nome_dados,size_t quantidade_dados, const char* topico);
-    void publicar_posicao(const Mapeamento::Dados& dados, const FiltroKalmanExtendido::Estado& estado, const char* topico);
-    void publicar_estado_ekf(const FiltroKalmanExtendido::Estado& estado, double latRaw, double lonRaw, bool gpsValido, const char* topico = "milhagem/ekf/state");
-    };       
+    void iniciarTaskMQTT();
+    
+    // A NOVA FUNÇÃO GERAL DE ENVIO
+    void publicar_telemetria(const JsonDocument& doc, const char* topico);
+};

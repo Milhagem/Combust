@@ -140,8 +140,11 @@ void loop() {
         // Captura o estado atual do EKF e do Mapeamento
         FiltroKalmanExtendido::Estado estadoEKF = ekf.getEstado();
         Mapeamento::Dados dadosMapeamento = mapeamento.getDados();
+        bool gpsValido = (GPS::getLatitude() != 0.0f && GPS::getLongitude() != 0.0f);
 
-        // Empacotamento completo dos dados numéricos (Corrigido para 14 itens)
+        // ===============================================
+        // PREPARAÇÃO DOS DADOS PARA CARTÃO SD (NUMÉRICOS)
+        // ===============================================
         float dados_envio[] = {
             Ckp::getRpm(),                           // 1. rpm
             Hall::getVelocidade(),                  // 2. vel
@@ -151,14 +154,12 @@ void loop() {
             Lambda::getLambda(),                    // 6. lambda
             (float)ServoMotor::getPulsoAtual(),     // 7. servo_atual
             (float)FSMstate,                        // 8. fsm
+            estadoEKF.X,                            // 9. EKF X
+            estadoEKF.Y,                            // 10. EKF Y
+            estadoEKF.v,                            // 11. EKF v
             GPS::getLatitude(),                     // 12. lat
             GPS::getLongitude(),                    // 13. lon
-
-        };
-        
-        const char* nomes_dados[] = {
-            "rpm", "vel", "acel", "map", "tps", "lambda",
-            "servo_atual", "fsm", "lat", "lon"
+            dadosMapeamento.erro_lateral_m          // 14. erro lateral
         };
         
         size_t total_dados = sizeof(dados_envio) / sizeof(dados_envio[0]);
@@ -166,15 +167,49 @@ void loop() {
         // Salva TODOS os dados numéricos no SD
         sd.salvarTelemetriaNoSD(dados_envio, total_dados);
         
-        // Publica os dados numéricos de telemetria
-        mqtt.publicar_telemetria(dados_envio, nomes_dados, total_dados, "ricardofonsecaj123@gmail.com/telemetria");
+        // ===============================================
+        // PREPARAÇÃO DOS DADOS PARA MQTT (JSON UNIFICADO)
+        // ===============================================
+        JsonDocument doc; 
 
-        // Publica os dados detalhados de posição e mapeamento (incluindo strings de segmentos)
-        mqtt.publicar_posicao(dadosMapeamento, estadoEKF, "ricardofonsecaj123@gmail.com/telemetria");
+        // 1. Variáveis do Motor e StartStop
+        doc["rpm"] = Ckp::getRpm();
+        doc["vel"] = Hall::getVelocidade();
+        doc["acel"] = Hall::getAceleracao();
+        doc["map"] = Map::getMap();
+        doc["tps"] = TPS::getPosBorbo();
+        doc["lambda"] = Lambda::getLambda();
+        doc["tensao"] = Tensao::getTensao();
+        doc["servo_atual"] = ServoMotor::getPulsoAtual();
+        doc["fsm"] = (int)FSMstate;
 
-        // Publica o estado bruto do EKF (tópico: "milhagem/ekf/state")
-        bool gpsValido = (GPS::getLatitude() != 0.0f && GPS::getLongitude() != 0.0f);
-        mqtt.publicar_estado_ekf(estadoEKF, GPS::getLatitude(), GPS::getLongitude(), gpsValido);
+        // 2. Variáveis do EKF
+        doc["ekf_x"] = estadoEKF.X;
+        doc["ekf_y"] = estadoEKF.Y;
+        doc["ekf_v"] = estadoEKF.v;
+        doc["ekf_theta"] = estadoEKF.theta;
+        doc["ekf_theta_deg"] = estadoEKF.theta * 57.2957f;
+        doc["ekf_omega_bias"] = estadoEKF.omega_bias;
+        doc["ekf_ax"] = estadoEKF.ax;
+
+        // 3. Variáveis de Posição / Mapeamento
+        doc["gps_valid"] = gpsValido;
+        doc["lat"] = gpsValido ? GPS::getLatitude() : 0.0;
+        doc["lon"] = gpsValido ? GPS::getLongitude() : 0.0;
+        doc["pos_valida"] = dadosMapeamento.valido;
+        
+        // Operador ternário para evitar ponteiros nulos (Strings no JSON)
+        doc["seg_atual"] = dadosMapeamento.segmento_atual_nome ? dadosMapeamento.segmento_atual_nome : "";
+        doc["tipo_seg_atual"] = dadosMapeamento.tipo_segmento_atual ? dadosMapeamento.tipo_segmento_atual : "";
+        doc["prox_seg"] = dadosMapeamento.proximo_segmento_nome ? dadosMapeamento.proximo_segmento_nome : "";
+        doc["tipo_prox_seg"] = dadosMapeamento.tipo_proximo_segmento ? dadosMapeamento.tipo_proximo_segmento : "";
+        
+        doc["dist_prox_seg"] = dadosMapeamento.distancia_proximo_segmento_m;
+        doc["dist_acum"] = dadosMapeamento.dist_acum_m;
+        doc["erro_lat"] = dadosMapeamento.erro_lateral_m;
+
+        // Envia TODOS os dados unificados na mesma função MQTT (Tópico Telemetria Geral)
+        mqtt.publicar_telemetria(doc, mqtt.topico_telemetria);
     }
 
     // ==========================================
