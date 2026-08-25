@@ -17,7 +17,7 @@ void Gerenciador_MQTT::conectar_mqtt() {
     
    
     clientMQTT.setSocketTimeout(1); 
-    clientMQTT.setBufferSize(512);
+    clientMQTT.setBufferSize(1024);
 }
 
 void Gerenciador_MQTT::callbackRouter(char* topic, byte* payload, unsigned int length) {
@@ -59,22 +59,13 @@ void Gerenciador_MQTT::Gerenciar_MQTT() {
     }
 }
 
-void Gerenciador_MQTT::publicar_telemetria(float* dados, const char** Nome_dados, size_t quantidade_dados, const char* topico) {
-    // esse if é um teste completamtne
-    // Tenta pegar a chave (espera no máximo 20 ticks para não atrapalhar a FSM se estiver ocupado)
+void Gerenciador_MQTT::publicar_telemetria(const JsonDocument& doc, const char* topico) {
     if (mqttMutex != NULL && xSemaphoreTake(mqttMutex, (TickType_t)20) == pdTRUE) {
-        
         if (clientMQTT.connected()) {
-            JsonDocument doc; 
-            for (size_t i = 0; i < quantidade_dados; ++i) {
-                doc[Nome_dados[i]] = dados[i];
-            }
-            char payloadMQTT[512];
+            char payloadMQTT[1024];
             serializeJson(doc, payloadMQTT);
             clientMQTT.publish(topico, payloadMQTT);
         }
-        
-        // Devolve a chave
         xSemaphoreGive(mqttMutex);
     }
 }

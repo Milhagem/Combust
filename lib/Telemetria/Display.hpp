@@ -9,18 +9,22 @@
 #define timeInterval 200 // ms
 
 class Display {
-    private:
-    LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27,16,2); 
+ private:
+    LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27, 16, 2); 
     unsigned int timeOld = 0;
-    
-    // Variável para saber se a tela está respondendo
     bool displayConectado = false; 
     
-    // Função mágica que concerta o mau contato
+    // Variáveis internas para o cronômetro do motor
+    unsigned long timerMotorLigado = 0;
+    bool motorEstavaLigado = false;
+    float tempoTotalLigado = 0.0f;
+
     void autoReparo(); 
 
-    public:
+ public:
     void iniciaDisplay();
+    
+    // Assinatura MANTIDA para não quebrar a sua main.cpp
     void mostraTensaoEVel(float velocidade, float tensao);
     void atualizaDisplay(float velocidade, int FSMState, float tensao);
 };

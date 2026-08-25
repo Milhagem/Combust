@@ -17,12 +17,18 @@
 
 
 
+#include "IMU.hpp"
+#include "GPS.hpp"
+#include "Hall.hpp"
+#include "Filtro_Kalman_Extendido.hpp"
+
 Motor motor;
 Display display;
 Gerencia_wifi wifi;
 Gerencia_SD sd;
 Gerenciador_MQTT mqtt;
 
+FiltroKalmanExtendido ekf;
 
 
 StartStop::StatesStartStop FSMstate = StartStop::stateSwitchOFF;
@@ -62,6 +68,14 @@ void setup() {
     Serial.println(">>> 9. MQTT CONECTADO.");
     mqtt.iniciarTaskMQTT();
     
+    Serial.println(">>> 10. INICIALIZANDO SENSORES DE PISTA E EKF...");
+    IMU::begin();
+    IMU::calibrarGiroscopio();
+    GPS::begin();
+    ekf.init();
+
+   sd.AtivarSD("rpm,vel,acel,map,tps,lambda,servo_atual,fsm,ekf_x,ekf_y,ekf_v,lat,lon");
+
     Serial.println(">>> SETUP COMPLETO COM SUCESSO! <<<");
 }
 
@@ -72,10 +86,30 @@ void loop() {
     static unsigned long timerSensores = 0;
     static unsigned long timerDisplay = 0;
     static unsigned long timerFSM = 0;
+    static unsigned long timerEKF = 0;
 
     
 
-    Ckp::analisaRPM(); 
+    Ckp::analisaRPM();
+    IMU::update();
+    GPS::update();
+    Hall::update(); 
+
+
+
+      if (millis() - timerEKF >= 20) {
+        timerEKF = millis();
+
+        float vel_mps = Hall::getVelocidade() / 3.6f;
+        
+        ekf.atualizarIMU(IMU::getGyroZ(), IMU::getAccelLongitudinal(), vel_mps);
+
+        if (GPS::getLatitude() != 0.0f && GPS::getLongitude() != 0.0f) {
+            ekf.atualizarGPS(GPS::getLatitude(), GPS::getLongitude());
+        }
+
+      }
+
 
     if (millis() - timerSensores >= 20) {
         timerSensores = millis();
@@ -100,6 +134,11 @@ void loop() {
         Serial.print(" | Lambda: "); Serial.print(Lambda::analisaLambda());
         Serial.print(" | Tensão ckp: "); Serial.println(Tensao::analisaTensao());
         Serial.print(" | RPM: "); Serial.println(Velocidade::getRPM());
+
+
+          FiltroKalmanExtendido::Estado estadoEKF = ekf.getEstado();
+
+            bool gpsValido = (GPS::getLatitude() != 0.0f && GPS::getLongitude() != 0.0f);
         
         // Enpacotamento dos dados, Os primeiros são gravado no sd
         float dados_envio[] = {
@@ -110,15 +149,53 @@ void loop() {
             TPS::getPosBorbo(),
             Lambda::getLambda(),
             ServoMotor::getPulsoAtual(),
-            (float)FSMstate 
+            (float)FSMstate,
+            estadoEKF.X,                            // 9. EKF X
+            estadoEKF.Y,                            // 10. EKF Y
+            estadoEKF.v,                            // 11. EKF v
+            GPS::getLatitude(),                     // 12. lat
+            GPS::getLongitude(),                    // 13. lon
+            estadoEKF.theta,
+            estadoEKF.theta * 57.2957f,
+            estadoEKF.omega_bias,
+            estadoEKF.ax
+
+
         };
-        const char* nomes_dados[] = {"rpm", "vel", "acel", "map", "tps", "lambda","servo_atual","fsm"};
+        const char* nomes_dados[] = {"rpm", "vel", "acel", "map", "tps", "lambda","servo_atual","fsm","ekf_x", "ekf_y", "ekf_v", "lat", "lon","ekf_theta", "ekf_theta_deg", "ekf_omega_bias", "ekf_ax"};
         
         // Salva no SD (Lote de 20 linhas gerenciado pela classe)
-        sd.salvarTelemetriaNoSD(dados_envio, 6);
-        
-        // Manda pro MQTT
-        mqtt.publicar_telemetria(dados_envio, nomes_dados, 8, "ricardofonsecaj123@gmail.com/telemetria");
+        sd.salvarTelemetriaNoSD(dados_envio, 17);
+
+          JsonDocument doc; 
+
+        // 1. Variáveis do Motor e StartStop
+        doc["rpm"] = Ckp::getRpm();
+        doc["vel"] = Velocidade::getVelocidade();
+        doc["acel"] = Velocidade::getAcelera();
+        doc["map"] = Map::getMap();
+        doc["tps"] = TPS::getPosBorbo();
+        doc["lambda"] = Lambda::getLambda();
+        doc["tensao"] = Tensao::getTensao();
+        doc["servo_atual"] = ServoMotor::getPulsoAtual();
+        doc["fsm"] = (int)FSMstate;
+
+        // 2. Variáveis do EKF
+        doc["ekf_x"] = estadoEKF.X;
+        doc["ekf_y"] = estadoEKF.Y;
+        doc["ekf_v"] = estadoEKF.v;
+        doc["ekf_theta"] = estadoEKF.theta;
+        doc["ekf_theta_deg"] = estadoEKF.theta * 57.2957f;
+        doc["ekf_omega_bias"] = estadoEKF.omega_bias;
+        doc["ekf_ax"] = estadoEKF.ax;
+
+        // 3. Variáveis de Posição / Mapeamento
+        doc["gps_valid"] = gpsValido;
+        doc["lat"] = gpsValido ? GPS::getLatitude() : 0.0;
+        doc["lon"] = gpsValido ? GPS::getLongitude() : 0.0;
+
+        // Envia TODOS os dados unificados na mesma função MQTT (Tópico Telemetria Geral)
+        mqtt.publicar_telemetria(doc, mqtt.topico_telemetria);
     }
 
     // ==========================================

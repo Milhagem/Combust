@@ -43,5 +43,5 @@ class Gerenciador_MQTT {
     void Gerenciar_MQTT();
     void conectar_mqtt();
     void iniciarTaskMQTT();// teste
-    void publicar_telemetria(float* dados,const char** Nome_dados,size_t quantidade_dados, const char* topico);
+   void publicar_telemetria(const JsonDocument& doc, const char* topico);
     };       
