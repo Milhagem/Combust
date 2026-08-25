@@ -15,6 +15,9 @@ void Callback::carregarParametrosIniciais() {
     Motor::POS_SERVO_PARTIDA    = pref.getInt("pos_partida", 1000);
     Motor::POS_SERVO_FECHADA    = pref.getInt("pos_fechada", 500);
 
+    BSFC::kpTun = pref.getFloat("bsfc_kp", 0.0f);
+    BSFC::kiTun = pref.getFloat("bsfc_ki", 0.8f);
+    BSFC::passoMaxTun = pref.getInt("bsfc_passo_max", 30);
     pref.end();
 }
 
@@ -74,6 +77,27 @@ void Callback::processarMensagem(byte* payload, unsigned int length, PubSubClien
         if (v != Motor::POS_SERVO_FECHADA) { Motor::POS_SERVO_FECHADA = v; pref.putInt("pos_fechada", v); alterou = true; } 
     }
 
+    // ==========================================
+    // 3. PARÂMETROS BSFC
+    // ==========================================
+
+
+    if(doc["bsfc_kp"].is<float>()) { 
+        float v = doc["bsfc_kp"].as<float>(); 
+        if (v != BSFC::kpTun) { BSFC::kpTun = v; pref.putFloat("bsfc_kp", v); alterou = true; } 
+    }
+
+    if(doc["bsfc_ki"].is<float>()) { 
+        float v = doc["bsfc_ki"].as<float>(); 
+        if (v != BSFC::kiTun) { BSFC::kiTun = v; pref.putFloat("bsfc_ki", v); alterou = true; } 
+    }
+
+
+    if(doc["bsfc_passo_max"].is<int>()) { 
+        int v = doc["bsfc_passo_max"].as<int>(); 
+        if (v != BSFC::passoMaxTun) { BSFC::passoMaxTun = v; pref.putInt("bsfc_passo_max", v); alterou = true; } 
+    }
+
     pref.end();
 
     // ==========================================
@@ -84,7 +108,7 @@ void Callback::processarMensagem(byte* payload, unsigned int length, PubSubClien
     char feedback[350]; 
     
     snprintf(feedback, sizeof(feedback),
-             "{\"status\":\"%s\",\"vel_min\":%.2f,\"vel_max\":%.2f,\"rpm_alvo\":%.2f,\"tps_alvo\":%.2f,\"modo_ctrl\":%d,\"pos_ini\":%d,\"pos_partida\":%d,\"pos_fechada\":%d}",
+             "{\"status\":\"%s\",\"vel_min\":%.2f,\"vel_max\":%.2f,\"rpm_alvo\":%.2f,\"tps_alvo\":%.2f,\"modo_ctrl\":%d,\"pos_ini\":%d,\"pos_partida\":%d,\"pos_fechada\":%d,\"bsfc_kp\":%.2f,\"bsfc_ki\":%.2f,\"bsfc_passo_max\":%d}",
              statusStr, 
              StartStop::velocidadeMinima,
              StartStop::velocidadeMax,
@@ -93,7 +117,11 @@ void Callback::processarMensagem(byte* payload, unsigned int length, PubSubClien
              StartStop::modoControle,
              ServoMotor::posInicialServo,
              Motor::POS_SERVO_PARTIDA,
-             Motor::POS_SERVO_FECHADA);
+             Motor::POS_SERVO_FECHADA,
+             BSFC::kpTun,
+             BSFC::kiTun,
+             BSFC::passoMaxTun);
+
 
     client.publish(topico_feedback, feedback);
 }
